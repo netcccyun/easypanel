@@ -1,0 +1,55 @@
+<html>
+<head>
+<script language='javascript' src='/style/jquery.js'>
+</script>
+<script language='javascript'>
+var session='{{$session}}';
+function ReplaceAll(strOrg,strFind,strReplace)
+{
+        var index = 0;
+        while(strOrg.indexOf(strFind,index) != -1)
+        {
+                strOrg = strOrg.replace(strFind,strReplace);
+                index = strOrg.indexOf(strFind,index);
+        }
+        return strOrg
+}
+function check_result(result)
+{
+	var out = result['out'];
+	out = ReplaceAll(out," ","&nbsp;");
+	out = ReplaceAll(out,"\n","</br>");
+	$('#out').append(out);
+	whm_result(result['code']);
+}
+function whm_query()
+{
+	//document.writeln('<a href="?c=shell&a=query&session=' + session +'">view</a>');
+	$.getJSON('?c=shell&a=query&session=' + session,check_result);
+}
+function whm_result(code)
+{	
+	$('#status').empty();
+	if (code==201) {
+		$('#status').append("<img src='/style/busy.gif' border='0'/>");
+		setTimeout(whm_query,2000);
+	} else if(code==200) {
+		$('#status').append('完成');	
+	} else {
+		$('#status').append('执行错误:'+code);
+	}
+}
+$(document).ready(function(){
+	var code={{$code}};
+	whm_result(code);
+});
+</script>
+</head>
+<body>
+<div id='shell'>
+	<div id='out'>{{$out}}</div>
+	<div id='status'></div>
+	<div id='toolbox'></div>
+</div>
+</body>
+</html>

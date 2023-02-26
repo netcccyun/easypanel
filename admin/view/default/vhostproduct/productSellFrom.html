@@ -1,0 +1,97 @@
+{{include file='common/head.html'}}
+<script language='javascript' src='{{$PSTATIC}}/style/common.js'></script>
+<script language='javascript'>
+function show(url) 
+{ 
+	window.open(url,'','height=100,width=250,resize=no,scrollbars=no,toolsbar=no,top=200,left=200');
+}
+function check_user_old()
+{
+	show('?c=product&a=check&product_type=vhost&name='+document.nodeform.name.value);
+}
+function check_register()
+{
+	if(nodeform.name.value.length<3){
+		alert('用户名长度最小为3个字母');
+		return false;
+	}
+	if(nodeform.name.value=='root'){
+		alert('root为保留账号，请选择其他账号');
+		return false;
+	}
+	return nodeform.submit();
+}
+
+function product_input()
+{
+	document.getElementById("product").style.display="inline";
+}
+function check_user_result()
+{
+	if (xmlhttp.readyState==4) {
+		var msg='';
+		var ret=0;
+		try{	
+			if(xmlhttp.status == 200){
+				var dataArray=xmlhttp.responseXML.getElementsByTagName('result');
+				ret = dataArray[0].getAttribute('ret');
+				if(ret=='1'){
+					msg="用户名可用";
+					document.getElementById('check_user_result').innerHTML=msg;
+					return;
+				}else{
+					msg="用户名不可用";
+					document.getElementById('check_user_result').innerHTML=msg;
+					return;
+				}
+			}
+		}catch(e){alert(e)}
+	}
+}
+function check_user(va)
+{
+	if(va==""){
+		return false;
+	}
+	var url='?c=vhostproduct&a=ajaxCheckUser&name='+va;
+	ajax_open_url(url,check_user_result);
+}
+</script>
+<div align="center" id='product'>
+
+	<form name='nodeform' action="?c=product&a=sell&product_id={{$product_id}}" method="post">
+	
+		<div class="head_block tb_wid4">&nbsp;新增网站</div>
+		
+		<div class="block tb_wid4">
+		
+			<table id="table_2"   cellpadding="1" cellspacing="1">
+			
+				<tr>
+				<td class="td_bgc right_2">网站名：</td>
+				<td class="td_bgc right_2"><input name="name" type="text" id="name"   onblur="check_user(this.value)" >
+					<font color='red' id='check_user_result'>*必填</font>					
+				  </td>
+				</tr>
+				    
+				<tr>
+				<td class="td_bgc right_2" >密码:</td>
+				<td class="td_bgc right_2"><input name='passwd' type="password" id="passwd"/>
+					<font color='red' >*必填</font>	
+				</td>     
+				</tr> 
+				
+				<tr>
+				<td class="td_bgc td_hg" colspan="2" align="center">
+				<input type="button" onClick="check_register()" value="确定"></td>
+			 	</tr>
+			 	
+ 	 		 </table>
+ 	  
+ 	  </div>
+ 	  
+	</form>
+	
+</div>
+			
+{{dispatch c='index'  a='foot'}}

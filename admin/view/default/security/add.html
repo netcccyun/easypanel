@@ -1,0 +1,64 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+	var msg = "{{$msg}}";
+	$(document).ready(function() {
+		if (msg != '') {
+			art.dialog({content : msg,top : '10%',title:"",lock:true});
+		}
+	})
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：安全设置</div>
+		<form name='nodeform' action="?c=security&a=add" method="post">
+			<table class="table" cellpadding="0" cellspacing="1">
+				<!-- 
+							<tr>
+					<td style="width:200px">允许登陆IP:</td>
+					<td style="width:auto"><input name="allow_login_ip" style="width:400px;" value="{{if $setting.allow_login_ip}}{{$setting.allow_login_ip}}{{/if}}">*空为不限,多个用逗号(,)连接</td>
+				</tr>
+				<tr>
+					<td>允许登陆时间:</td>
+					<td><input name="allow_login_time" style="width:400px;" value="{{if $setting.allow_login_time}}{{$setting.allow_login_time}}{{/if}}">*空为不限,例:1,2,3</td>
+				</tr>
+				-->
+				<tr>
+					<td>管理员登陆是否图片码验证:</td>
+					<td>
+					<input name="admin_login_img" type='radio' value="1" {{if $setting.admin_login_img==1}}checked{{/if}}>是 <input name="admin_login_img"
+						type='radio' value="0" {{if $setting.admin_login_img!=1}}checked{{/if}}>否
+						<span style="margin-left:60px;">图片字数<input name="admin_login_img_sum" type='text' value="{{if $setting.admin_login_img_sum}}{{$setting.admin_login_img_sum}}{{else}}6{{/if}}">
+						</span>
+						</td>
+				</tr>
+				<tr>
+					<td>用户登陆是否图片码验证:</td>
+					<td>
+					<input name="vhost_login_img" type='radio' value="1" {{if $setting.vhost_login_img==1}}checked{{/if}}>是 <input name="vhost_login_img"
+						type='radio' value="0" {{if $setting.vhost_login_img!=1}}checked{{/if}}>否
+						<span style="margin-left:60px;">图片字数<input name="vhost_login_img_sum" type='text' value="{{if $setting.vhost_login_img_sum}}{{$setting.vhost_login_img_sum}}{{else}}6{{/if}}">
+						</span>
+						</td>
+				</tr>
+				
+
+				<tr>
+					<td class="td_hg" colspan="2" align="center"><input class="btn" style="margin-left:200px;" type="submit" value="确认提交"></td>
+				</tr>
+				<tr>
+					<td colspan="2"><b>{{if is_https()}}<a href="javascript:change_https(0)">使用HTTP访问面板</a>{{else}}<a href="javascript:change_https(1)">使用HTTPS访问面板</a>{{/if}}</b></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+<script>
+function change_https(status){
+	if(status == 1){
+		top.location.href='https://'+top.location.hostname+':4412'+top.location.pathname;
+	}else{
+		top.location.href='http://'+top.location.hostname+':3312'+top.location.pathname;
+	}
+}
+</script>
+{{dispatch c='index' a='foot'}}

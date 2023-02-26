@@ -1,0 +1,45 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+function migrate(val)
+{
+	$('#type').val(val);
+	nodeform.submit();
+}
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：其它设置 --> 数据迁移</div>
+	</div>
+	
+	<div class="wid_main mar_main" align="left" id='migrate'>
+		<form name='nodeform' action="?c=migrate&a=add" method="post">
+		<table class="table" cellpadding="0" cellspacing="1">
+			<thead>
+			<tr>
+				<td style="width:200px;"><b>数据迁移设置</b></td>
+				<td style="width:auto"></td>
+			
+			</tr>
+			</thead>
+			<tbody>
+			<tr><td >源服务器IP:</td><td><input name="migrate_host" type="text" size='16' value="{{$session.migrate_host}}"></td></tr>
+				
+			<tr><td>源服务器安全码:</td><td><input name="migrate_skey" type="text" size='16' value="{{$session.migrate_skey}}"></td></tr>
+			<tr><td >虚拟主机前缀:</td><td><input name="migrate_prefix" type="text" size='16' value="{{$session.migrate_prefix}}"></td></tr>
+			<tr><td >迁移后的空间UID是否变更:</td><td><input name="migrate_change_uid" type="checkbox"  value="1" {{if $session.migrate_change_uid==1}}checked{{/if}}></td></tr>
+			
+			<tr><td >忽略日志文件:</td><td><input name="migrate_nolog" type="checkbox"  value="1" {{if $session.migrate_nolog!=0}}checked{{/if}}></td></tr>
+			<tr><td colspan="2"><font color='red'>注：只能迁移相同的系统,例:linux迁移到linux系统，或windows迁移到windows</font>
+			<tr><td  colspan="2" align="center"><span style="margin-left:200px;">
+				<input type='hidden' name='type' id='type' value=''>
+				<input type="button"  onclick='migrate(1);' class="btn" value="迁移产品">
+				<input type="button"  onclick='migrate(2);' class="btn" value="迁移虚拟主机">
+				</span>
+				</td></tr>
+			</tbody>
+		</table>
+		</form>
+	</div>
+</div>
+
+{{dispatch c='index'  a='foot'}}

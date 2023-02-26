@@ -1,0 +1,37 @@
+{{if $msg}}
+<div align="center">
+<div class="block tb_wid2 mar_top" align="center"> 
+ <font color='red'>{{$msg}}</font>
+</div>
+</div>
+{{/if}}
+<div><br /></div>
+<div align="center">
+	<div class="block tb_wid2">
+		<table id="table_2" cellpadding="0" cellspacing="1">
+			{{foreach item=e from=$env}}
+			<form action='?c=tplenv&a=setEnv' method='post'>
+			<tr>	
+				<td class="td_bgc right_2">{{$lang[$e.name]}}</td>
+				<td class="td_bgc right_2">
+					<input type='hidden' name='name' value='{{$e.name}}'/>
+					{{if $e.value.0=='TEXT'}}	
+					<input type='text' name='{{$e.name}}' value='{{if !$e.password}}{{$val[$e.name]}}{{/if}}'>		
+					{{else if $e.value.0=='RADIO'}}
+					{{foreach item=v from=$e.value.1}}
+					<input type='radio' name='{{$e.name}}' {{if $val[$e.name]==$v.1}}checked{{/if}} value='{{$v.1}}'>
+					{{$lang[$v.0]}}
+					{{/foreach}}					
+					{{else if $e.value.0=='CHECKBOX'}}
+					CHECKBOX
+					{{/if}}
+				</td>
+				<td class="td_bgc right_2 ">
+					<input type='submit' value='设置'>
+				</td>
+			</tr>
+			</form>
+			{{/foreach}}
+		</table>
+	</div>
+</div>

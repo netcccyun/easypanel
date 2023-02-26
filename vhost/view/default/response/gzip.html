@@ -1,0 +1,37 @@
+<script type="text/javascript">
+	//var s = "此功能将服务器数据压缩后发送给浏览者，这将有助于提高您的网页打开速度.";
+	//	alert(s);
+	function submit() {
+		var gzip = $("#gzip").val();
+		$.get("?c=response&a=addGzip&gzip=" + gzip, function(data) {
+			alert(data);
+		});
+	}
+	function del() {
+		var r = confirm("确认删除该项设置？");
+		if (r == false)
+			return;
+		$.get("?c=response&a=delGzip", function(data) {
+			alert(data);
+		});
+	}
+</script>
+
+<div class="main">
+    <div class="public_pa">开启页面Gzip压缩</div>
+<table class="table" style="margin:14px 0" cellpadding="0" cellspacing="1">
+	<form action='javascript:submit();' method='post'>
+	<thead>
+	    <tr>
+		    <th style="border:0" colspan="2">注：此功能将服务器数据压缩后发送给浏览者，这将有助于提高您的网页打开速度！</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border:0">匹配Content-Type：<input name='gzip' id='gzip' value='(text/css)|(text/ht*)|(javascript)' />&nbsp;注：支持正则表达式，如果不熟悉设置，默认即可！</td>
+			<td style="border:0"><input type='submit' value='开启' class="btn btn-warning" />&nbsp;&nbsp;<input type="button" onclick="javascript:del();" value="清除设置" class="btn btn-primary" /></td>
+		</tr>
+	</tbody>
+	</form>
+</table>
+</div>

@@ -1,0 +1,61 @@
+<script language='javascript' src='{{$STATIC}}js/speed.js'></script>
+<script language='javascript'></script>
+
+<div class='pro_msg' style="display: none" id='msg'></div>
+
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">带宽限制</div>
+	<form action='?c=speed&a=speedAdd' method='post' name='from'>
+		<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+			<tr>
+				<td style="text-align:center;border:0">
+				 {{if $at==0}} 
+				 <a href="javascript:speed_checkon(1)" title='开启功能'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+		         {{else}} 
+				 <a href="javascript:speed_checkon(2)" title='禁用功能'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+		         {{/if}}
+				</td>
+				<td style="border:0">
+				     <select name='mode' id='mode' onchange='piao_msg(this.value);' class="span2">
+						 <option value="speed_limit">每个请求限制</option>
+						 <option value="ip_speed_limit">每IP限制</option>
+						 <option value='gspeed_limit'>分组限制</option>
+				     </select>&nbsp;&nbsp;&nbsp;&nbsp;
+				 带宽：<input name="limit" class="span2" id='limit' />&nbsp;KB/秒&nbsp;&nbsp;&nbsp;&nbsp;
+				 目录：<input name='path' value='可为空' onfocus='check_onfocus_value(this.id)' onblur='check_onblur_value(this.id)' id='path' class="span3" />&nbsp;&nbsp;&nbsp;&nbsp;
+				 <input type='button' value='增加' onclick='speed_add();' class="btn btn-warning" />
+				</td>
+			</tr>
+		</table>
+	</form>
+
+	<table class="table table-bordered" style="border-top:1px solid #bbb" cellpadding="0" cellspacing="1">
+	    <thead>
+		<tr>
+			<th style="border-left:0">操作</th>
+			<th>限制模式</th>
+			<th>限制带宽</th>
+			<th>目录</th>
+		</tr>
+		</thead>
+		{{foreach from=$sp item=row}}
+		<tbody>
+		<tr>
+			<td style="border-left:0"><a href="javascript:speed_del({{$row.id}})">删除</a></td>
+			<td>{{if $row.mode=='s'}}每个请求限制{{elseif
+				$row.mode=='i'}}每IP限制{{else}}分组限制{{/if}}</td>
+			<td>{{$row.limit/1024}}KB/秒</td>
+			<td>{{$row.path}}</td>
+		</tr>
+		</tbody>
+		{{/foreach}}
+	</table>
+</div>
+
+	<div id='script'></div>
+
+<script language='javascript'>
+//document.getElementById("path").defaultValue='';
+from.limit.focus();
+document.from.path.style.color="#999999"
+</script>

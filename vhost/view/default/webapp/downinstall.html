@@ -1,0 +1,148 @@
+<script language='javascript' src='{{$PSTATIC}}/style/common.js'>
+</script>
+<script language='javascript'>
+var xmlhttp2=new Array();
+var checkDownInterval = 0;
+var checkInstallInterval = 0;
+var phy_dir = null;
+var install_url = null;
+var install_id = 0;
+function checkInstallResult()
+{
+	var msg='';
+	if (xmlhttp2.readyState==4) {
+		try{
+			//alert(xmlhttp2.responseText);
+			if(xmlhttp2.status == 200){
+				var dataArray = xmlhttp2.responseXML.getElementsByTagName('result');
+				code = dataArray[0].getAttribute('code');
+				//alert(code);
+				if(code==201){
+					setTimeout("checkInstall()",2000);
+					//msg = '正在复制数据...请等待';
+				}else if (code==200) {
+					msg='复制数据完成.';
+					if(install_url){
+						msg += '[<a href="'+ install_url +'" target="_blank">点这里继续运行安装程序</a>]';
+					}
+					msg += '[<a href="?id=';
+					msg += install_id + '">点这里返回</a>]';					
+					$('msg').innerHTML = msg;
+				}else{
+					msg = "复制数据出错,错误号=" + code;
+					$('msg').innerHTML = msg;
+				}
+			
+			}
+		}catch(e){
+			msg='有问题,请联系管理员.';
+			$('msg').innerHTML = msg;
+			alert(xmlhttp2.responseText);
+		}
+	}
+}
+function installResult(node)
+{
+	var msg='';
+	if (xmlhttp2.readyState==4) {
+		try{			
+			if(xmlhttp2.status == 200){
+				//alert(xmlhttp2.responseText);
+				var dataArray = xmlhttp2.responseXML.getElementsByTagName('result');
+				code = dataArray[0].getAttribute('code');
+				if (code==200) {
+					//msg='复制数据完成.';
+					install_url = dataArray[0].getAttribute('install');
+					install_id = dataArray[0].getAttribute('id');
+					phy_dir = dataArray[0].getAttribute('phy_dir');
+					setTimeout("checkInstall()",3000);
+				}else{
+					msg = dataArray[0].getAttribute('msg');
+				}
+				//$('msg').innerHTML = msg;
+			}		
+		}catch(e){
+			msg='有问题,请联系管理员.';
+			$('msg').innerHTML = msg;
+			alert(xmlhttp2.responseText);
+		}
+	}
+}
+function ajaxInstall()
+{
+	var url = '?c=webapp&a=ajaxInstall&appid={{$appid}}&appname={{$appname}}&appver={{$appver}}&domain={{$domain}}&dir={{$dir}}&id={{$id}}';
+	var node = 'msg';
+	xmlhttp2 = create_xmlhttp();	
+	xmlhttp2.open("GET",url,true);
+	xmlhttp2.onreadystatechange=function (){
+		installResult(node);
+	};
+	xmlhttp2.send(null);
+}
+function checkResult()
+{
+	var msg='';
+	if (xmlhttp2.readyState==4) {
+		try{
+			if(xmlhttp2.status == 200){		
+				var dataArray = xmlhttp2.responseXML.getElementsByTagName('result');				
+				code = dataArray[0].getAttribute('code');
+				if(code==200){
+					//clearInterval(checkDownInterval);
+					msg='下载完成,正在复制数据...';
+					$('msg').innerHTML = msg;
+					ajaxInstall();
+				}else if(code==201){
+					var total = dataArray[0].getAttribute('total');
+					var finished = dataArray[0].getAttribute('finished');
+					var percent = Math.floor(finished*100/total);
+					msg='&nbsp;&nbsp;正在下载中...总大小:'+total+',已完成:'+percent+'%';
+					setTimeout("checkDownload()",2000);
+				}else{
+					msg='下载出错';
+				}
+			}
+			$('msg').innerHTML = msg;
+		}catch(e){
+			msg='有异常，请重新安装过.';
+			$('msg').innerHTML = msg;
+			alert(xmlhttp2.responseText);
+		}
+	}
+}
+function checkInstall()
+{
+	var url = '?c=webapp&a=ajaxCheckAppinstall&op=install&appid={{$appid}}&phy_dir=' + phy_dir + '&id=' + install_id;
+	var node = 'msg';
+	xmlhttp2 = create_xmlhttp();	
+	xmlhttp2.open("GET",url,true);
+	xmlhttp2.onreadystatechange=function (){
+		checkInstallResult();
+	};
+	xmlhttp2.send(null);
+}
+function checkDownload()
+{
+	var url = '?c=webapp&a=ajaxCheckDownload&appid={{$appid}}';
+	var node = 'msg';
+	xmlhttp2 = create_xmlhttp();	
+	xmlhttp2.open("GET",url,true);
+	xmlhttp2.onreadystatechange=function (){
+		checkResult();
+	};
+	xmlhttp2.send(null);
+}
+setTimeout("checkDownload()",2000);
+//alert(checkDownInterval);
+</script>
+<div class="main">
+    <div class="public_pa">&nbsp;&nbsp;程序安装</div>
+<p>
+<div id='msg'>&nbsp;&nbsp;正在下载中...</div>
+</p>
+</div>
+
+
+
+
+

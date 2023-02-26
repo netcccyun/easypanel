@@ -1,0 +1,242 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+function hidediv()
+{
+	var n = $("#migrate").css('display');
+	if ( n != 'none') {	
+		$("#migrate").hide();
+		$("#hid").html('显示');
+	}else{
+		$("#migrate").show();
+		$("#hid").html('隐藏');
+	}
+}
+function ReplaceAll(strOrg,strFind,strReplace)
+{
+        var index = 0;
+        while(strOrg.indexOf(strFind,index) != -1)
+        {
+                strOrg = strOrg.replace(strFind,strReplace);
+                index = strOrg.indexOf(strFind,index);
+        }
+        return strOrg
+}
+var cur_session;
+var cur_vh = 0;
+var cur_step = 1;
+var vhs;
+var run_status = 0;
+var run_code = 0;
+var run_vh = null;
+var error_count = 0;
+var msg = new Array();
+var last_line = '';
+var total_step = 7;
+var total_line = 20;
+function migrate()
+{
+	hidediv();
+	$("#status").html("");
+	$("#out").html("");
+	if (run_status != 0)
+	{
+		alert("请勿重复执行");
+		return;
+	} 
+	run_status = 1;
+	vhs = new Array();
+	$(":checked").each(function(index,dom){
+		 if (this.name=='vh') {
+			vhs.push(this.value);
+		 }			
+	 });
+	 //alert(vhs);
+	 cur_vh = 0;
+	 cur_step = 1;
+	 if (vhs.length>0) {
+	 	migrate_vh(vhs[cur_vh],cur_step);
+	 }
+}
+function migrate_vh(vh,step)
+{
+	
+	var progress = vh + '(' + cur_step + '/' + total_step + ') ' + (cur_vh+1) + '/' +vhs.length;
+	$('#progress').html(progress);
+
+	$('#status').append("<img src='/style/busy.gif' border='0'/>");
+ 	$.ajaxSetup({
+        error:function(x,e){
+        //TODO:提示出错，让用户选择重试还是放弃,重试，migrate_vh(vh,step)
+	 	   var r = confirm('迁移' + vh + '出错，继续下一个还是停止?');
+	 	   if (r != false) {
+	 		  	cur_step = total_step;
+	 		 	next_migrate();
+	 	   }else{
+           		return false;
+	 	   }
+        }
+    });
+ 	var url = '?c=migrate&a=migrate&vh=' + vh + '&step=' + step;
+	run_code = 0 ;
+	cur_session = null;
+	$.getJSON(url,function(ret) {
+		//alert(ret);
+		var code = ret['code'];
+		var msg = ret['out'];
+		if (code != 200) {
+			push_line(cur_step + ' 步执行错误:' + msg);
+			next_migrate();
+			return;
+		}
+		var session = msg;
+		if (session != null) { 
+			if (cur_step >= total_step) {
+				next_migrate();
+			} else {
+				cur_session = session;
+				whm_query();
+			}	
+		} else {
+			push_line(cur_step + ' 步执行错误:' + msg);
+			next_migrate();
+		}
+	});
+}
+
+function next_migrate()
+{
+	run_code = 0 ;
+	$('#status').empty();	
+	if (cur_step < total_step) {
+		cur_step++;		
+		migrate_vh(vhs[cur_vh],cur_step);
+		return;
+	}
+	cur_step = 1;
+	cur_vh++;
+	if (cur_vh >= vhs.length) {
+		run_status = 0;
+		$('#status').append('<p>全部完成</p>');
+		return;
+	}	
+	migrate_vh(vhs[cur_vh],cur_step);	
+}
+function convert_line(line)
+{
+	return ReplaceAll(line," ","&nbsp;");
+}
+function push_line(line)
+{	
+	var patten = new Array('Extracting ','Compressing ','..........');
+	if (msg.length>0) {
+		var last_index = msg.length - 1;
+		var last = msg[last_index];
+		//alert(last);
+		for(j=0;j<patten.length;j++){
+			if(last.indexOf(patten[j])>=0) {
+				if(line.indexOf(patten[j])>=0) {
+					msg[last_index] = line;
+					return;
+				}
+			}
+		}
+	}
+	msg.push(line);
+}
+function check_result(result)
+{
+	//alert(result);
+	var out =  result['out'];
+	var tmp = out.split('\n');
+	for (i=0;i<tmp.length;i++) {
+		push_line(tmp[i]);
+	}
+	while (msg.length>total_line) {
+		msg.shift();
+	}
+	var str = '';
+	for (i=0;i<msg.length;i++) {
+		str += msg[i];
+		str += '<br>';
+	}
+	if (msg.length > 2){
+		$('#out').html(str);
+	}
+	whm_result(result['code']);
+}
+function whm_result(code)
+{	
+	//alert(code);
+	
+	if (code==201) {
+		//$('#runing').html(vhs[cur_vh] + ' ' + stepp[cur_step] + ' 正在执行中...code=' + code);
+		setTimeout(whm_query,1000);
+	} else if(code==200) {
+		//$('#end').append('<p>' + vhs[cur_vh] + ' ' + stepp[cur_step] + ' 完成</p>');
+		next_migrate();
+	} else {
+		run_code = code;
+		//$('#error').append('<p>' + vhs[cur_vh] + '' + stepp[cur_step] + '执行错误:' + code + '</p>');
+		next_migrate();
+	}
+}
+function whm_query()
+{
+	 $.ajaxSetup({
+         error:function(x,e){
+		 	setTimeout(whm_query,1000);
+            return false;
+         }
+     });
+	try {
+		$.getJSON('?c=migrate&a=whmQuery&session=' + cur_session + '&vh=' + vhs[cur_vh] + '&step=' + cur_step,check_result);
+	}catch(e){
+		alert(e);
+	}
+}
+function all_check()
+{ 
+	$(":input").each(function(index,dom){
+		if (this.name=='vh') {		
+			if($(this).attr('checked') =='checked') {
+				$(this).attr('checked',false);
+			} else {
+				$(this).attr('checked',true);
+			}
+		}
+	});
+	
+	/*
+	var c = $(":input").attr('checked');
+	if (c == 'checked') {
+		$(":input").attr('checked',false);
+	}else{
+		$(":input").attr('checked',true);
+	}
+	*/
+}
+</script>
+<div >{{$scr}}</div>
+<div class="wid_main mar_main" align="left" >
+	<div class="block_top" align="left">当前位置：其它设置 --> 数据迁移</div>
+	<div >
+		请选择要迁移的虚拟主机:
+		<table border=0>
+		<tr>
+		{{$i=-1}}
+		{{foreach from=$vhs item=row}}
+		{{$i=1+$i}}	{{if $i%10==0}}</tr><tr>{{/if}}
+		<td>
+		 	<input name='vh' type='checkbox' value="{{$row}}">{{$row}}
+		 </td>
+		{{/foreach}}
+		</tr>
+		</table>
+		<div><input type='button' onclick="all_check();" value='全选/反选'>&nbsp;&nbsp;<input type='submit' onclick="migrate();" value="开始迁移"></div>
+		<div id='progress'></div>
+		<div id='out'></div>
+		<div id='status'></div>
+	</div> 
+</div>
+
+{{dispatch c='index'  a='foot'}}

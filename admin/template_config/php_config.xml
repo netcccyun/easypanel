@@ -1,0 +1,49 @@
+<!--#start 61-->
+<config>
+{{if $win}}
+<api name='php52' file='%{config_dir}\php5isapi.dll' type='pmt' life_time='60'>
+<pre_event src_file='%{config_dir}\php-templete.ini' dst_file='c:\windows\php.ini'/>
+</api>
+<cmd name='php52' proto='fastcgi' file='"%{config_dir}\php-cgi.exe"' type='mp' life_time='0'>
+<pre_event src_file='%{config_dir}\php-templete.ini' dst_file='%{config_dir}\etc\php-${name}.ini'/>
+<env PHPRC='%{config_dir}\etc\php-${name}.ini'/>
+</cmd>
+<vhs  index='index.php'>
+<map file_ext='php' extend='{{$php_extend}}' allow_method='*'/>
+</vhs>
+{{else}}
+<listen ip='*' port='3312' type='http' />
+<listen ip='*' port='3313' type='http' />
+<unix_socket>1</unix_socket>
+<extends>
+<api name='php52' file='%{config_dir}/libphp5.so' type='pmt' life_time='60'>
+<env PHPRC='%{config_dir}/etc/php.ini'/>
+<pre_event src_file='%{config_dir}/etc/php-templete.ini' dst_file='%{config_dir}/etc/php.ini'/>
+</api>
+<vhs  index='index.php'>
+<map file_ext='php' extend='{{$php_extend}}' allow_method='*'/>
+</vhs>
+<cmd name='php52' file='%{config_dir}/bin/php-cgi' listen='local' lock='0' type='mp' proto='fastcgi'>
+<pre_event src_file='%{config_dir}/etc/php-templete.ini' dst_file='/tmp/php-${name}.ini'/>
+<env  PHPRC='/tmp/php-${name}.ini'/>
+</cmd>
+<cmd name='nodephp' file='%{config_dir}/bin/php-cgi' listen='local' lock='0' type='mp' proto='fastcgi'>
+<env PHP_FCGI_MAX_REQUESTS='0' PHPRC='%{config_dir}/etc/php-node.ini'/>
+</cmd>
+</extends>
+<vhs>
+<vh name='_webftp' doc_root='nodewww/webftp' index='index.html,index.php' app_share='0' inherit='off'>
+<map file_ext='php' extend='cmd:nodephp' allow_method='*'/>
+<port>3312</port>
+<host>*</host>
+</vh>
+<vh name='_dbadmin' doc_root='nodewww/dbadmin' index='index.html,index.php' app_share='0' inherit='off' user='#990' group='#990'>
+<map file_ext='php' extend='cmd:nodephp' allow_method='*'/>
+<port>3313</port>
+<host>*</host>
+</vh>
+{{/if}}
+<vh_templete name='php:php52' templete='html' index='index.php'>
+<map file_ext='php' extend='{{$php_extend}}' allow_method='*'/>
+</vh_templete>
+</config>

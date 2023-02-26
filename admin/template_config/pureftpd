@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# pureftpd
+#
+# chkconfig: - 85 15
+# description: pureftpd is a ftp server
+# processname: pureftpd
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+INITLOG_ARGS=""
+prog=pureftpd
+RETVAL=0
+start() {
+        echo -n $"Starting $prog: "
+        if [ ! -f /vhs/kangle/bin/pureftp_auth ] ; then
+                echo "/vhs/kangle/pureftp_auth not found"
+                exit;
+        fi
+        /vhs/pure-ftpd/sbin/pure-authd --daemonize -s /var/run/ftpd.sock -r /vhs/kangle/bin/pureftp_auth 
+	sleep 1
+        /vhs/pure-ftpd/sbin/pure-ftpd --daemonize -lextauth:/var/run/ftpd.sock {{$ftp_configs}} 
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ]
+        return $RETVAL
+}
+stop() {
+        echo -n $"Stopping $prog: "
+        killall pure-authd
+        killall pure-ftpd
+}
+
+# See how we were called.
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart)
+        stop
+	sleep 1
+        start
+        ;;
+  *)
+        echo $"Usage: $prog {start|stop|restart}"
+        exit 1
+esac
+
+exit $RETVAL

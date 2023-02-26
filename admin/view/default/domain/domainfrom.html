@@ -1,0 +1,26 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：服务器管理 --> 添加保留域名</div>
+		<form action='?c=domain&a=domainAdd' method='post'>
+		<table class="table" >
+			<tr>
+			<td style="width:400px">保留域名:&nbsp;<font color='red'>注：添加的域名用户将不能绑定&nbsp;</font><input name='domain_name' ></td>	
+			<td style="width:auto"><input type='submit' value='添加'></td>
+			</tr>
+		
+		</table>
+		</form>
+		
+		<table class="table" >
+		
+		{{foreach from=$domains item=row}}
+		<tr><td style="width:300px;">{{$row}}</td><td style="width:auto"><a href='?c=domain&a=domainDel&domain_name={{$row}}' onclick='window.location.reload();'>删除</a></td></tr>
+		{{/foreach}}
+		
+		</table>
+	</div>
+</div>
+{{dispatch c='index'  a='foot'}}

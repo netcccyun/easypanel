@@ -1,0 +1,25 @@
+{{include file='common/head.html'}}
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<form name='nodeform' action="?c=views&a=viewsAdd" method="post">
+		<div class="block_top" align="left">当前位置：增加DNS线路</div>
+		<table class="table_public2 mar_top10" cellpadding="0" cellspacing="1">
+
+			<tr><td colspan="2" class="bg_main padd23"><b>增加线路</b></td></tr>
+		
+			<tr><td id="wid_main2" class="padd23">名称:</td>
+				<td class="padd23"><input name='name'>&nbsp;字母,数字的集合</td></tr>
+			
+			<tr><td id="wid_main2" class="padd23">描述:</td>
+				<td class="padd23"><input name='desc'>&nbsp;别名，如:江西电信</td></tr>
+				
+			<tr><td id="wid_main2" class="padd23">key:</td>
+				<td class="padd23"><input name='key'></td></tr>
+			
+			<tr><td colspan='2' align='center'><input type="submit" value="确认提交"></td></tr>
+
+		</table>
+		</form>
+	</div>
+</div>
+{{dispatch c='index'  a='foot'}}

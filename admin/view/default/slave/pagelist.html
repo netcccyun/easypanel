@@ -1,0 +1,135 @@
+{{include file='common/head.html'}}
+<script language='javascript' >
+function piao_slave_add()
+{
+	$("#msg").html("");
+	var msg = "<form name='slave' action='javascript:slave_add();' method='post'>";
+		msg += "<div class='piao_div_1'>服务器名称:</div><div class='piao_div_2'><input id='server' name='server' value='{{$server}}' ></div>";
+		msg += "<div class='piao_div_1'>服务器IP:</div><div class='piao_div_2' ><input name='slave' id='slave' > </div>";
+		msg += "<div class='piao_div_1'>NS:</div><div class='piao_div_2'><input id='ns' name='ns' ></div>";
+		msg += "<div class='piao_div_1'>安全码:</div><div class='piao_div_2'><input id='skey' name='skey' ></div>";
+		msg += "<div class='piao_submit'><input type='submit'  value='提交'><input type='button' value='关闭' onclick=close_piao('msg')></div>";
+		msg += "</form>";
+	$("#msg").append(msg);
+	document.getElementById("server").readOnly = true;
+	document.getElementById("msg").style.display = 'block';
+}
+function close_piao(id)
+{
+	document.getElementById(id).style.display = 'none';
+}
+function slave_add()
+{
+	var s = $("#server").val();
+	var sk = $("#skey").val();
+	var i = $("#slave").val();
+	var n = $("#ns").val();
+	$.ajax({
+		type:'get',
+		url:'?c=slave&a=slaveAdd',
+		data:'server=' + s +'&slave=' + i + '&ns=' + n + '&skey=' + sk,
+		success:function(msg) {
+			if (msg != '成功') {
+				return alert(msg);
+			}
+			window.location.reload();
+		}
+	});
+}
+function slave_del(s,sl)
+{
+	if (confirm("确定要删除?") === false) {
+		return;
+	}
+	$.ajax({
+		type:'post',
+		url: '?c=slave&a=slaveDel',
+		data:'server=' + s + '&slave=' + sl,
+		success:function(msg) {
+			if (msg != "成功") {
+				return alert(msg);
+			}
+			window.location.reload();
+		}
+	});
+}
+
+</script>
+<style type='text/css'>
+.piao_div_1 {
+	float:left;
+	width:100px;
+	padding-top:3px;
+}
+.piao_div_2 {
+	padding-top:3px;
+}
+.piao_submit {
+	padding-top:5px;
+	padding-left:50px;
+}
+.piao_slave{
+	position:absolute;
+	left:300px;
+	top:60px;
+	width:400px;
+	height:140px;
+	background-color:#104E8B;
+	text-align:center;
+	color:#FFFFFF;
+	font-size:16;
+	margin:15px;
+	padding:12px;
+}
+</style>
+
+<body bgcolor='#ffffff' text='#000000' leftmargin='0' topmargin='0'>
+<div id='msg' class='piao_slave' style='display:none'></div>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：域名辅服务器 -->辅服务器列表</div>
+		
+		<table class="table_public" cellpadding="0" cellspacing="1">
+			<tr><td colspan="8" class="bg_main"><a href='javascript:piao_slave_add();'><b>增加域名辅助服务器</b></a></td></tr>
+			
+			<tr id="bg_yellow">
+			<td>操作</td>	
+			<td>服务器名称</td>
+			<td>服务器IP</td>
+			<td>域名服务器(域名)</td>
+			<td>安全码</td>
+			</tr>
+			
+		{{foreach from=$list item=row}}
+			<tr><td >[<a href="javascript:slave_del('{{$row.server}}','{{$row.slave}}')" >删除</a>]</td>
+			<td>{{$row.server}}</td>
+			<td>{{$row.slave}}</td>
+			<td>{{$row.ns}}</td>
+			<td>{{$row.skey}}</td>
+			</tr>
+		{{/foreach}}
+				
+			<tr id="bg_yellow">
+			<td colspan="8" align="right">
+				{{if $page>1}}
+				<a href='?c=slave&a=slavesPageList&page=0'>首页</a> 
+				<a href='?c=slave&a=slavesPageList&page={{$page-1}}'>上一页</a> 
+				{{else}}
+				首页 上一页 
+				{{/if}}
+				{{if $page!=$total_page}} 
+				<a href='?c=slave&a=slavesPageList&page={{$page+1}}'>下一页</a>
+				<a href='?c=slave&a=slavesPageList&page={{$total_page}}'>尾页</a>
+				{{else}}下一页 尾页
+				{{/if}} 
+				{{$page}}/{{$total_page}}&nbsp;
+				共计{{$count}}记录&nbsp;
+			</td>
+			</tr>
+			
+		  </table>
+		</div>
+	
+	</div>
+	
+{{dispatch c='index'  a='foot'}}

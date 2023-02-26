@@ -1,0 +1,80 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+function echo_title(arr)
+{
+	alert(arr.id);
+}
+jQuery(document).ready(function(){
+	//jQuery("#add").append("<img class='bg_main arrow' src='{{$STATIC}}style/arrow.gif' border='0'>");
+	//jQuery("#add").addClass('decoration_blink');
+	var msg = '{{$msg}}';
+	if (msg != '') {
+		var success = '{{$success}}';
+		if (success != '') {
+			art.dialog({id:'successmsg',content:msg,icon:'succeed',time:3});
+		}else {
+			art.dialog({id:'successmsg',content:msg,icon:'error',time:3});
+		}
+			
+			
+	}
+});
+
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：网站管理 --> 产品列表</div>
+		<div class="add_prod"><a href="?c=vhostproduct&a=addProductFrom"><b id='add'><img src="{{$STATIC}}style/addprod.gif" border="0" alt="增加产品"/></b></a></div>
+		<table class="table" cellpadding="0" cellspacing="1">
+			<tr><td colspan="9" ><b>产品列表</b></td>
+				<td ><a href='http://wiki.kangleweb.com/Easypanel%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98#.E9.9D.A2.E6.9D.BF.E4.B8.AD.E7.9A.84.E4.BA.A7.E5.93.81.E5.88.97.E8.A1.A8.E6.9C.89.E4.BB.80.E4.B9.88.E7.94.A8.E5.A4.84' target=_blank><b class='red'>帮助?</b></a>
+				</tr>
+			<tr id="bg_yellow">
+				<td>操作</td>
+				<td>id</td>
+				<td>产品名称</td>
+				<td>空间(M)</td>
+				<td>数据库(M)</td>
+				<td>连接数</td>
+				<td>域名个数</td>	
+				<td>模块</td>						
+				<td>开通FTP</td>
+				<td>速度限制</td>						
+			</tr>
+			
+			{{foreach from=$list item=row}}
+			<tr><td>[<a href='javascript:if(confirm("确定要删除?")){ window.location="?c=vhostproduct&a=delProduct&id={{$row.id}}";}'>删除</a>]
+					[<a href='?c=vhostproduct&a=editproductForm&id={{$row.id}}'>修改</a>]
+					[<a href='?c=product&a=sellForm&product_id={{$row.id}}'>增加网站</a>] </td>
+				<td>{{$row.id}}</td>
+				<td>{{$row.product_name}}</td>
+				<td>{{$row.web_quota}}</td>
+				<td>{{$row.db_quota}}</td>
+				<td>{{if $row.max_connect==0}}不限{{else}}{{$row.max_connect}}{{/if}}</td>
+				<td>{{if $row.domain==-1}}不限{{else}}{{$row.domain}}{{/if}}</td>
+				<td>{{if $row.module}}{{$row.module}}{{else}}{{$row.templete}}{{if $row.subtemplete!=""}}:{{$row.subtemplete}}{{/if}}{{/if}}</td>
+				<td>{{if $row.ftp==1}}是{{else}}否{{/if}}</td>
+				<td>{{if $row.speed_limit==0}}不限{{else}}{{$row.speed_limit/1024}}KB/S{{/if}}</td></tr>
+			{{/foreach}}
+				
+			<tr id="bg_yellow">
+				<td colspan="10" align="right">
+					{{if $page>1}}
+					<a href='?c=vhostproduct&a=pageListProduct&page=0'>首页</a> 
+					<a href='?c=vhostproduct&a=pageListProduct&page={{$page-1}}'>上一页</a> 
+					{{else}}
+					首页 上一页 
+					{{/if}}
+					{{if $page!=$total_page}} 
+					<a href='?c=vhostproduct&a=pageListProduct&page={{$page+1}}'>下一页</a>
+					<a href='?c=vhostproduct&a=pageListProduct&page={{$total_page}}'>尾页</a>
+					{{else}}下一页 尾页
+					{{/if}} 
+					{{$page}}/{{$total_page}}&nbsp;
+					共计{{$count}}记录&nbsp;
+				</td>
+			</tr>
+		  </table>
+	</div>
+</div>
+{{dispatch c='index'  a='foot'}}

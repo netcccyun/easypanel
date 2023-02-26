@@ -1,0 +1,19 @@
+<!--#start 60 -->
+<!--#include etc/vh_db.xml  -->
+{{if $win}}
+<!--#include etc/dbadmin.xml  -->
+{{/if}}
+<config>
+<vhs>
+<api name='cron' file='bin/cron.{{$dso_ext}}'  life_time='60'></api>
+<env dev='{{$dev}}'/>
+<!-- old style -->
+<vh_templete name='html' inherit='0' fflow='1' index='index.html,index.htm' log_mkdir='1' logs_day='{{$setting.logs_day}}' log_rotate_time='0 0 * * *' log_file='/nolog' app_share='0'>
+<init_event event='vhost.whm:init_vh' />
+<destroy_event event='vhost.whm:destroy_vh'/>
+</vh_templete>
+<!-- new module style -->
+<vh_templete name='easypanel' inherit='0' fflow='1' log_mkdir='1' logs_day='{{$setting.logs_day}}' log_rotate_time='0 0 * * *' log_file='/nolog' app_share='0'>
+</vh_templete>
+</vhs>
+</config>

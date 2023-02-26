@@ -1,0 +1,64 @@
+
+<div class="main">
+    <div class="public_pa">
+		<b>单域名ssl证书设置 ({{if $ssl==1}}<font color='green'>状态成功</font>{{else}}<font
+			color=red>状态失败</font>{{/if}}) [<a
+			href='https://freessl.cn/' target='_blank'>ssl证书在线生成</a>]
+		</b>
+	</div>
+
+<form action='?c=index&a=domainSsl' method='post'>
+	<table class="table" cellpadding="0" cellspacing="1">
+		<tr>
+			<th colspan="2">此处是域名<font color="red">{{$domain}}</font>的SSL证书设置<input type="hidden" name="domain" id="domain" value="{{$domain}}"></td>
+		</tr>
+		<tr>
+			<td>ssl证书内容:</td>
+			<td><textarea name='certificate' cols=80 rows=8 class="span7">{{$certificate}}</textarea></td>
+		</tr>
+		<tr>
+			<td>ssl证书密钥内容:</td>
+			<td><textarea name='certificate_key' cols=80 rows=8 class="span7">{{$certificate_key}}</textarea></td>
+		</tr>
+		<tr>
+			<td colspan="2" style="padding-left:400px;"><input type='submit' value='提交' class="btn btn-primary"></td>
+		</tr>
+		{{if $ssl==1||$ssl_rewrite==1}}
+		<tr>
+			<td>HTTP跳转HTTPS:</td>
+			<td>
+				{{if $ssl_rewrite==0}}
+				<a href="javascript:ssl_checkon(1)" title='开启'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+				{{else}}
+				<a href="javascript:ssl_checkon(2)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+				{{/if}}
+			</td>
+		</tr>
+		{{/if}}
+		{{if $ssl==1||$http2==1}}
+		<tr>
+			<td>HTTP2:</td>
+			<td>
+				{{if $http2==0}}
+				<a href="javascript:http2_checkon(1)" title='开启'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+				{{else}}
+				<a href="javascript:http2_checkon(0)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+				{{/if}}
+			</td>
+		</tr>
+		{{/if}}
+	</table>
+</form>
+</div>
+<script>
+function ssl_checkon(val)
+{
+	var data = 'status=' + val + '&domain=' + $("#domain").val();
+	functoin_checkon('?c=index&a=domainSslRewrite',data);
+}
+function http2_checkon(val)
+{
+	var data = 'status=' + val;
+	functoin_checkon('?c=index&a=http2',data);
+}
+</script>

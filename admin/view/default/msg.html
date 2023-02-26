@@ -1,0 +1,24 @@
+{{include file='common/head.html'}}
+<!--  <body bgcolor='#ffffff' text='#000000' leftmargin='0' topmargin='0'>-->
+<script type='text/javascript'>
+var msg = '{{$msg}}';
+$(document).ready(function(){
+	if (msg != '') {
+		//art.dialog({id:'id22',content:msg,icon: 'face-smile',left:'50%',top:'20%'});
+	}
+})
+</script>
+
+<div align="center">
+	<div id="xsnazzy">
+			<b class="xtop"><b class="xb1"></b><b class="xb2"></b><b class="xb3"></b><b class="xb4"></b></b>
+				<div class="xboxcontent" align="center">
+ 					<font color='red'>{{$msg}}</font>
+				</div>
+			<b class="xbottom"><b class="xb4"></b><b class="xb3"></b><b class="xb2"></b><b class="xb1"></b></b>
+
+	</div>
+</div>
+</body>
+</html>
+

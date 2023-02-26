@@ -1,0 +1,98 @@
+{{include file='common/head.html'}}
+<style>
+.zip{
+	position:absolute;
+	background-color:#104E8B;
+	border-radius: 10px;
+}
+.zip_div {
+	margin:30px;
+	background-color:#F5DEB3;
+	overflow:auto;
+	border-radius: 10px;
+	text-align:left;
+	padding-left:50px;
+}
+</style>
+<script type='text/javascript'>
+var dir = '{{$dir}}';
+//var cmd = '{{$cmd}}';
+function show_vhost()
+{
+	if (confirm("恢复单个网站必需是已经存在的账号，并且有数据库需创建好数据库")=== false) {
+		return ;
+	}	
+	$.ajax({
+		url:'?c=backup&a=getVhosts',
+		dataType:'json',
+		success:function(ret) {
+			var vhs = ret['vhs'];
+			var count = ret['count'];
+			if (count > 0) {
+				var z = document.getElementById('zip');
+				var zd = document.getElementById('zip_div');
+				if (z == null) {
+					return alert('id=zip的div不存在');
+				}
+				$("#zip_div").html("");
+				var height = 50 + (ret['count'])* 25;
+				if (height > 540) {
+					height = 540;
+				}
+				z.style.height = height + 60 + 'px';
+				zd.style.height = height + 'px';
+				z.style.width = 300+'px';
+				var wid = parseInt(z.style.width);
+				z.style.left = 300 + 'px';
+				z.style.top = 60;
+				var zstr = '';
+				zstr += "<p class='red'><a href='javascript:close_zip();'>关闭</a>";
+				zstr += "<p></p>";
+				zzstr = zstr;
+					for (var i in vhs) {
+						zstr += "<p><a href=?c=backup&a=restore&dir=" + dir + "&vhost=" + vhs[i]['name'] +">" + vhs[i]['name'] +"</a></p>";
+					}
+				
+				$("#zip_div").html(zstr);
+				z.style.display = 'block';
+			}else {
+				alert("没有网站");
+			}
+		}
+		
+	});
+	
+}
+function close_zip()
+{
+	$("#zip_div").val("");
+	$("#zip").hide();
+}
+
+
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left" id='restore'>
+		<div class="block_top" align="left">当前位置：其它设置 --> 自动恢复向导</div>
+			{{if $listdir}}
+				<table  class="table_public" cellpadding="0" cellspacing="1">
+					<tr><td colspan="3" class="bg_main"><b>自动恢复</b></td></tr>
+						{{for $i=0;$i < count($listdir);$i++}}
+						<tr><td>
+						<a href='?c=backup&a=restore&dir={{$listdir[$i]}}'>{{$listdir[$i]}}</a>
+						</td>
+						<td>{{substr($listdir[$i],0,4)}}-{{substr($listdir[$i],4,2)}}-{{substr($listdir[$i],6,2)}}
+						{{if substr($listdir[$i],-1)!='f'}}.{{intval(substr($listdir[$i],9))}}H{{/if}}
+						
+						<td>
+							{{if substr($listdir[$i],-1)=='f'}}全备份{{else}}增量备份{{/if}}
+						</td>
+						</tr>
+						{{/for}}
+				</table>
+			{{/if}}
+	</div>
+	<div id='cmd'>{{$cmd}}</div>
+</div>
+<div id='zip' class='zip' style='display:none'><div id='zip_div' class='zip_div'></div></div>
+{{dispatch c='index'  a='foot'}}

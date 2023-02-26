@@ -1,0 +1,52 @@
+<script language='javascript' src='{{$STATIC}}js/cache.js'></script>
+
+<div class='pro_msg' style="display: none" id='msg'></div>
+
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">缓存设置</div>
+	<form action='?c=cache&a=cacheAdd' method='post'>
+		<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+			<tr>
+			    <td style="text-align:center;border:0">
+					{{if $at==0}} 
+					<a href="javascript:chche_checkon(1)" title='开启功能'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+		            {{else}} 
+					<a href="javascript:chche_checkon(2)" title='禁用功能'><img src="{{$STATIC}}style/start_off.png" border="0" //></a>
+	            	{{/if}}
+				</td>
+				<td style="border:0">
+				     <select name='mode' id='mode' onchange='pro_msg(this.value);'>
+						 <option value="file_ext">文件扩展名</option>
+						 <option value="content-type">content-Type</option>
+						 <option value="url">网址</option>
+				     </select>&nbsp;&nbsp;&nbsp;&nbsp;
+				值：<input name="cache_value" size='32' id='cache_value' />&nbsp;&nbsp;&nbsp;&nbsp;
+				缓存时间：<input name='max_age' size='8' value='120' id='max_age' />&nbsp;秒&nbsp;&nbsp;&nbsp;&nbsp;
+				<input type='checkbox' name='static' value='1' id='static' />强制缓存&nbsp;&nbsp;&nbsp;&nbsp;
+				<input type='button' value='提交' onclick='cache_add();' class="btn btn-warning" />
+				</td>
+			</tr>
+		</table>
+	</form>
+	<table class="table table-bordered" style="border-top:1px solid #bbb" cellpadding="0" cellspacing="1">
+	<thead>
+		<tr>
+			<th style="border-left:0">操作</th>
+			<th >序列</th>
+			<th>设置名称</th>
+			<th>缓存时间</th>
+			<th>值</th>
+		</tr>
+	</thead>
+		{{foreach from=$header item=row}}
+		<tr>
+			<td style="border-left:0;width:60px;"><a href="javascript:cache_del({{$row.id}})">删除</a></td>
+			<td style="width:30px;">{{$row.id}}</td>
+			<td style="width:160px;">{{$row.name}}</td>
+			<td style="width:160px;">{{$row.max_age}} 秒 {{if $row.static}}强制缓存{{/if}}</td>
+			<td style="width:auto">{{$row.val}}</td>
+		</tr>
+		{{/foreach}}
+	</table>
+</div>
+<div id='script'></div>

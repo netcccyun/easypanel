@@ -1,0 +1,43 @@
+{{include file='common/head.html'}}
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：服务器管理 --> 内容过滤</div>
+		<table class="table" cellpadding="0" cellspacing="1">
+			<tr><td colspan="3" class="bg_main"><b>访问内容过滤</b></td></tr>
+			<tr>
+				<td colspan="3" align="center" class="add_prod2">
+					{{if $name}}<a href='javascript:if(confirm("真的要禁用关键词过滤吗")){window.location="?c=access&a=startFilter&status=0"}';>
+						<img src="{{$STATIC}}style/addprod2.gif" border="0" alt="禁用功能"/></a>{{else}}
+					<a href='javascript:if(confirm("真的要启用关键词过滤吗")){window.location="?c=access&a=startFilter&status=1"}';>
+					<img src="{{$STATIC}}style/addprod2-2.gif" border="0" alt="启用功能"/></a>{{/if}}
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href='javascript:if(confirm("真的要清空所有设置吗")){window.location="?c=access&a=emptyFilter"}';>
+					<img src="{{$STATIC}}style/addprod3.gif" border="0" alt="清空设置"/></a>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="?c=access&a=saveFile"><img src="{{$STATIC}}style/addprod4.gif" border="0" alt="关键词导出"/></a>
+				</td>
+			</tr>
+			<form action='?c=access&a=addfilter' method='post'>
+			<tr>
+				<td>关键词:</td>
+			  	<td><input name='filter' id='filter' value=''><font color=red>*每次输入一个关键词</font>&nbsp;&nbsp;&nbsp;<input type='submit' class="btn" value='提交'></td>
+			</tr>
+			</form>
+			<tr>
+			<form id="form1" name="form1" enctype="multipart/form-data" method="post" action="?c=access&a=readFile">
+				<td>关键词导入:</td>
+				<td colspan="2">
+					<input name="upfile" type="file" id="upfile" />
+					<input type="submit" name="Submit" class="btn" value="确认提交" />
+					<input type="reset" name="Submit2" class="btn" value="重新选择" />
+					<font color=red>*请确认导入的文件编码为utf-8</font>
+				</td>
+			</form>
+			</tr>
+		</table>
+		<table class="table" cellpadding="0" cellspacing="1">
+			<tr><td>{{$key}}</td></tr>
+		</table>
+	</div>
+</div>
+{{dispatch c='index'  a='foot'}}

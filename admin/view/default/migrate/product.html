@@ -1,0 +1,50 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+function all_check()
+{ 
+	$(":input").each(function(index,dom){
+		if (this.name=='vh') {		
+			if($(this).attr('checked') =='checked') {
+				$(this).attr('checked',false);
+			} else {
+				$(this).attr('checked',true);
+			}
+		}
+	});
+}
+//var p = new Array();
+//var cur_p = 0;
+function migrate_product()
+{
+	$(":checked").each(function(index,dom){
+		if(this.name == 'vh') {
+			var url = '?c=migrate&a=migrateProduct&id=' + this.value;
+			var p = this.value;
+			$.getJSON(url,function(ret){
+				var code = ret['code'];
+				var msg = ret['out'];
+				$('#status').append('<p>产品ID ' + p + ' ' + msg+'</p>');
+							
+			});
+		}
+	});
+}
+</script>
+<div class="wid_main mar_main" align="left" >
+	<div class="block_top" align="left">当前位置：其它设置 --> 数据迁移</div>
+	<div >
+		请选择要迁移的虚拟主机产品:
+		<table border=0>
+			{{foreach from=$products item=row}}
+				<tr><td><input name='vh' type='checkbox' value="{{$row.id}}">{{$row.product_name}}</td></tr>
+			{{/foreach}}
+		</table>
+		
+		<div><input type='button' onclick="all_check();" value='全选/反选'>&nbsp;&nbsp;<input type='submit' onclick="migrate_product();" value="开始迁移"></div>
+		<div id='progress'></div>
+		<div id='out'></div>
+		<div id='status'></div>
+	</div> 
+</div>
+
+{{dispatch c='index'  a='foot'}}

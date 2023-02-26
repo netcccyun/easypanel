@@ -1,0 +1,94 @@
+<script language='javascript' src='{{$STATIC}}js/banip.js?v=2'></script>
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">IP黑名单</div>
+<form action='?c=banip&a=addBanip' method='post'>
+	<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+		<tr>
+		    <td style="border:0;text-align:center;width:50px;">
+				{{if $banip==0}} 
+				<a href="javascript:banip_checkon(1)" title='开启功能'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+		        {{else}} 
+				<a href="javascript:banip_checkon(2)" title='禁用功能'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+		        {{/if}}
+			</td>
+			<td style="border:0">
+			    禁止单个IP：192.168.0.1&nbsp;&nbsp;禁止IP段：192.168.0.1/24&nbsp;
+				<input name='ip' id='ip' size="15" />&nbsp;&nbsp;&nbsp;&nbsp;
+			    <input type='button' onclick='banip_add();' value='增加' class="btn btn-warning" />
+			</td>
+		</tr>
+	</table>
+</form>
+
+<table class="table table-bordered" style="border-top:1px solid #bbb" cellpadding="0" cellspacing="1">
+	<thead>
+		<tr>
+			<th style="border-left:0">操作&nbsp;[<a href="javascript:banip_del_all()">清空</a>]</th>
+			<th>禁止IP</th>
+			<th>禁止时间</th>
+		</tr>
+	</thead>
+	{{foreach from=$ips item=row}}
+	<tbody>
+	<tr>
+		<td style="border-left:0"><a href="javascript:banip_del({{$row.id}})">删除</a></td>
+		<td>{{$row.ip}}</td>
+		<td>{{if $row.expire==0}}永久{{else}}{{ceil(($row.expire-time())/60)}}{{/if}}</td>
+	</tr>
+	</tbody>
+	{{/foreach}}
+</table>
+</div>
+
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">URL黑名单</div>
+<form action='?c=banip&a=addBanip' method='post'>
+	<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+		<tr>
+		    <td style="border:0;text-align:center;width:50px;">
+				{{if $banurl==0}} 
+				<a href="javascript:banurl_checkon(1)" title='开启功能'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+		        {{else}} 
+				<a href="javascript:banurl_checkon(2)" title='禁用功能'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+		        {{/if}}
+			</td>
+			<td style="border:0">
+			    URL：
+				<input name='url' id='url' style="width: 50%;"/>&nbsp;&nbsp;
+				方法：
+				<select name='meth' id='meth'>
+					<option value="">全部</option>
+					<option value="GET">GET</option>
+					<option value="POST">POST</option>
+					<option value="PUT">PUT</option>
+					<option value="DELETE">DELETE</option>
+					<option value="!GET">!GET</option>
+					<option value="!POST">!POST</option>
+					<option value="!PUT">!PUT</option>
+					<option value="!DELETE">!DELETE</option>
+			    </select>&nbsp;&nbsp;&nbsp;&nbsp;
+			    <input type='button' onclick='banurl_add();' value='增加' class="btn btn-warning" />
+			</td>
+		</tr>
+	</table>
+</form>
+
+<table class="table table-bordered" style="border-top:1px solid #bbb" cellpadding="0" cellspacing="1">
+	<thead>
+		<tr>
+			<th style="border-left:0">操作&nbsp;[<a href="javascript:banurl_del_all()">清空</a>]</th>
+			<th>请求方法</th>
+			<th>禁止URL</th>
+		</tr>
+	</thead>
+	{{foreach from=$urls item=row}}
+	<tbody>
+	<tr>
+		<td style="border-left:0"><a href="javascript:banurl_del({{$row.id}})">删除</a></td>
+		<td>{{$row.meth}}</td>
+		<td>{{$row.url}}</td>
+	</tr>
+	</tbody>
+	{{/foreach}}
+</table>
+</div>

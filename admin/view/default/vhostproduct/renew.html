@@ -1,0 +1,51 @@
+{{include file='common/head.html'}}
+<script language="javascript">
+function show(url) 
+{ 
+	window.open(url,'','height=100,width=250,resize=no,scrollbars=no,toolsbar=no,top=200,left=200');
+}
+function check_user()
+{
+	show('?c=product&a=check&product_type=vhost&param='+document.vhostform.param.value);
+}
+</script>
+<div id="container">
+<div class="padd2 mar_top">
+<div class="topimg">购买虚拟主机产品</div>
+</div>
+  <form name='vhostform' action="?c=product&a=renew&product_id={{$product.id}}&product_type=vhost&name={{$name}}" method="post">
+<div class="head_block tb_wid">&nbsp;购买虚拟主机产品</div>
+<div class="block tb_wid">
+<table id="table_2" cellpadding="0" cellspacing="1">
+  <tr>
+        <td class="td_bgc right_2">用户名</td>
+        <td class="td_bgc right_2">{{$name}}</td>
+        </tr>
+      <tr>
+        <td class="td_bgc right_2">产品名称</td>
+        <td class="td_bgc right_2">{{$product.name}}</td>
+        </tr>
+    
+        <td class="td_bgc right_2">续费时间:</td>
+        <td class="td_bgc right_2">
+        {{if $product.month_flag}}
+       	 	<input type=radio name=month value='1' checked>1个月
+        {{/if}}
+            <input type=radio name=month value=12 {{if !$product.month_flag}}checked{{/if}}>1年
+			<input type=radio name=month value=24>2年
+			<input type=radio name=month value=36>3年</td>
+	  </tr>	 
+	  <tr>
+        <td class="td_bgc right_2">价格</td>
+        <td class="td_bgc right_2">{{$product.price/100}}元/年</td>
+        </tr>
+	    <tr>
+	    <td class="td_bgc td_hg" colspan="2" align="center">
+		  <input type="submit" value="确定">
+		  </td>
+        </tr>
+    </table>
+	</div>
+    </form>
+  </div>
+{{dispatch c='index'  a='foot'}}

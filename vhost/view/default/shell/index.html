@@ -1,0 +1,56 @@
+<div class="main">
+    <div class="public_pa">数据备份</div>
+<form name='bakupweb' action="?c=shell&a=bakupweb" method="post" target='_blank'>
+	<table class="table" cellpadding="0" cellspacing="1">
+	<thead>
+		<tr>
+			<th>网站备份</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border:0">备份文件存放在backup目录，密码：<input name='password' value='' placeholder='不设置密码可留空' />&nbsp;<input type='submit' value='开始备份' class="btn btn-warning" /></td>
+		</tr>
+	</tbody>
+	</table>
+</form>
+
+{{if $user.db_quota>0 && $user.db_type!='sqlsrv'}}
+<form name='mysqlout' action="?c=shell&a=mysqldumpout" method="post" target='_blank'>
+	<table class="table" cellpadding="0" cellspacing="1">
+	<thead>
+		<tr>
+			<th>数据库备份</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border:0">数据库密码：<input type='password' name='passwd' id='passwd' />&nbsp;<input type='submit' value='开始备份' class="btn btn-warning" /></td>
+		</tr>
+	</tbody>
+	</table>
+</form>
+
+<form name='remotemysqldumpin' action="?c=shell&a=remotemysqldumpin" method="post" target='_blank'>
+	<table class="table" cellpadding="0" cellspacing="1">
+	<thead>
+		<tr>
+			<th colspan="3">远程数据库导入</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border:0">远程数据库IP：<input type='text' name='rehost' id='rehost' size='16' /></td>
+			<td style="border:0">远程数据库账号：<input type='text' name='reuser' id='reuser' size='16' /></td>
+			<td style="border:0">远程数据库密码：<input type='password' name='repasswd' id='repasswd' size='16' /></td>
+		</tr>
+		<tr>
+			<td style="border:0">远程数据库名：<input type='text' name='redate' id='redate' size='16' /></td>
+			<td style="border:0">本地数据库密码：<input type='password' name='passwd' id='passwd' size='16' /></td>
+			<td style="border:0"><input type='submit' value='确定' class="btn btn-warning" /></td>
+		</tr>
+	</tbody>
+	</table>
+</form>
+{{/if}}
+</div>

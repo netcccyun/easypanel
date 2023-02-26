@@ -1,0 +1,52 @@
+<script language='javascript' src='{{$STATIC}}js/rewrite.js'></script>
+<script language='javascript'></script>
+
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">域名跳转设置</div>
+<form action='?c=rewrite&a=rewriteAdd' method='post' name='form'>
+	<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+		<tr>
+			<td style="text-align:center;border:0">
+			    {{if $at==0}} 
+			    <a href="?c=rewrite&a=rewriteCheckOn&status=1" title='点击开启功能'>
+				<img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+				{{else}} 
+				<a href="?c=rewrite&a=rewriteCheckOn&status=2" title='点击禁用功能'>
+				<img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+		        {{/if}}
+		    </td>
+			<td style="border:0">
+			    域名: <input name="host" size='20' id='host' />&nbsp;&nbsp;&nbsp;&nbsp;
+			    跳转到域名: <input name='dst' size='20' id='dst' />&nbsp;&nbsp;&nbsp;&nbsp;
+			    跳转方式: <select name="code" id="code"><option value="301">301永久跳转</option><option value="302">302临时跳转</option>{{if $user.cdn}}<option value="0">改写回源域名</option>{{/if}}</select>
+				&nbsp;<a href='javascript:help();'><font color='red'>帮助?</font></a>&nbsp;&nbsp;
+			    <input type='button' value='提交' onclick='rewrite_add();' class="btn btn-warning" />
+			</td>
+		</tr>
+	</table>
+</form>
+<table class="table table-bordered" style="border-top:1px solid #bbb" cellpadding="0" cellspacing="1">
+<thead>
+	<tr>
+		<th style="border-left:0">操作</th>
+		<th>序列</th>
+		<th>域名</th>
+		<th>跳转到域名</th>
+		<th>跳转方式</th>
+	</tr>
+	</thead>
+	{{foreach from=$res item=row}}
+	<tr>
+		<td style="border-left:0"><a href="javascript:rewrite_del('{{$row.id}}')">删除</a></td>
+		<td>{{$row.id}}</td>
+		<td>{{$row.host}}</td>
+		<td>{{$row.dst}}</td>
+		<td>{{$row.code}}</td>
+	</tr>
+	{{/foreach}}
+</table>
+</div>
+
+<script language='javascript'>
+	form.host.focus();
+</script>

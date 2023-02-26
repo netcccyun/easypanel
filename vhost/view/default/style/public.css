@@ -1,0 +1,43 @@
+*{
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+/*定义全局链接样式*/
+a:link,a:visited {
+	color: #036;
+	text-decoration: none;
+}
+a:hover,a:active {
+	color: #2583EA;
+	text-decoration: underline;
+}
+
+/*定义body的样式*/
+body{
+	color:#036;
+	background-color:#fff;
+	font-size:12px;
+	line-height:150%;
+	scrollbar-face-color:#DEF2FC;
+	scrollbar-arrow-color:#000000;
+	scrollbar-highlight-color:#FFFFFF;
+	scrollbar-3dlight-color:#FFFFFF;
+	scrollbar-shadow-color:#FFFFFF;
+	scrollbar-darkshadow-color:#FFFFFF;
+	scrollbar-track-color:#FFFFFF;
+}
+h1{
+	font-size:12px;
+	color:#036;
+	text-align:center;
+	margin:2px 0 1px 0;
+	background:#c0dcff;
+}
+top{
+	border:1px solid #ccecfb;
+	border-bottom:none;
+	margin-top:15px;
+	background:#4298e1;
+}

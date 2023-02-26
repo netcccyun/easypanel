@@ -1,0 +1,28 @@
+<html lang='zh-CN' xml:lang='zh-CN' xmlns='http://www.w3.org/1999/xhtml'>
+<head>
+<title>easypanel 虚拟主机面板</title>
+<!-- 定义语言编码 -->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- 定义链接样式表 -->
+<link rel="stylesheet" rev="stylesheet" href="/style/style2.css" type="text/css"/>
+<link rel="stylesheet" rev="stylesheet" href="{{$STATIC}}style/style.css" type="text/css"/>
+<link rel="stylesheet" rev="stylesheet" href="/style/artdialog/skins/default.css" type="text/css"/>
+<script type='text/javascript' src="/style/jquery.js"></script>
+<script type='text/javascript' src="/style/public.js"></script>
+<script type='text/javascript' src="/style/artdialog/artDialog.js"></script>
+<script type='text/javascript' src="{{$PSTATIC}}/style/bootstrap/js/bootstrap.min.js"></script>
+
+<script type='text/javascript' >
+
+function set_pagecount(count) {
+	$.ajax({
+		url : '?c=setting&a=add&name=page_count&value=' + count,
+		success : function(ret) {
+			window.location = window.location;
+		}
+	})
+
+}
+</script>
+</head>
+<body>

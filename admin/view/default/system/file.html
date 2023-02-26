@@ -1,0 +1,22 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>编辑: {{$file}}</title>
+</head>
+<body>
+<form action='?c=system&a=editFile&file={{$file}}&charset={{$charset}}' method='POST'>
+<div>
+文件:{{$file}} 编码:{{$charset}}
+</div>
+<div>
+<textarea name='content' cols='125' rows='20'>
+{{$content}}
+</textarea>
+</div>
+<div>
+<input type='submit' value='修改'/>
+</div>
+</form>
+</body>
+</html>

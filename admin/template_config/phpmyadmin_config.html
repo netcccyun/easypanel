@@ -1,0 +1,19 @@
+<?php
+$i = 0;
+
+$i++;
+$cfg['Servers'][$i]['verbose'] = '{{$node.db_host}}';
+$cfg['Servers'][$i]['host'] = '{{$node.db_host}}';
+$cfg['Servers'][$i]['port'] = {{$node.db_port}};
+$cfg['Servers'][$i]['socket'] = '';
+$cfg['Servers'][$i]['connect_type'] = 'tcp';
+$cfg['Servers'][$i]['extension'] = 'mysql';
+$cfg['Servers'][$i]['auth_type'] = 'http';
+/* End of servers configuration */
+
+$cfg['blowfish_secret'] = '{{$db_skey}}';
+$cfg['DefaultLang'] = 'en';
+$cfg['ServerDefault'] = 1;
+$cfg['UploadDir'] = '';
+$cfg['SaveDir'] = '';
+$cfg['TempDir'] = '/tmp/';

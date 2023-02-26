@@ -1,0 +1,39 @@
+<script language='javascript' src='{{$STATIC}}js/antiupload.js'></script>
+
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">防木马上传</div>
+<form action='?c=antiupload&a=antiuploadAdd' method='post'>
+	<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+		<tr>
+		    <td style="text-align:center;border:0;">
+			    {{if $autiupload_start}} 
+				<a href='javascript:antiupload_checkon(1)' title="禁用功能"><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+				{{else}} 
+				<a href='javascript:antiupload_checkon(0)' title="启用功能"><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+				{{/if}}
+			</td>
+			<td style="border:0"><a href='javascript:antiupload_empty();'><img src="{{$STATIC}}style/image137.png" border="0" /></a></td>
+			<td style="border:0">
+			    禁止文件后缀为：<input name='filename' value='php' id='filename' size="32" /> 的文件上传，多个请用逗号分隔，例：php,asp,jsp&nbsp;
+			    <input type='button' onclick='antiupload_add();' value='提交' class="btn btn-warning" />
+			</td>
+		</tr>
+	</table>
+</form>
+<table class="table table-bordered" style="border-top:1px solid #bbb" cellpadding="0" cellspacing="1">
+    <thead>
+	<tr>
+		<th style="border-left:0">操作</th>
+		<th>禁止文件名</th>
+	</tr>
+	</thead>
+	{{foreach from=$filenames item=row}}
+	<tbody>
+	<tr>
+		<td style="border-left:0"><a href="javascript:antiupload_del({{$row.id}})">删除</a></td>
+		<td>{{$row.filename}}</td>
+	</tr>
+	</tbody>
+	{{/foreach}}
+</table>
+</div>

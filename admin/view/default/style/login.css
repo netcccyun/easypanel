@@ -1,0 +1,25 @@
+* {font-family:verdana,arial;}
+body {background:#f9f9f9; margin:0; padding:0; font-size:12px; text-align:center;}
+
+a {text-decoration:none;}
+
+.left {float:left;}
+.right {float:right;}
+.clear {clear:both;}
+
+.loading {color:#999;}
+
+#header {width:100%; background:#464646; height:35px; color:#FFFFFF;}
+
+#login {width:330px; height:auto; margin:0 auto; margin-top:60px;}
+#login #logo {font-size:28px; font-weight:bold; margin:20px 0;}
+#warning {border:1px solid #c00; background:#ffe8e8; margin:0 auto; width:300px; height:30px; line-height:30px; margin-bottom:15px; text-align:left; padding-left:10px; display:none;}
+#warning span {font-weight:bold;}
+#login_top {font-size:1px; line-height:1px; width:330px; height:17px;background:url('login_form_top.jpg') no-repeat left top #f9f9f9;}
+#login_main {width:270px; height:auto; background:url('login_form_bg.jpg') repeat-y left top #f9f9f9; padding:0px 30px;}
+#login_main .input_title {text-align:left; color:#777; padding-top:5px;}
+#login_main .input_box {text-align:left; margin-top:5px;}
+#login_main .input_box input {width:262px; font-size:22px; padding:2px; border:1px solid #ABADB3;}
+#login_main .login_button {margin-top:10px; text-align:right; padding-bottom:10px;}
+#login_main .login_button input {background:url('login_button.jpg') no-repeat left top #fff;width:66px; height:24px; border:0; margin:0; padding:0; color:#fff; cursor:pointer;}
+#login_bottom {font-size:1px; line-height:1px; width:330px; height:23px;background:url('login_form_bottom.jpg') no-repeat left top #f9f9f9;}

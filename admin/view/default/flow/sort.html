@@ -1,0 +1,45 @@
+{{include file='common/head.html'}}
+<!--
+<script language='javascript'>
+jQuery(document).ready(function(){
+	jQuery("#sou").addClass('decoration_blink');
+	jQuery("#month").addClass('decoration_blink');
+	jQuery("#day").addClass('decoration_blink');
+});
+
+</script>
+-->
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：服务器管理 --> 流量排名</div>
+		<div >
+			<form name='form1' action='?c=flow&a=flowSort&t={{$t}}' method='post'>
+		{{$data}}查询记录数:<input type='text' name='count' value='{{$count}}'>&nbsp;<input type='submit' value='搜索'>
+		</form>
+		</div>
+		<table class="table" >
+			<thead class="table" cellpadding="0" cellspacing="1">
+			
+					<td style="width:200px;" id="month"><a href="?c=flow&a=flowSort&t=month">查询当月流量排名</a></td>
+					<td style="width:200px;" id="day"><a href="?c=flow&a=flowSort&t=day">查询当天流量排名</a></td>
+					<td style="width:200px;" ><a href='http://wiki.kangleweb.com/Easypanel%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98#.E9.9D.A2.E6.9D.BF.E4.B8.AD.E7.9A.84.E6.B5.81.E9.87.8F.E6.8E.92.E5.90.8D.E6.98.AF.E6.80.8E.E4.B9.88.E5.9B.9E.E4.BA.8B' target=_blank><b class='red'>帮助?</b></a>
+					<td style="width:auto">&nbsp;</td>
+					</tr>
+			
+			</thead>
+			
+			<tbody>
+			<tr id="bg_yellow"><td id="wid_main2">网站名</td><td >总流量</td><td >缓存流量</td><td>缓存命中</td></tr>
+			{{foreach from=$flows item=row}}
+			<tr><td><a href="?c=vhost&a=impLogin&name={{$row.name}}">{{$row.name}}</a></td>
+			<td>{{number_format($row.flow/1024,2)}}M</td>
+			<td>{{number_format($row.flow_cache/1024,2)}}M</td>
+			<td>{{if $row.flow>0}}{{number_format($row.flow_cache*100/$row.flow,2)}}%{{else}}0%{{/if}}</td>
+			</tr>
+			
+			{{/foreach}}
+			</tbody>
+		</table>
+	</div>
+</div>
+{{dispatch c='index'  a='foot'}}

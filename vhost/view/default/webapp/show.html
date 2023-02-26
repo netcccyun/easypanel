@@ -1,0 +1,43 @@
+<div align="center">
+	<div class="wid_panel2">
+		<div id="xsnazzy">
+			<b class="xtop"><b class="xb1"></b><b class="xb2"></b><b class="xb3"></b><b class="xb4"></b></b>
+				<div class="xboxcontent" align="center">
+					<div class="public_pa">
+						<div class="start"><b>添加删除程序</b></div>
+						<div class="start2"><a href='?c=webapp&a=browse'><img src="{{$STATIC}}style/online2.gif" border="0" alt="在线安装程序" /></a></div>
+					</div>
+					<div class="public_pa_wid padding_bottom">
+						<table class="table_public" cellpadding="0" cellspacing="1">
+							<tr id="bg_yellow">
+								<td>操作</td>
+								<td>状态</td>
+								<td>程序</td>
+								<td>域名</td>
+								<td>目录</td>
+								<td>物理路径</td>
+								<td>安装时间</td>
+							</tr>
+							{{foreach from=$list item=row}}
+							<tr>
+								<td>[<a
+									href="javascript:if(confirm('确定删除{{$row.appname}} V{{$row.appver}}?')){location='?c=webapp&a=uninstall&id={{$row.id}}';}"
+									>删除</a>]</td>
+								<td>
+								{{if $row.status==0}}<a href='?c=webapp&a=install&step=1&appid={{$row.appid}}&appname={{$row.appname}}&appver={{$row.appver}}&id={{$row.id}}&domain={{$row.domain}}&dir={{$row.dir}}'>未完成，重新安装</a>{{else}}成功{{/if}}</td>
+								<td>{{$row.appname}} V{{$row.appver}}</td>
+								<td>{{$row.domain}}</td>
+								<td>{{$row.dir}}</td>
+								<td>{{$row.phy_dir}}</td>
+								<td>{{$row.install_time}}</td>
+							</tr>
+							{{/foreach}}
+							<tr id="bg_yellow"><td colspan="7">共计 {{$sum}} 条记录</td>	</tr>
+						</table>
+					</div>
+				</div>
+			<b class="xbottom"><b class="xb4"></b><b class="xb3"></b><b class="xb2"></b><b class="xb1"></b></b>
+		</div>
+	</div>
+</div>
+

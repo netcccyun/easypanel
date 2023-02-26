@@ -1,0 +1,127 @@
+{{include file='common/head.html'}}
+<script type='text/javascript' src='{{$STATIC}}scripts/vhost.js?v=1'></script>
+<script type='text/javascript'>
+	var count = 1;
+	$(document).ready(function() {
+		//jQuery("#sou").addClass('decoration_blink');
+		form1.name.focus();
+	});
+</script>
+<style type='text/css'>
+.show_msg {
+	position: absolute;
+	border-radius: 15px;
+	background-color: #104E8B;
+	color: red;
+	text-align: center;
+	padding-top: 10px;
+}
+</style>
+<div align="center">
+	<div id='script'></div>
+	<div class="show_sync" style='display: none' id="sync"></div>
+	
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：网站管理 --> 所有网站</div>
+		<div style="margin-top:8px;">
+			<span style="float:left">
+				<form name='form1' action='?c=vhost&a=pageVhost' method='post'>
+				用户名或域名:<input name='name' value='{{$name}}' style="width:140px;">&nbsp;<input type='submit' value='搜索'>
+
+				</form>
+			</span>
+			<span style="float:left;margin-left:20px;">
+				<a
+					href='javascript:select_all(1)'>[全选]</a> <a
+					href='javascript:select_all(0)'>[反选]</a>
+				<a href='javascript:del_checked()'>[删除]</a> <a
+					href='javascript:sync_checked()'>[重建]</a> <a
+					href='javascript:change_checked_status(1)'>[暂停]</a> <a
+					href='javascript:change_checked_status(0)'>[正常]</a> 
+			
+			</span>
+			<span style="float:left;margin-left:20px;">
+				选择显示:<select name='pagecount'
+				onchange='set_pagecount(this.value)'> {{for $i=10;$i <=
+					60;$i++}} {{if $i%5==0}}
+					<option value='{{$i}}' {{if $page_count==$i}}selected{{/if}}>{{$i}}</option>
+					{{/if}} {{/for}}
+				</select> 行
+			
+			</span>
+			<span style="float:left;margin-left:20px;color:red" id="result">
+				
+			</span>
+			<span style="float:right">
+				{{if $page>1}} 
+					<a href='?c=vhost&a=pageVhost&page=0'>首页</a> 
+					<a	href='?c=vhost&a=pageVhost&page={{$page-1}}'>上一页</a>
+			 	 {{/if}}
+			 	 {{if $page!=$total_page}} 
+			 	 	<a	href='?c=vhost&a=pageVhost&page={{$page+1}}'>下一页</a> 
+			 	 	<a	href='?c=vhost&a=pageVhost&page={{$total_page}}'>尾页</a>
+				{{/if}} 
+				{{$page}}/{{$total_page}}&nbsp;共计{{$count}}
+			</span>		
+		</div>
+		<table class="table">
+			<thead>
+				<tr>
+					<td style="width:16%">操作</td>
+					<td style="width:3%">&nbsp;</td>
+					<td style="width:10%">网站名称</td>
+					<td style="width:5%">uid</td>
+					<td style="width:6%">空间大小</td>
+					<td style="width:6%">数据库</td>
+					<td style="width:10%">连接数</td>
+					<td style="width:10%">模块</td>
+					<td style="width:10%">创建时间</td>
+					<td style="width:10%">过期时间</td>
+					<td style="width:10%">空间类型</td>
+					<td style="width:auto">状态</td>
+				</tr>
+			</thead>
+			<tbody>
+			
+			{{foreach from=$list item=row}}
+			<tr>
+				<td>
+			 	 [<a href="?c=product&a=sellForm&name={{$row.name}}&product=vhost&edit=1">修改</a>]
+				 [<a href='javascript:changePw("{{$row.name}}")'>密码</a>] 
+				 [<a href='javascript:addMonth("{{$row.name}}")'>延时</a>]
+				</td>
+				<td><input type='checkbox' value='{{$row.name}}'></td>
+				<td><a href='?c=vhost&a=impLogin&name={{$row.name}}'>{{$row.name}}</a></td>
+				<td>{{$row.uid}}</td>
+				<td>{{$row.web_quota}}</td>
+				<td>{{$row.db_quota}}</td>
+				<td>{{if
+					$row.max_connect==0}}无限{{else}}{{$row.max_connect}}{{/if}}</td>
+				<td>{{if
+					$row.module}}{{$row.module}}{{else}}{{$row.templete}}{{if
+					$row.subtemplete!=""}}:{{$row.subtemplete}}{{/if}}{{/if}}</td>
+				<td title="{{date('Y-m-d H:i:s',$row.create_time)}}">{{date("Y-m-d",$row.create_time)}}</td>
+				<td
+					title="{{if $row.expire_time2 > 0}}{{date('Y-m-d H:i:s',$row.expire_time2)}}{{else}}不限{{/if}}">{{if
+					$row.expire_time2 >
+					0}}{{date("Y-m-d",$row.expire_time2)}}{{else}}不限{{/if}}</td>
+				<td>{{if $row.product_id == '0' ||
+					$row.product_id==0}}自由类型{{else}}{{$product[$row.product_id]['product_name']}}{{/if}}</td>
+				<td class="td_bgc right_2"><select id='{{$row.uid}}'
+					onChange="javascript:setStatus('{{$row.name}}',this.value)">
+						{{for $i=0; $i<4; $i++}}
+						<option value='{{$i}}' {{if $i==$row.status}}selected{{/if}}>
+							{{if $i==3}}超数据库{{elseif $i==1}}暂停{{elseif
+							$i==2}}超流量{{else}}正常{{/if}}</option> {{/for}}
+				</select></td>
+			</tr>
+			{{foreachelse}}
+			<tr>
+			<td colspan=3>&nbsp;</td>
+			<td colspan=14 style="color:red">没有数据</td>
+			{{/foreach}}
+			</tbody>
+		</table>
+</div>
+<div id='show_msg' class='show_msg' style='display: none'></div>
+{{dispatch c='index' a='foot'}}

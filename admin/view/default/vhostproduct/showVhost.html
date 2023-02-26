@@ -1,0 +1,91 @@
+{{include file='common/head.html'}}
+<div id="main">
+  	<div align="center">
+		<form name="form1" method="post" action="?c=vhost&a=showVhost">
+		<div class="head_block3 tb_wid4">
+			<p align="center">
+  			 <span class="topimg STYLE1">输入ftp用户名或#uid或域名:</span>
+   			<input name="user" type="text" id="user" value="{{$user}}" size="25">
+   			<input type="submit" name="Submit" value="搜索">
+ 			 </p>
+ 		</div>
+   		</form>
+   </div>
+</div>
+{{if $msg}}
+<div align="center">
+<div class="block tb_wid4 mar_top" align="center"><font color=red>{{$msg}}</font></div>
+</div>
+{{/if}}
+  {{if $row}}
+  <div align="center">
+<div class="head_block tb_wid4">&nbsp;产品信息</div>
+<div class="block tb_wid4">
+	<table id="table_2" cellpadding="0" cellspacing="1">
+	<tr>
+		<td class="td_bgc td_hg" colspan="2" align="center">
+			[<a href='javascript:if(confirm("真的要删除空间吗,为将导致数据无法恢复,如果你想关闭空间，可以把该空间的状态改为非0")){ window.location="?c=vhost&a=del&name={{$row.name}}";}'>删除空间</a>]
+			[<a href='?c={{$smarty.request.c}}&a=resync&name={{$row.name}}'>重建空间</a>] 
+			[<a href='javascript:if(confirm("真的要重设用户密码吗")){ window.location="?c={{$smarty.request.c}}&a=randPassword&name={{$row.name}}";}'>重设FTP密码</a>] 
+			[<a href='javascript:if(confirm("真的要重设数据库密码吗")){ window.location="?c={{$smarty.request.c}}&a=randDbPassword&name={{$row.name}}";}'>重设数据库密码</a>]
+			[<a href='?c={{$smarty.request.c}}&a=impLogin&name={{$row.name}}'>控制面板</a>]
+		</td>
+	</tr>
+	<tr>
+		<td class="td_bgc right_2">UID：</td>
+		<td class="td_bgc right_2">{{$row.uid}}</td>
+	</tr>
+	<tr>
+        <td class="td_bgc right_2">服务器IP</td>
+        <td class="td_bgc tb_wid2 right_2">{{gethostbyname($smarty.server.SERVER_NAME)}}</td>
+	  </tr>
+	<tr>
+		<td class="td_bgc right_2">模板</td>
+		<td class="td_bgc right_2">{{$row.templete}}:{{$row.subtemplete}}</td>
+	</tr>
+	
+	<tr>
+		<td class="td_bgc right_2">服务器路径</td>
+		<td class="td_bgc right_2">{{$row.doc_root}}</td>
+	</tr>
+	<tr>
+		<td class="td_bgc right_2">创建时间</td>
+		<td class="td_bgc right_2">{{date("Y-m-d H:i:s",$row.create_time)}}</td>
+	</tr>
+	
+	<tr>
+		<td class="td_bgc right_2">状态</td>
+		<td class="td_bgc right_2">
+			<form action='?c={{$smarty.request.c}}&a=setStatus&name={{$row.name}}' method='post' name='status_form'>
+			<select name='status' onChange="javascript:status_form.submit()">
+			{{for $i=0; $i<2; $i++}}
+			<option value='{{$i}}' {{if $i==$row.status}} selected {{/if}}>
+			{{if $i==0}}正常{{else}}暂停{{/if}}
+			</option>
+			{{/for}}
+			</select>
+			</form>
+		</td>
+	</tr>
+	</table>
+</div>
+<div><br></div>
+    {{if $list}}
+<div class="head_block tb_wid2">&nbsp;域名绑定目录</div>
+<div class="block tb_wid2">
+	<table id="table_2" cellpadding="0" cellspacing="1">
+      <tr>
+        <td class="td_bgc right_2">域名</td>
+        <td class="td_bgc right_2">目录</td></tr>
+		 {{foreach from=$list item=row}}
+      <tr>
+        <td class="td_bgc right_2 tb_wid">{{$row.name}}</td>
+        <td class="td_bgc right_2">{{$row.value}}</td></tr>
+		  {{/foreach}}
+          {{/if}}
+   </table>
+	 </div>
+   {{/if}}
+</div>
+</div>
+{{dispatch c='index'  a='foot'}}

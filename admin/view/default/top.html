@@ -1,0 +1,75 @@
+{{include file='common/head.html'}}
+<table width="100%" id="t" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td background="{{$STATIC}}style/top_bg2.jpg" width="289" height="65" valign="top">
+	      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+			  <td><img src="{{$STATIC}}style/logo.gif" border="0" /></td>
+			</tr>
+		  </table>
+    </td>
+    <td background="{{$STATIC}}style/top_bg2.jpg" align="center">
+	  <table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td rowspan="2">
+				<font color="#FFFFFF">
+				<SCRIPT language="javascript">
+				<!--
+				function initArray()
+				 {
+				  for(i=0;i<initArray.arguments.length;i++)
+				  this[i]=initArray.arguments[i];
+				 }
+				 var isnMonths=new initArray("1.","2.","3.","4.","5.","6.","7.","8.","9.","10.","11.","12.");
+				 var isnDays=new initArray("星期日","星期一","星期二","星期三","星期四","星期五","星期六","星期日");
+				 today=new Date();
+				 hrs=today.getHours();
+				 min=today.getMinutes();
+				 sec=today.getSeconds();
+				 clckh=""+((hrs>12)?hrs-12:hrs);
+				 clckm=((min<10)?"0":"")+min;clcks=((sec<10)?"0":"")+sec;
+				 clck=(hrs>=12)?"下午":"上午";
+				 var stnr="";
+				 var ns="0123456789";
+				 var a="";
+				
+				function getFullYear(d)
+				{
+				  yr=d.getYear();if(yr<1000)
+				  yr+=1900;return yr;}
+				  document.write("<table>");
+					document.write("<TR><TD>"+getFullYear(today)+"."+isnMonths[today.getMonth()]+""+today.getDate()+" "+isnDays[today.getDay()]+"</tr></td>");
+				  document.write("</table>");
+				//-->
+			
+				</SCRIPT>
+				</font>	
+			</td>
+            <td height="28">&nbsp;</td>
+          </tr>
+          <tr>
+            <td>
+				<div class="menu_top" align="center">
+				  <ul>
+					<li><a href="?c=session&a=logout" target='_top'><span><b>退出登陆</b></span></a></li>
+				  </ul>
+				</div>
+			</td>
+          </tr>
+        </table>
+	</td>
+  </tr>
+</table>
+</body>
+</html>
+<!--
+          <map name="Map" id="Map">
+            <area shape="rect" coords="45,2,120,60" href="domainmanage.htm" target='main' />
+            <area shape="rect" coords="141,2,216,60" href="hostlist.htm" target='main'/>
+            <area shape="rect" coords="236,2,291,60" href="funddetail.htm" target='main'/>
+            <area shape="rect" coords="310,2,361,60" href="cgi-bin/userself/pricelist.cgi" target='main'/>
+	    <area shape="rect" coords="384,2,434,59" href="renewlist.htm" target='main'/>
+	    <area shape="rect" coords="526,2,577,60" href="cgi-bin/logout.cgi" target='_top'/>
+		<area shape="rect" coords="458,0,510,59" href="cgi-bin/miscservice/techsupport.cgi" target='main' />
+</map>
+-->

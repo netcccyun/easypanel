@@ -1,0 +1,20 @@
+<div id="container">
+	<div class="padd3 mar_top"><div class="topimg">{{if $action=='add'}}增加域名绑定{{else}}修改域名绑定{{/if}}</div></div>
+	<form name='nodeform' action="?c=domain&a={{$action}}" method="post">
+	<div class="head_block tb_wid2">&nbsp;增加域名绑定</div>
+	<div class="block tb_wid2">
+		<table id="table_2" cellpadding="0" cellspacing="1">
+			<tr><td class="td_bgc right_2">域名</td>
+				<td class="td_bgc"><input type='text' name='domain' id='domain'	value="{{$domain.domain}}"></td></tr>
+			
+			{{if $subdir_flag}}
+			<tr><td class="td_bgc right_2">子目录</td>
+				<td class="td_bgc"><input type='text' name='subdir' id='subdir'	value="{{$default_subdir}}"></td></tr>
+			{{/if}}
+			
+			<tr><td class="td_bgc right_2" colspan="2" align="center"><input type="submit" value="确定"></td></tr>
+		</table>
+	</div>
+	</form>
+</div>
+{{dispatch c='index'  a='foot'}}

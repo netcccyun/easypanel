@@ -1,0 +1,50 @@
+<script language='javascript' src='{{$STATIC}}js/protection.js'></script>
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">防盗链设置</div>
+<form action='?c=protection&a=addPath' method='post'>
+	<table class="table" cellpadding="0" cellspacing="1">
+	    <tr>
+		    <td style="border:0">
+				{{if $name}} 
+				<a href='javascript:protection_checkon(0)' title='禁用功能'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+		        {{else}} 
+				<a href="javascript:protection_checkon(1)" title='开启功能'><img src="{{$STATIC}}style/start_on.png" border="0"  /></a>
+				{{/if}}
+			</td>
+		    <td style="border:0"><a href='javascript:protection_empty()';><img src="{{$STATIC}}style/image137.png" border="0" /></a></td>
+		</tr>
+		<tr>
+			<td style="border:0">保护路径，正则匹配，例：^/download</td>
+			<td style="border:0"><input name='path' id='path' size='40' /></td>
+		</tr>
+		<tr>
+			<td style="border:0">合法来源url(正则，不写表示相同主机)</td>
+			<td style="border:0"><input name='referer' id='referer' size='40' /></td>
+		</tr>
+		<tr>
+			<td style="border:0">非法请求重定向(不写则默认拒绝处理)</td>
+			<td style="border:0"><input name='redirect' id='redirect' size='40' /></td>
+		</tr>
+		<tr>
+			<td style="border:0">&nbsp;</td>
+			<td style="border:0"><input type='button' onclick='protection_add()' value='提交' class="btn btn-warning" /></td>
+		</tr>
+	</table>
+</form>
+<table class="table table-bordered" style="border-top:1px solid #bbb">
+	<thead>
+		<tr>
+			<th style="border-left:0">操作</th>
+			<th>目录规则</th>
+		</tr>
+	</thead>
+	{{foreach from=$paths item=row}}
+	<tbody>
+	<tr>
+		<td style="border-left:0">[<a href='javascript:protection_del({{$row.id}})'>删除</a>]</td>
+		<td>{{$row.path}}</td>
+	</tr>
+	</tbody>
+	{{/foreach}}
+</table>
+</div>

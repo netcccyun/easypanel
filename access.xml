@@ -1,0 +1,12 @@
+<config>
+	<request action='allow' >
+		<table name='BEGIN'>
+		</table>
+		<table name='ddd'>
+		</table>
+	</request>
+	<response action='allow' >
+		<table name='BEGIN'>
+		</table>
+	</response>
+</config>

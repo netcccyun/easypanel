@@ -1,0 +1,27 @@
+<div class="main">
+    <div class="public_pa">程序安装</div>
+<table class="table table-bordered">
+	<form id="form1" name="form1" method="post"
+		action="?c=webapp&a=install&step=1&appid={{$appid}}&appname={{$appname}}&appver={{$appver}}">
+		<tr id="bg_yellow">
+			<td colspan="2" align="center"><b>正在安装{{$appname}}
+					V{{$appver}}</b></td>
+		</tr>
+		<tr>
+			<td>安装域名</td>
+			<td><select name='domain'> {{foreach from=$domain
+					item=row}}
+					<option value='{{$row}}'>{{$row}}</option> {{/foreach}}
+			</select></td>
+		</tr>
+		<tr>
+			<td>安装目录</td>
+			<td><input name="dir" type="text" value="{{$dir}}" /></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td><input type="submit" value="下一步" class="btn btn-primary"></td>
+		</tr>
+	</form>
+</table>
+</div>

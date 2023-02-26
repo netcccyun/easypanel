@@ -1,0 +1,70 @@
+{{include file='common/head.html'}}
+<body style="overflow-x:hidden;">
+<link rel="stylesheet" rev="stylesheet" href="{{$STATIC}}style/left.css" type="text/css" media="all" />
+<link rel="stylesheet" rev="stylesheet" href="{{$STATIC}}style/public.css" type="text/css" media="all" />
+<script type="text/javascript">
+function SwitchMenu(obj,sty)
+{
+	if(document.getElementById)
+	{
+	var el = document.getElementById(obj);
+	var ml = document.getElementById(sty);
+	var ar = document.getElementById("masterdiv").getElementsByTagName("ul"); 
+	var mr = document.getElementById("masterdiv").getElementsByTagName("h1"); 
+		if(el.style.display == "none")
+		{ 
+			el.style.display = "block";
+			ml.className ="menu";
+		}
+		else
+		{
+			el.style.display = "none";
+			ml.className ="menu1";
+		}
+	}
+	
+}
+</script>
+<div id="masterdiv" class="left_bgcol">
+	<h1 id="m1" onClick="SwitchMenu('sub1','m1')" class="menu"><ol id="p1">服务器管理</ol></h1>
+		<ul class="submenu" id="sub1" >
+			<li><a href='?c=index&a=main' target='main'>服务器信息</a></li>
+			<li><a href='?c=nodes&a=editForm&name=localhost' target='main'><span id="span" >服务器设置</span></a></li>
+			<li><a href='?c=nodes&a=initForm&name=localhost' target='main'>初始化服务器</a></li>
+			<li><a href='{{$dbadmin_url}}' target="_blank">mysql管理</a></li>
+			<li><a href='?c=nodes&a=virtualhost' target="main">虚拟主机设置</a></li>
+		</ul>
+	
+	<h1 id="m2"  onClick="SwitchMenu('sub2','m2')" class="menu"><ol id="p2">网站管理</ol></h1>
+		<ul class="submenu" id="sub2" >
+			<li><a href="?c=vhost&a=pageVhost" target='main'>所有网站</a></li>	
+			<li><a href="?c=product&a=sellForm&product=vhost" target='main'>新增网站</a></li> 
+			<li><a href="?c=vhostproduct&a=pageListProduct" target='main'>产品列表</a></li>
+			
+		</ul>
+	<h1 id="m4" onClick="SwitchMenu('sub4','m4')" class="menu"><ol id="p4">其他设置</ol></h1>
+		<ul class="submenu" id="sub4">
+			<li><a href='?c=manynode&a=pageList' target='main' title="主节点设置，辅节点不需要设置">多节点设置</a></li>
+			<li><a href='?c=backup&a=addForm' target='main'>备份恢复</a></li>
+			<li><a href='?c=migrate&a=index' target='main'>数据迁移</a></li>
+			<li><a href="?c=flow&a=flowSort&t=day" target='main'>流量排名</a></li>
+	  	<li><a href="?c=security&a=addFrom" target='main'>安全设置</a></li>
+	</ul>
+	<h1 id="m6" onClick="SwitchMenu('sub6','m6')" class="menu"><ol id="p6">{{$lang.account_manage}}</ol></h1>
+		<ul class="submenu" id="sub6" >
+			<li><a href="?c=session&a=changePasswordForm" target='main'>修改帐号信息</a></li>
+			<li><a href="?c=session&a=logout" target='_top'>退出登录</a></li></ul>
+	
+</div>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+	jQuery("li").mouseover(function(){
+		jQuery(this).addClass('onMouseOver');
+	});
+	jQuery("li").mouseout(function(){
+		jQuery(this).removeClass('onMouseOver');
+	});
+});
+</script>
+</body>
+</html>

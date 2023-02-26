@@ -1,0 +1,15 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+</script>
+<div align="center">
+		<form name='form1' action='?c=restore&a=restore' method='post'>
+		<table id='dir' class="table_public" cellpadding="0" cellspacing="1">
+			{{foreach from=$listdir item=row}}
+			<tr><td><input type="checkbox" name='dir' value="{{$row}}"></td><td>{{$row}}&nbsp;&nbsp;{{if substr($row,-1)=='f'}}全备份{{else}}增量备份{{/if}}</td></tr>
+			{{/foreach}}
+			<tr><td></td><td><input type="submit" value="确定"></td></tr>
+		</table>
+		</form>
+</div>
+	
+	

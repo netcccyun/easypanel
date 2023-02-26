@@ -1,0 +1,66 @@
+{{include file='common/head.html'}}
+<script language='javascript' src='{{$STATIC}}scripts/dnsdomain.js' >
+
+</script>
+<div id='msg' class='piao_server2' style='display:none'></div>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：域名列表</div>
+		<table class="table_public" cellpadding="0" cellspacing="1">
+			<tr><td colspan="5">
+				<table width="100%" cellpadding="0" cellspacing="0">
+					<form method="post" action='?c=dnsdomain&a=dnsdomainPageList'>
+					<tr id="bg_yellow">
+						<td align="left">
+							搜索:&nbsp;<select name='mode'>
+							<option value='name'>域名</option>
+							<option value='server'>服务器</option></select>
+							<input name='mode_value'>
+							<input type='submit' value='查询'>&nbsp;&nbsp;<input type='button' onclick='piao_add();' value='添加域名'>
+						</td>
+					</tr>
+					</form>
+		  		</table>
+			</td></tr>
+			<tr><td colspan="8" class="bg_main"><b>域名列表</b></td></tr>
+			<tr id="bg_yellow">
+				<td>操作</td>	
+				<td>域名</td>
+				<td>最多条数</td>
+				<td>解析服务器</td>
+				<td>状态</td>
+			</tr>
+			
+		{{foreach from=$list item=row}}
+			<tr><td >[<a href="javascript:domain_del('{{$row.name}}')" >删除</a>]&nbsp;[<a href="javascript:domain_init('{{$row.name}}');">重建解析</a>]&nbsp;[<a href="?c=dnsdomain&a=imLoginDomain&domain={{$row.name}}" target=_blank>登录</a>]</td>
+			<td>{{$row.name}}</td>
+			<td>{{$row.max_record}}</td>
+			<td>{{$row.server}}</td>
+			<td>{{if $row.status==0}}正常{{else}}暂停{{/if}}</td>
+			</tr>
+		{{/foreach}}
+				
+			<tr id="bg_yellow">
+			<td colspan="8" align="right">
+				{{if $page>1}}
+				<a href='?c=dnsdomain&a=dnsdomainPageList&page=0'>首页</a> 
+				<a href='?c=dnsdomain&a=dnsdomainPageList&page={{$page-1}}'>上一页</a> 
+				{{else}}
+				首页 上一页 
+				{{/if}}
+				{{if $page!=$total_page}} 
+				<a href='?c=dnsdomain&a=dnsdomainPageList&page={{$page+1}}'>下一页</a>
+				<a href='?c=dnsdomain&a=dnsdomainPageList&page={{$total_page}}'>尾页</a>
+				{{else}}下一页 尾页
+				{{/if}} 
+				{{$page}}/{{$total_page}}&nbsp;
+				共计{{$count}}记录&nbsp;
+			</td>
+			</tr>
+			
+		  </table>
+		</div>
+	
+	</div>
+	
+{{dispatch c='index'  a='foot'}}

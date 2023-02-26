@@ -1,0 +1,64 @@
+{{include file='common/head.html'}}
+<div align="center">
+<div class="show_sync" style='display:none' id="sync"></div> 
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：DNS管理 --> 域名列表</div>
+		<table class="table_public" cellpadding="0" cellspacing="1">
+		<tr><td colspan="11">
+			<table width="100%" cellpadding="0" cellspacing="0">
+				<form name='form1' action='#' method='post'>
+				<tr id="bg_yellow"><td align="left" id='sou'>域名查询:<input type='text' name='name' value='{{$name}}'>&nbsp;<input type='submit' value='搜索'></td>
+				<td align="right">
+					{{if $page>1}}
+					<a href='?c=vhost&a=pageVhost&page=0'>首页</a> 
+					<a href='?c=vhost&a=pageVhost&page={{$page-1}}'>上一页</a> 
+					{{else}}
+					首页 上一页 
+					{{/if}}
+					{{if $page!=$total_page}} 
+					<a href='?c=vhost&a=pageVhost&page={{$page+1}}'>下一页</a>
+					<a href='?c=vhost&a=pageVhost&page={{$total_page}}'>尾页</a>
+					{{else}}下一页 尾页
+					{{/if}} 
+					{{$page}}/{{$total_page}}&nbsp;
+					共计{{$count}}记录&nbsp;
+				</td></tr>
+				</form>
+		  	</table>
+		</td></tr>
+		<tr><td colspan="5" class="bg_main"><b>域名列表</b></td></tr>
+		<tr id="bg_yellow">
+			<td>操作</td>
+			<td>域名</td>
+			<td>类型</td>
+			<td>值</td>
+			<td>线路</td>
+		</tr>
+		<tr id="bg_yellow">
+			<td>删除&nbsp;修改</td>
+			<td>#</td>
+			<td>#</td>
+			<td>#</td>
+			<td>#</td>
+		</tr>
+
+		<tr id="bg_yellow"><td colspan="5" align="right">
+			{{if $page>1}}
+			<a href='?c=vhost&a=pageVhost&page=0'>首页</a> 
+			<a href='?c=vhost&a=pageVhost&page={{$page-1}}'>上一页</a> 
+			{{else}}
+			首页 上一页 
+			{{/if}}
+			{{if $page!=$total_page}} 
+			<a href='?c=vhost&a=pageVhost&page={{$page+1}}'>下一页</a>
+			<a href='?c=vhost&a=pageVhost&page={{$total_page}}'>尾页</a>
+			{{else}}下一页 尾页
+			{{/if}} 
+			{{$page}}/{{$total_page}}&nbsp;
+			共计{{$count}}记录&nbsp;
+		</td></tr>
+	  </table>
+	</div>
+</div>
+
+{{dispatch c='index'  a='foot'}}

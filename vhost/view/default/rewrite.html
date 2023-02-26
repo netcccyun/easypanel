@@ -1,0 +1,123 @@
+<div class='pro_msg' style="display: none" id='msg'></div>
+
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">伪静态设置</div>
+<form action='?c=rewrite&a=edit' method='post'>
+	<table class="table" cellpadding="0" cellspacing="1">
+		<tr>
+		    <td style="text-align:center;width:120px;">
+			    网站目录
+			</td>
+			<td>
+			    <select name='id' id='dir'>
+				{{foreach from=$paths key=id item=row}}<option value="{{$id}}" {{if $id==$pathid}}selected{{/if}}>{{$row}}</option>{{/foreach}}
+			    </select>
+			</td>
+		</tr>
+		<tr>
+		    <td style="text-align:center;width:120px;">
+			    规则选择
+			</td>
+			<td>
+			    <select id='rule'>
+				<option value="0">0.当前</option>{{foreach from=$rules item=row}}<option value="{{$row}}">{{$row}}</option>{{/foreach}}
+			    </select>
+			</td>
+		</tr>
+		<tr>
+		    <td style="text-align:center;width:120px;">
+			    规则内容
+			</td>
+			<td>
+			    <textarea name='content' id='content' cols='80' rows='15' class="span7" placeholder="">{{$content}}</textarea>
+				<br/><font color="red">支持<b>Apache</b>的伪静态规则</font>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" style="padding-left:400px;"><input type='button' value='保存' class="btn btn-primary" onclick='edit_rewrite();'>&nbsp;&nbsp;<input type='button' value='重置' class="btn btn-default" onclick='del_rewrite();'></td>
+		</tr>
+		<tr>
+			<td colspan="2" style="padding-left:120px;color:grey">
+			<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试点击重置</li>
+			<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>
+			</td>
+		</tr>
+	</table>
+</form>
+
+</div>
+<script language='javascript'>
+function edit_rewrite()
+{
+	var id = $("#dir").val();
+	var content = $("#content").val();
+	if(id == ''){
+		return alert('请选择网站目录');
+	}
+	$.ajax({
+		type: "POST",
+		url: '?c=rewrites&a=edit',
+		data: {id:id, content:content},
+		success: function(msg){
+			if(msg == "成功") { 
+				alert('保存成功！');
+				window.location.reload();
+			}else{
+				alert(msg);
+			}
+		},
+		error: function(){
+			alert('数据加载失败');
+		}
+	});
+}
+function del_rewrite()
+{
+	var id = $("#dir").val();
+	if(id == ''){
+		return alert('请选择网站目录');
+	}
+	if (confirm("确定删除伪静态规则吗?") != true) {
+		return;
+	}
+	$.ajax({
+		type:'POST',
+		url:'?c=rewrites&a=del',
+		data: {id:id},
+		success:function(msg) {
+			if (msg != "成功") {
+				return alert(msg);
+			}
+			window.location.reload();
+		},
+		error: function(){
+			alert('数据加载失败');
+		}
+	});
+}
+$(document).ready(function(){
+	$("#dir").change(function(){
+		if($(this).val()!=''){
+			window.location.href='?c=rewrites&a=show&id='+$(this).val();
+		}
+	});
+	$("#rule").change(function(){
+		var name = $(this).val();
+		if(name!='0'){
+			$.ajax({
+				type:'GET',
+				dataType:'json',
+				url:'?c=rewrites&a=getRule&name='+name,
+				success:function(data) {
+					if (data.code == 0) {
+						$("#content").html(data.content);
+					}
+				},
+				error: function(){
+					alert('数据加载失败');
+				}
+			});
+		}
+	});
+})
+</script>

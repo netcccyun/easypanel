@@ -1,0 +1,37 @@
+<div id="main">
+	<div class="public_pa">
+		<div class="start">
+			<strong>计划任务设置</strong>&nbsp;&nbsp;<a href='?c=cron&a=sync'><strong>[重建计划任务]</strong></a>
+		</div>
+	</div>
+	<div class="public_pa_wid padding_bottom">
+		<table class="table table-bordered" cellpadding="0" cellspacing="1">
+			{{foreach from=$crons item=cron}}
+			<tr>
+				<td>[<a href='?c=cron&a=del&id={{$cron.id}}'>删除</a>]
+				</td>
+				<td>{{$cron.min}} {{$cron.hour}} {{$cron.day}} {{$cron.month}}
+					{{$cron.mday}}</td>
+				<td>{{$cron.cmd}}</td>
+			</tr>
+			{{/foreach}}
+		</table>
+		<form action='?c=cron&a=add' method='post'>
+			<table class="table table-condensed" cellpadding="0" cellspacing="1">
+
+				<tr>
+					<td>时间(crontab格式):</td>
+					<td><input name='t' class="span4"></td>
+				</tr>
+				<tr>
+					<td>网址:</td>
+					<td><input name='cmd' class="span5"></td>
+				<tr>
+					<td></td>
+					<td><input type='submit' value='增加' class="btn btn-primary" /></td>
+				</tr>
+
+			</table>
+		</form>
+	</div>
+</div>

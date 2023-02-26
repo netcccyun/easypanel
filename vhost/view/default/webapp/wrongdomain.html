@@ -1,0 +1,14 @@
+<div class="main">
+    <div class="public_pa">程序安装</div>
+	<p>&nbsp;&nbsp;<strong>您的域名{{$domain}}没有正确解析到节点IP:{{$node_ip}}上，可能无法正确安装程序</strong></p>
+	<table class="table table-bordered">
+		<tr>
+			<td align="center">[<a
+				href='?c=webapp&a=install&step=0&force=1&appid={{$appid}}&dir={{$dir}}&appname={{$appname}}&appver={{$appver}}&domain={{$domain}}'>重新选过域名</a>]
+			</td>
+			<td align="center">[<a
+				href='?c=webapp&a=install&step=1&force=1&appid={{$appid}}&dir={{$dir}}&appname={{$appname}}&appver={{$appver}}&domain={{$domain}}'>点这里继续安装</a>]
+			</td>
+		</tr>
+	</table>
+</div>

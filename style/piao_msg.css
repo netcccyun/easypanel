@@ -1,0 +1,51 @@
+@CHARSET "UTF-8";
+
+.piao_msg {
+	position:absolute;
+	left:430px;
+	width:400px;
+	height:110px;
+	background-color:#104E8B;
+	text-align:center;
+	color:#FFFFFF;
+	font-size:16;
+	margin:15px;
+	padding:12px;
+	
+}
+.pro_msg {
+	position:absolute;
+	left:430px;
+	width:400px;
+	height:70px;
+	background-color:#104E8B;
+	text-align:center;
+	color:#FFFFFF;
+	font-size:16;
+	margin:15px;
+	padding:12px;
+}
+.update_msg {
+	position:absolute;
+	left:430px;
+	width:400px;
+	height:160px;
+	background-color:#104E8B;
+	text-align:center;
+	color:#FFFFFF;
+	font-size:16;
+	margin:15px;
+	padding:12px;
+}
+.up_text {
+	width:80px;
+	float:left;
+	padding-left:60px;
+	padding-top:5px;
+	text-align:right;	
+}
+.up_input {
+	padding-top:5px;
+	text-align:left;	
+}
+	

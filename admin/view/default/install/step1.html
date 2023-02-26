@@ -1,0 +1,52 @@
+{{include file='common/head.html'}}
+<script language="javascript">
+function check_db()
+{
+	var url = '?c=install&a=checkdb&db_host=' + form1.db_host + '&db_name=' + form1.db_name + '&db_user=' + form1.db_user + '&db_passwd=' ;
+	window.open(url,'','height=100,width=250,resize=no,scrollbars=no,toolsbar=no,top=200,left=200');
+}
+</script>
+<div id="header"></div>
+<div align="center">
+{{if $msg}}
+<div class="block tb_wid mar_top" align="center"><font color=red>{{$msg}}</font></div>
+{{/if}}
+<div class="tb_wid head_block" align="center">&nbsp;欢迎安装kangle虚拟主机管理系统!</div>
+<div class="block tb_wid">
+  <table id="table_2" cellpadding="0" cellspacing="1">
+  <form id="form1" name="form1" method="post" action="?c=install&a=step2">
+    <tr>
+      <td class="td_bgc right_2">数据库地址</td>
+      <td class="td_bgc right_2"><input name="db_host" type="text" id="tb_wid3" value="{{$request.db_host}}" /></td>
+    </tr>
+    <tr>
+      <td class="td_bgc right_2">数据库名</td>
+      <td class="td_bgc right_2"><input name="db_name" type="text" id="tb_wid3" value="{{$request.db_name}}" /></td>
+    </tr>
+    <tr>
+      <td class="td_bgc right_2">数据库用户名</td>
+      <td class="td_bgc right_2"><input name="db_user" type="text" id="tb_wid3" value="{{$request.db_user}}" /></td>
+    </tr>
+    <tr>
+      <td class="td_bgc right_2">数据库密码</td>
+      <td class="td_bgc right_2"><input name="db_passwd" type="password" id="tb_wid3" autocomplete='off'/></td>
+    </tr>
+    <tr>
+      <td class="td_bgc right_2">域名</td>
+      <td class="td_bgc right_2"><input name="domain" type="text" id="tb_wid3" value="{{$request.domain}}"/></td>
+    </tr>
+    <tr>
+      <td class="td_bgc right_2">初始管理员</td>
+      <td class="td_bgc right_2"><input name="admin_user" type="text" id="tb_wid3" value="{{$request.admin_user}}"/></td>
+    </tr>
+    <tr>
+      <td class="td_bgc right_2">初始管理员密码</td>
+      <td class="td_bgc right_2"><input name="admin_passwd" type="password" id="tb_wid3" autocomplete='off'/></td>
+    </tr>
+    <tr>
+      <td colspan="2" class="td_bgc right_2 tb_hg" align="center"><input type="submit" name="Submit" value="下一步" /></td>
+    </tr>
+	</form>
+  </table>
+</div>
+{{dispatch c='index'  a='foot'}}

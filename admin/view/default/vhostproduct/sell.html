@@ -1,0 +1,182 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+function show(url) 
+{ 
+	window.open(url,'','height=100,width=250,resize=no,scrollbars=no,toolsbar=no,top=200,left=200');
+}
+function check_user_old()
+{
+	show('?c=product&a=check&product_type=vhost&name='+document.nodeform.name.value);
+}
+function check_register()
+{
+	if(nodeform.name.value.length<3){
+		alert('用户名长度最小为3个字母');
+		return false;
+	}
+	if(nodeform.name.value=='root'){
+		alert('root为保留账号，请选择其他账号');
+		return false; 
+	}
+	return nodeform.submit();
+}
+function check_open_url(va)
+{
+	if(va=='free')
+	{
+		var url='?c=product&a=sellForm&product=vhost';
+		window.location=url;
+		return;
+	}else{
+		var url='?c=product&a=productSellFrom&product_id='+va;
+		window.location=url;
+		return;
+	}
+}
+function open_advance()
+{
+	document.getElementById('advance').style.display="";
+}
+function check_user_result()
+{
+	if (xmlhttp.readyState==4) {
+		var msg='';
+		var ret=0;
+		try{	
+			if(xmlhttp.status == 200){
+				//alert(xmlhttp.responseText);
+				var dataArray=xmlhttp.responseXML.getElementsByTagName('result');
+				ret = dataArray[0].getAttribute('ret');
+				if(ret=='1'){
+					msg="用户名可用";
+					document.getElementById('check_user_result').innerHTML=msg;
+					return false;
+				}else{
+					msg="用户名不可用";
+					document.getElementById('check_user_result').innerHTML=msg;
+				}
+			}
+		}catch(e){}
+	}
+}
+function getFirstElementsByName(name)
+{
+	var x=document.getElementsByName(name);
+	return x[0];
+}
+function check_user(va)
+{
+	var edit = '{{$edit}}';
+	if (edit != "") {
+		return;
+	}
+	if(va==""){
+		return;
+	}
+	var name = jQuery.trim(va);
+	jQuery("#name").val(name);
+	var url='?c=vhostproduct&a=ajaxCheckUser&name='+name;
+	jQuery.get(url,function(msg) {
+		if (msg=="1") {
+			//nodeform.passwd.focus();
+			alert("用户名不可用");
+			return false;
+		}
+		jQuery("#check_user_result").html("用户名可用");
+	});
+	//ajax_open_url(url,check_user_result);
+}
+function display_productinfo()
+{
+	var id=document.getElementById('product_ids').selectedIndex;
+	var url="?c=product&a=ajaxGetProductInfo&id="+id;
+	ajax_open_url(url,get_product_result);
+	document.getElementById('product_info').style.display="";
+}
+function display_product(va)
+{
+	if (va=="null") {
+		jQuery('.free_tbody').show();
+	} else {
+		jQuery('.free_tbody').hide();
+	}
+}
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="right">
+		<form name='nodeform' action="?c=product&a=sell&product_type=vhost&edit={{$edit}}" method="post">
+		<div class="block_top" align="left">当前位置：网站管理 --> {{if $edit}}修改网站{{else}}新增网站{{/if}}</div>
+		<table class="table" cellpadding="0" cellspacing="1">
+			<thead>
+				<tr><td style="width:260px;"><b >{{if $edit}}修改网站{{else}}新增网站{{/if}}</b></td><td style="width:auto"></td></tr>
+			</thead>
+			<tbody>
+			<tr><td >网站名:</td>
+				<td><input name="name" type="text" id="name" {{if $edit}}readonly{{/if}}  onblur="check_user(this.value)"  value="{{$vhost.name}}" required>
+				<font color='red' id='check_user_result'>{{if !$edit}}*必填,不支持中文{{/if}}</font>
+			{{if !$edit}}
+			<tr><td>密码:</td>
+				<td><input name="passwd" type="password" id="passwd" required><font color='red'>*必填</font></td>
+				</tr>
+			<tr><td>使用期限:</td>
+				<td id='expire_time'>
+					<input name="month" type="radio"  value="1">
+					一个月
+					<input name="month" type="radio"  value="3">
+					三个月
+					<input name="month" type="radio"  value="6">
+					六个月
+					<input name="month" type="radio"  value="12">
+					一年
+					<input name="month" type="radio"  value="36">
+					三年
+					<input name="month" type="radio"  value="0" checked>
+					不限
+				</td>
+			</tr>
+			{{/if}}
+			
+			
+			<tr><td>高级(为空系统自动完成):</td>
+				<td>[<a href='javascript:open_advance()'>展开</a>]
+					<div style='display:none' id='advance'>			
+					运行用户:
+					<input type='text' name='uid' value='{{$vhost.uid}}'><br>
+					组/密码 :
+					<input type='text' name='gid' value='{{$vhost.gid}}'><br>
+					网站路径:
+					<input type='text' name='doc_root' value='{{$vhost.doc_root}}'>	
+					</div></td></tr>
+			
+			<tr><td>产品名称:</td>
+				<td><select name="product_id" id='product_ids' onchange='display_product(this.value);'> 
+					<option value="null">自由类型</option>
+					
+					{{foreach from=$products item=product}}
+					<option value="{{$product.id}}" {{if $product_id==$product.id}} selected {{/if}}>
+					{{$product.product_name}}
+					</option>
+					{{/foreach}}</select></td></tr>
+			</tbody>
+			{{include file="common/product.html"}}
+			
+			
+		</table>
+		
+		<!--  <div style='display:none' id='free'>{{include file="common/product.html"}}</div>
+		-->
+		<table class="table" cellpadding="0" cellspacing="1">
+			<tr><td colspan="2" ><input type="submit" class="btn"  style="margin-left:300px;width:200px;" value="确定"></td></tr>
+		</table>
+		
+		</form>
+	</div>
+
+</div>
+<script language='javascript'>
+{{if $product_id==""}}
+	jQuery('.free_tbody').not('#gj').show();
+{{/if}}
+changeNode();
+</script>
+{{dispatch c='index'  a='foot'}}

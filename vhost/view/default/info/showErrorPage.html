@@ -1,0 +1,44 @@
+<div class="main">
+    <div class="public_pa">错误定义</div>
+	<table class="table table-bordered" cellpadding="0" cellspacing="1">
+		<thead>
+			<tr>
+				<th style="border-left:0">操作</th>
+				<th>错误类型</th>
+				<th>url</th>
+			</tr>
+		</thead>
+		{{foreach from=$list item=row}}
+		<tr>
+			<td style="border-left:0">[<a href="javascript:if(confirm('确定删除{{$row.name}}？')){location='?c=info&a=delErrorPage&name={{$row.name}}';}" title="删除域名">删除</a>]</td>
+			<td>{{$row.name}}</td>
+			<td>{{$row.value}}</td>
+		</tr>
+		{{/foreach}}
+		<tr>
+			<td style="border-left:0" colspan="3">共计 {{$sum}} 条记录</td>
+		</tr>
+	</table>
+
+	<form name='nodeform' action="?c=info&a=addErrorPage" method="post">
+		<table class="table" cellpadding="0" cellspacing="1">
+			<thead>
+				<tr>
+					<th colspan="2">{{if $action=='add'}}增加自定义错误{{else}}修改自定义错误{{/if}}</th>
+				</tr>
+			</thead>
+			<tr>
+				<td style="width:60px">错误类型</td>
+				<td><input type='text' name='name' value="{{$info.name}}" size='5' /> 常见错误类型：404 - 找不到页面</td>
+			</tr>
+			<tr>
+				<td style="width:60px">url</td>
+				<td><input type='text' name='value' value="{{$info.value}}" size="50" /></td>
+			</tr>
+			<tr>
+				<td style="width:60px">&nbsp;</td>
+				<td><input type="submit" value="确定" class="btn btn-warning" /></td>
+			</tr>
+		</table>
+	</form>
+</div>

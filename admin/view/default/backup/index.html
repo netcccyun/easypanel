@@ -1,0 +1,158 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+function test_ftp()
+{
+	var h = $("#host").val();
+	var u = $("#user").val();
+	var p = $("#passwd").val();
+	var po = $("#port").val();
+	var url = "?c=backup&a=testFtp&host=" + h + "&user=" + u + "&passwd=" + p + "&port=" + po;
+	$.get(url,function(msg){
+		if (msg=="success") {alert("连接可用");} else { alert("连接不可用");}
+	});
+}
+function checked_mysql()
+{
+	var val = $("#backup").attr('checked');
+	if(val=='checked'){
+		$("#mm").attr('checked',true);
+	}else{
+		$("#mm").attr('checked',false);
+	}
+	
+}
+function check_binlog()
+{
+	var ch = $("#mm").attr('checked');
+	if (ch != 'checked'){
+		$("#logbin").html("");
+		return;
+	}
+	var url = "?c=backup&a=check_mysql";
+	$.get(url,function(msg){
+		if(msg =='success'){
+			return;
+		}else{
+			$("#logbin").html("<font color='red'>请注意：mysql bin-log未开启，无法使用增量备份,</font><a href='http:\/\/www.kangleweb.com\/thread-7330-1-1.html' target='_blank'>请点击这里查看如何开启\<\/a\>");
+		}
+	});
+}
+
+function backup_now()
+{
+	var t=confirm("确定现在开始备份?");
+	if (t!=true)return;
+	var url='?c=backup&a=backupNow';
+	$.get(url,function(msg){$("#cmd").html(msg);});
+}
+function hidediv()
+{
+	var n = $("#backup").css('display');
+	if ( n != 'none') {	
+		$("#backup").hide();
+		$("#hid").html('显示');
+	}else{
+		$("#backup").show();
+		$("#hid").html('隐藏');
+	}
+}
+function view_ftp(val)
+{
+	if(val !='l')
+	{
+		$("#ftp").css("display","block");
+	}else{
+		$("#ftp").css("display","none");
+	}
+}
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：其它设置 --> 自动备份恢复</div>
+			<table class="table_public" cellpadding="0" cellspacing="1">
+				<tr><td colspan="3" class="bg_main">
+					<b>自动备份设置</b>&nbsp;&nbsp;&nbsp;<a href="javascript:hidediv();" style="text-decoration:underline;"><span id="hid">隐藏</span></a>
+				</td></tr>
+			</table>
+	</div>
+	
+	<div class="wid_main mar_main" align="left" id='backup'>
+		<form name='nodeform' action="?c=backup&a=add" method="post">
+		<table class="table" cellpadding="0" cellspacing="1">
+		
+			<tr><td><input name='backup' id="backup"  type='checkbox' value="1" {{if $setting.backup==1}}checked{{/if}}/>自动备份开关</td></tr>
+			
+			<tr><td>{{if $setting.backup_last_time>0}}上次备份时间:{{date('Y-m-d H:i:s',$setting.backup_last_time)}}{{/if}}
+					<a href='javascript:if(confirm("确认重置吗？这将导致备份时间重新计算")){ window.location="?c=backup&a=resetTime";}'>重置备份时间</a></td></tr>
+			 
+			<tr><td><input name="backup_mysql" id='mm' onclick='check_binlog();' type="checkbox" value="1" {{if $setting.backup_mysql}}checked{{/if}}>mysql&nbsp;备份
+					<input name='backup_mysql_single' type='checkbox' value='1' {{if $setting.backup_mysql_single}}checked{{/if}}>数据库独立备份
+					<div id="logbin"></div></td></tr>
+			
+			<tr><td><input name="backup_web" type="checkbox" value="1" {{if $setting.backup_web}}checked{{/if}}>网站文件备份
+					<div id="logbin"></div></td></tr>
+			
+			<tr><td><input name="backup_lowrun" type="checkbox" value="1" {{if $setting.backup_lowrun}}checked{{/if}}>低权限备份(对使用中的系统影响较小)</td></tr>
+			
+			<tr><td>备份文件目录:<input name="backup_dir"  size='16'  value="{{if $setting.backup_dir}}{{$setting.backup_dir}}{{else}}{{$dir}}{{/if}}"></td></tr>
+			
+			<tr><td>备份文件保存位置:
+					{{foreach from=$backup_save_place item=row}}
+					<input name="backup_save_place" type="radio" onclick="view_ftp(this.value);" value="{{$row[0]}}" {{if $setting.backup_save_place==$row[0]}}checked{{/if}} >
+					{{$row[1]}}
+					{{/foreach}}</td></tr>
+			
+			<tr id='ftp' style="display:{{if $setting.backup_save_place =='l'}}none{{/if}}"><td>
+						FTP主机地址:
+						<input name="ftp_host" id='host'  size='14' value="{{if $setting.ftp_host}}{{$setting.ftp_host}}{{/if}}">
+						FTP端口:
+						<input name="ftp_port" id='port'  size='4' value="{{if $setting.ftp_port}}{{$setting.ftp_port}}{{else}}21{{/if}}">
+						FTP账号:
+						<input name="ftp_user" id='user'  size='10' value="{{if $setting.ftp_user}}{{$setting.ftp_user}}{{/if}}">
+						FTP密码:
+						<input name="ftp_passwd" id='passwd'  size='10' value="{{if $setting.ftp_passwd}}{{$setting.ftp_passwd}}{{/if}}">
+						FTP目录:
+						<input name="ftp_dir" id='dir'  size='10' value="{{if $setting.ftp_dir}}{{$setting.ftp_dir}}{{/if}}">
+						<input type='button' onclick="test_ftp();" value="测试连接"></td>	</tr>
+			
+			<tr><td>备份文件分卷大小:
+					{{foreach from=$volumn_size item=row}}
+					<input name="volumn_size" type="radio"  value="{{$row}}" {{if $setting.volumn_size==$row}}checked{{/if}} >
+					{{$row}}M
+					{{/foreach}}</td></tr>
+			
+			<tr><td>全备份:
+					<input name="backup_all_date"  size='4' value="{{if $setting.backup_all_date}}{{$setting.backup_all_date}}{{else}}7{{/if}}">
+					天一次，开始备份时间:
+					<select name='backup_hour'>
+					{{for $i=0;$i<24;$i++}}
+					<option value='{{$i}}' {{if $setting.backup_hour==$i}}selected{{/if}}>{{$i}}:00</option>
+					{{/for}}
+					</select></td></tr>
+			
+			<tr><td>增量备份:	<input name="backup_date"  size='4' value="{{if $setting.backup_date}}{{$setting.backup_date}}{{else}}24{{/if}}">小时一次</td></tr> 
+			 
+			<tr><td>备份文件保存:<input name="backup_save_day"  size='4' value="{{if $setting.backup_save_day}}{{$setting.backup_save_day}}{{else}}30{{/if}}">天</td></tr>
+			
+			<tr><td>备份加密密码:<input name="backup_passwd"  size='12' value="{{if $setting.backup_passwd}}{{$setting.backup_passwd}}{{/if}}"></td></tr>		
+			
+			<tr><td class="td_hg" colspan="2" align="center">
+				<input type="submit" class="btn" value="确认提交">
+				<input type="button" class="btn" onclick='backup_now();' value="现在备份"></td></tr>
+				
+		</table>
+		</form>
+	</div>
+	
+	<div id='cmdt'></div>
+	
+	<div id="xsnazzy" style="display:none">
+		<b class="xtop"><b class="xb1"></b><b class="xb2"></b><b class="xb3"></b><b class="xb4"></b></b>
+			
+			<div class="xboxcontent" align="center"><div id='cmd'></div></div>
+			
+		<b class="xbottom"><b class="xb4"></b><b class="xb3"></b><b class="xb2"></b><b class="xb1"></b></b>
+	</div>
+		
+	<div class="wid_main mar_main" align="left" id='restore'><b><a href="?c=backup&a=restore">自动恢复向导</a></b></div>
+{{dispatch c='index'  a='foot'}}

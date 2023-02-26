@@ -1,0 +1,71 @@
+{{include file='common/head.html'}}
+<script language='javascript'  src='{{$STATIC}}scripts/record.js'>
+
+</script>
+<pre id='msg' class='piao_dig' style='display:none'></pre>
+<div align="center">
+<div class="wid_main mar_main" align="left">
+<div class="block_top" align="left">当前位置：域名解析列表</div>
+<table class="table" cellpadding="0" cellspacing="1">
+	<tr><td colspan="10">
+		<table width="100%" cellpadding="0" cellspacing="0">
+			<form method="post" action='?c=record&a=recordPageList'>
+			<tr id="bg_yellow">
+				<td align="left">
+					搜索:&nbsp;<select name='mode'>
+					<option value='id'>id</option>
+					<option value='domain'>域名</option>
+					<option value='view'>线路</option>
+					</select> <input name='mode_value'> <input type='submit' value='查询'>
+				</td>
+			</tr>
+			</form>
+		</table>
+	</td></tr>
+	<tr><td colspan="10" ><b>域名解析列表</b></td></tr>
+	<tr id="bg_yellow">
+		<td>操作</td>
+		<td>id</td>
+		<td>主机名</td>
+		<td>域名</td>
+		<td>解析类型</td>
+		<td>解析值</td>
+		<td>解析线路</td>
+		<td>TTL</td>
+		<td>状态</td>
+	</tr>
+
+	{{foreach from=$list item=row}}
+	<tr>
+		<td>[<a
+			href="javascript:record_del('{{$row.id}}','{{$row.domain}}','{{$row.name}}')">删除</a>]
+		</td>
+		<td>{{$row.id}}</td>
+		<td>{{$row.name}}&nbsp;{{if $row.type=='MX'}}{{$row.prio}}{{/if}}</td>
+		<td>{{$row.domain}}</td>
+		<td>{{$row.type}}</td>
+		<td>{{$row.value}}</td>
+		<td>{{$row.view}}</td>
+		<td>{{$row.ttl}}</td>
+		<td>{{$row.status}}</td>
+	</tr>
+	{{/foreach}}
+
+	<tr id="bg_yellow">
+		<td colspan="11" align="right">{{if $page>1}} <a
+			href='?c=record&a=recordPageList&page=0&order={{$order}}'>首页</a> <a
+			href='?c=record&a=recordPageList&page={{$page-1}}&order={{$order}}'>上一页</a>
+		{{else}} 首页 上一页 {{/if}} {{if $page!=$total_page}} <a
+			href='?c=record&a=recordPageList&page={{$page+1}}&order={{$order}}'>下一页</a>
+		<a
+			href='?c=record&a=recordPageList&page={{$total_page}}&order={{$order}}'>尾页</a>
+		{{else}}下一页 尾页 {{/if}} {{$page}}/{{$total_page}}&nbsp;
+		共计{{$count}}记录&nbsp;</td>
+	</tr>
+
+</table>
+</div>
+
+</div>
+
+{{dispatch c='index' a='foot'}}

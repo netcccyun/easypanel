@@ -1,0 +1,33 @@
+
+<div class="main">
+    <div class="public_pa">
+		<b>切换PHP版本
+		</b>
+	</div>
+
+	<table class="table" cellpadding="0" cellspacing="1">
+		<tr>
+			<td style="width:120px;">当前版本:</td>
+			<td>{{$version}}</td>
+		</tr>
+		<tr>
+			<td style="width:120px;">切换版本:</td>
+			<td><form action="?c=index&a=phpset&op=change" method="POST" onsubmit="return change_version()"><select name="v" id="v">
+			{{foreach from=$versions key=key item=row}}
+			<option value="{{$key}}" {{if $version==$row}}selected{{/if}}>{{$row}}</option>
+			{{/foreach}}
+			</select>&nbsp;&nbsp;<input value="确定" type="submit" class="btn btn-warning"></form></td>
+		</tr>
+	</table>
+</div>
+<script>
+function change_version()
+{
+	var v = $("#v").val();
+	if(v=="")return;
+	$.post( "?c=index&a=phpset&op=change", {v:v}, 
+        function(data){ alert(data); window.location.reload();}
+    );
+	return false;
+}
+</script>

@@ -1,0 +1,57 @@
+{{include file='common/head.html'}}
+<script language='javascript' src='{{$PSTATIC}}/style/common.js'>
+</script>
+<script language="javascript">
+
+function changeProduct()
+{
+	var product = new Array(
+			{{foreach from=$products item=product}}
+			new Array({{$product.web_quota}},{{$product.db_quota}},{{$product.price}}),
+			{{/foreach}}
+			new Array(0,0,0));
+	var i = upgrade.product_id.selectedIndex;
+	$('web_quota').innerHTML=product[i][0]+"M";
+	$('db_quota').innerHTML = product[i][1] + "M";
+	$('price').innerHTML = product[i][2]/100 + '元/年';
+}
+</script>
+<div align="center">
+  <form name='upgrade' action="?c=product&a=upgrade&name={{$name}}&product_type=vhost" method="post">
+<div class="head_block tb_wid">&nbsp;升级虚拟主机 {{$name}}</div>
+<div class="block tb_wid">
+<table id="table_2" cellpadding="0" cellspacing="1">
+      <tr>
+        <td class="td_bgc right_2">升级到产品</td>
+        <td class="td_bgc right_2">
+        <select name='product_id' onChange='changeProduct()'>
+        {{foreach from=$products item=product}}
+        <option value='{{$product.id}}'>{{$product.name}}</option>
+        {{/foreach}}
+        </select>
+		</td>
+        </tr>
+	  <tr>
+        <td class="td_bgc right_2">空间大小:</td>
+        <td class="td_bgc right_2"><div id='web_quota'></div></td>
+	  </tr>
+	  <tr>
+        <td class="td_bgc right_2">数据库大小:</td>
+        <td class="td_bgc right_2"><div id='db_quota'></div></td>
+	  </tr>
+	  <tr>
+        <td class="td_bgc right_2">价格</td>
+        <td class="td_bgc right_2"><div id='price'></div></td>
+        </tr>
+	    <tr>
+	    <td class="td_bgc td_hg" colspan="2" align="center">
+		<input type="submit" value="确定"></td>
+        </tr>
+    </table>
+	</div>
+    </form>
+  </div>
+  <script language='javascript'>
+  changeProduct();
+  </script>
+{{dispatch c='index'  a='foot'}}

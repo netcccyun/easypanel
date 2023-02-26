@@ -1,0 +1,113 @@
+body {
+	font-family: Verdana,"Microsoft YaHei",Arial;
+	color: #101010;
+	background-color: #434343;
+	margin: 0;
+	padding: 0;
+	font-size: 12px;
+}
+
+input {
+	font-family: Verdana,Arial;
+	padding: 3px 2px;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+}
+
+table {
+    background-color: transparent;
+    border-collapse: collapse;
+    border-spacing: 0;
+    max-width: 100%;
+}
+
+a {
+	text-decoration: none;
+	color: #101010;
+}
+
+a:hover {
+	text-decoration: none;
+	color: #ff8600;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.clear {
+	clear: both;
+}
+
+#login {
+	width: 330px;
+	height: auto;
+	margin: 0 auto;
+	padding: 30px 0 20px;
+}
+
+.login_container {
+	max-width: 582px;
+	margin: 10% auto 0;
+	background-color: #fff;
+}
+
+.login_ico, .login_logo, .logo, .login_btn {
+	background-image: url(../imgs/vhost_login.png);
+	background-repeat: no-repeat;
+}
+
+.login_ico {
+	height: 54px;
+	width: 146px;
+	background-position: 0 0;
+}
+
+.login_ico_bg {
+	height: 54px;
+	max-width: 582px;
+	background-color: #434343;
+}
+
+.login_logo {
+	max-width: 582px;
+	height: 84px;
+	background-position: 0 -109px;
+}
+
+.logo {
+    width: 295px;
+    height:35px;
+	margin-bottom: 20px;
+	background-position: 0 -64px;
+}
+
+.login_btn {
+    width: 98px;
+	height: 38px;
+	cursor: pointer;
+	border: 0;
+	background-position: 0 -203px;
+}
+
+.ver {
+    float: right;
+	margin: 0 15px 10px 0;
+}
+
+.table {
+    margin-bottom: 18px;
+    width: 100%;
+}
+
+.table th, .table td {
+    font-size: 14px;
+    line-height: 20px;
+    padding: 8px;
+    text-align: left;
+    vertical-align: middle;
+}

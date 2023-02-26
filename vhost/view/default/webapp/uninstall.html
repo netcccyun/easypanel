@@ -1,0 +1,67 @@
+<script language='javascript' src='{{$PSTATIC}}/style/common.js'>
+</script>
+<script language='javascript'>
+var xmlhttp2=new Array();
+var checkDownInterval = 0;
+var checkInstallInterval = 0;
+var phy_dir = null;
+var uninstall_url = '{{$appinfo.uninstall}}';
+function checkUnstallResult()
+{
+	var msg='';
+	if (xmlhttp2.readyState==4) {
+		try{
+			//alert(xmlhttp2.responseText);
+			if(xmlhttp2.status == 200){
+				var dataArray = xmlhttp2.responseXML.getElementsByTagName('result');
+				code = dataArray[0].getAttribute('code');
+				//alert(code);
+				if(code==201){
+					setTimeout("checkUninstall()",2000);
+					//msg = '正在复制数据...请等待';
+				}else if (code==200) {
+					msg='删除数据完成.';
+					if(uninstall_url!=''){
+						msg += '[<a href="'+ uninstall_url +'" target="_blank">点这里继续反安装</a>]';
+					}
+					msg += '[<a href="?c=webapp&a=uninstallComplete&id={{$app.id}}';
+					msg += '">点这里返回</a>]';					
+					$('msg').innerHTML = msg;
+				}else{
+					msg = "删除数据出错,错误号=" + code;
+					$('msg').innerHTML = msg;
+				}
+			
+			}
+		}catch(e){
+			msg='有问题,请联系管理员.';
+			$('msg').innerHTML = msg;
+			alert(xmlhttp2.responseText);
+		}
+	}
+}
+function checkUninstall()
+{
+	var url = '?c=webapp&a=ajaxCheckAppinstall&op=uninstall&appid={{$app.appid}}&phy_dir={{$app.phy_dir}}';
+	var node = 'msg';
+	xmlhttp2 = create_xmlhttp();	
+	xmlhttp2.open("GET",url,true);
+	xmlhttp2.onreadystatechange=function (){
+		checkUnstallResult();
+	};
+	xmlhttp2.send(null);
+}
+checkUninstall();
+</script>
+<div align="center">
+	<div class="wid_panel2">
+		<div id="xsnazzy">
+			<b class="xtop"><b class="xb1"></b><b class="xb2"></b><b class="xb3"></b><b class="xb4"></b></b>
+				<div class="xboxcontent" align="center">
+					<div id='msg'>正在删除数据...</div>
+				</div>
+			<b class="xbottom"><b class="xb4"></b><b class="xb3"></b><b class="xb2"></b><b class="xb1"></b></b>
+		</div>
+	</div>
+</div>
+

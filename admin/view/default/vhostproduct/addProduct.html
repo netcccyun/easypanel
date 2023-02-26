@@ -1,0 +1,35 @@
+{{include file='common/head.html'}}
+<script type="text/javascript">
+var error = '{{$error}}';
+jQuery(document).ready(function(){
+	if (error != '') {
+		 art.dialog({id:'id22',content:error ,icon: 'error',left:'50%',top:'20%'});
+	}
+	jQuery("input").focus(function(){
+		jQuery(this).addClass('onMouseOver');
+	});
+	jQuery("input").blur(function(){
+		jQuery(this).removeClass('onMouseOver');
+	});
+});
+</script>
+<div align="center">
+	<div class="wid_main mar_main" >
+		<form name='nodeform' action="?c=vhostproduct&a={{$action}}&id={{$vhost.id}}" method="post">
+		<div class="block_top" align="left">当前位置：网站管理 --> {{if $action=='editProduct'}}修改产品{{else}}增加产品{{/if}}</div>
+		<table class="table" >
+			<tbody>
+			<tr><td style="width:260px;">产品名称:</td>
+				<td style="width:auto"><input name='product_name' type='text' value="{{$vhost.product_name}}" size="18" required></td></tr>	
+			</tbody>		
+			{{include file='common/product.html'}}
+			<tbody>
+			<tr><td >默认首页(多个由,分开):</td>
+				<td ><input name='default_index' type='text' value="{{$vhost.default_index}}" size="32"></td></tr>
+			<tr><td >&nbsp;</td><td><span ><input type="submit" class="btn" value="确认提交"></span></td></tr>
+			</tbody>
+		</table>
+		</form>
+	</div>
+</div>
+{{dispatch c='index'  a='foot'}}

@@ -1,0 +1,48 @@
+{{include file='common/head.html'}}
+<script language='javascript' src='{{$STATIC}}scripts/view.js'></script>
+
+<div id='msg' class='piao_slave' style='display:none'></div>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：DNS线路列表</div>
+		<div class="add_prod"><a href='javascript:;' onclick='view_sync();'><img src="{{$STATIC}}style/addprod8.gif" border="0" alt="更新线路"/></a></div>
+		<table class="table_public" cellpadding="0" cellspacing="1">
+		<tr><td colspan="8" class="bg_main"><b>DNS线路列表</b></td></tr>
+			<tr id="bg_yellow">
+				<td>名称</td>
+				<td>描述</td>
+				<td>key</td>
+			</tr>
+			{{foreach from=$list item=row}}
+			<tr>
+				<!--<td>
+					  [<a href="?c=views&a=viewsDel&name={{$row.name}}" >删除</a>]
+					[<a href="javascript:piao_view_change('{{$row.name}}','{{$row.desc}}');" >修改</a>]
+				</td>-->
+				<td>{{$row.name}}</td>
+				<td>{{$row.desc}}</td>
+				<td>{{substr($row.key,0,6)}}**********</td>
+			</tr>
+			{{/foreach}}
+				
+			<tr id="bg_yellow">
+				<td colspan="8" align="right">
+					{{if $page>1}}
+					<a href='?c=views&a=viewsPageList&page=0'>首页</a> 
+					<a href='?c=views&a=viewsPageList&page={{$page-1}}'>上一页</a> 
+					{{else}}
+					首页 上一页 
+					{{/if}}
+					{{if $page!=$total_page}} 
+					<a href='?c=views&a=viewsPageList&page={{$page+1}}'>下一页</a>
+					<a href='?c=views&a=viewsPageList&page={{$total_page}}'>尾页</a>
+					{{else}}下一页 尾页
+					{{/if}} 
+					{{$page}}/{{$total_page}}&nbsp;
+					共计{{$count}}记录&nbsp;
+				</td>
+			</tr>
+		  </table>
+		</div>
+	</div>
+{{dispatch c='index'  a='foot'}}

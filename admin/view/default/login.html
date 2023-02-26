@@ -1,0 +1,65 @@
+{{include file='common/head.html'}}
+
+<link rel="stylesheet" rev="stylesheet" href="{{$STATIC}}style/login.css" type="text/css" media="all" />
+<div id="header"></div>
+<script language='javascript'>
+function clickuser() {
+	if (document.form1.username.value==document.form1.username.defaultValue) {
+		document.form1.username.value="";
+		document.form1.username.style.color="#000000";
+	}
+}
+
+function clickpass() {
+	if (document.form1.passwd.value==document.form1.passwd.defaultValue) {
+		document.form1.passwd.value="";
+		document.form1.passwd.type="password";
+		document.form1.passwd.style.color="#000000";
+	}
+}
+
+function bluruser() {
+	if (document.form1.username.value=="") {
+		document.form1.username.value="Username";
+		document.form1.username.style.color="#999999";
+	}
+}
+
+function blurpass() {
+	if (document.form1.passwd.value=="") {
+		document.form1.passwd.type="text";
+		document.form1.passwd.value="Password";
+		document.form1.passwd.style.color="#999999";
+	}
+}
+</script>
+<div id="login">
+	<div id="logo">管理员控制面板</div>
+	<div id="warning"></div>
+	<div id="login_top"></div>
+	<div id="login_main">
+		<form action="index.php?c=session&a=login" method=post name="form1">
+			<div class="input_title">用户名</div>
+			<div class="input_box" style="margin-bottom: 10px;">
+				<input id='username' name="username" />
+			</div>
+			<div class="input_title">密码</div>
+			<div class="input_box">
+				<input type="password" name="passwd" />
+			</div>
+			{{if $img}}
+			<div class="input_title">请输入以下图片中的验证码:<input name='imgnumber' style="height:30px;" autocomplete="off"></div>
+			<div class="input_box"><img src="?c=session&a=initImg&action=init"></div>
+			{{/if}}
+			<div class="login_button">
+				<input type="submit" value="登 录" />
+			</div>
+		</form>
+	</div>
+</div>
+</body>
+
+<script>
+form1.username.focus();
+</script>
+{{include file='common/foot.html'}}	

@@ -1,0 +1,27 @@
+{{include file='common/head.html'}}
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：其它设置 --> 增加辅节点</div>
+		<form name='manynode' action="?c=manynode&a=add&name={{$node.name}}" method="post">
+		<table class="table" cellpadding="0" cellspacing="1">
+		 
+			
+			<tr><td style="width:260px;">节点名称:</td> 
+				<td>{{if $edit}}{{$node.name}}{{else}}<input name='name' type='text' required><font color='red'>&nbsp;字母，数字的集合</font>{{/if}}</td></tr>
+			
+			<tr><td>节点IP:</td>
+				<td><input name='host' type='text' value="{{$node.host}}" required></td></tr>
+			
+			<tr><td>节点安全码:</td>
+				<td><input name='skey' type='text' value="{{$node.skey}}" required></td></tr> 
+			  
+			<tr><td>备注:</td>
+				<td><textarea name='mem'  rows='1' cols='24'>{{$node.mem}}</textarea></td></tr>
+			
+			<tr><td >&nbsp;</td><td><input type="submit" class="btn" value="提交"></td></tr>
+		
+		</table>
+		</form>
+	</div>
+</div>
+{{dispatch c='index'  a='foot'}}

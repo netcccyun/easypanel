@@ -1,0 +1,18 @@
+<!--#start 61-->
+<config>
+<api name='php52' file='%{config_dir}\php5isapi.dll' type='pmt' life_time='60'>
+<pre_event src_file='%{config_dir}\php-templete.ini' dst_file='c:\windows\php.ini'/>
+</api>
+
+<cmd name='php52' proto='fastcgi' file='"%{config_dir}\php-cgi.exe"' type='mp' life_time='0' >
+<pre_event src_file='%{config_dir}\php-templete.ini' dst_file='%{config_dir}\etc\php-${name}.ini' />
+<env PHPRC='%{config_dir}\etc\php-${name}.ini' />
+</cmd>
+
+<vhs  index='index.php'>
+<map file_ext='php' extend='{{$php_extend}}' allow_method='*'/>
+</vhs>
+<vh_templete name='php:php52' templete='html' index='index.php'>
+<map file_ext='php' extend='{{$php_extend}}' allow_method='*' params='{{$params}}'/>
+</vh_templete>
+</config>

@@ -1,0 +1,11 @@
+<!--#start 500 -->
+<config>
+<CreateProcess>AsUser</CreateProcess>
+<log level='3' logs_day='{{$setting.logs_day}}' rotate_time='0 0 * * *'/>
+<vhs>
+<vh_database
+driver='{{$driver}}'
+dbname='etc/vhs.db'
+/>
+</vhs>
+</config>

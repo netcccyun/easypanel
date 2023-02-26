@@ -1,0 +1,29 @@
+{{include file='common/head.html'}}
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：服务器管理 --> 禁止ip访问</div>
+		<table class="table" cellpadding="0" cellspacing="1">
+		<form action='?c=access&a=addip' method='post'>
+			<tr>
+				<td style="width:400px;">ip地址(如:192.168.0.1,192.168.0.1/24):<input name='ip' id='ip' value=''></td>
+				<td style="width:300px;">禁止时间(0表示永久):	<input name='life_time' value='60' size=5>&nbsp;分钟</td>
+				<td style="width:auto"><input type='submit' value='禁止访问'></td>
+			</tr>
+		</form>
+		</table>
+		<table class="table" cellpadding="0" cellspacing="1">
+		<tbody>
+		{{foreach from=$ips item=row}}
+		
+			<tr>
+				<td style="width:200px">{{$row.ip}}</td>
+				<td style="width:200px;">{{if $row.expire==0}}永久{{else}}{{ceil(($row.expire-time())/60)}}{{/if}}</td>
+				<td style="width:atuo"><a href="?c=access&a=delip&id={{$row.id}}">删除</a></td>
+			</tr>
+		
+		{{/foreach}}
+		</tbody>
+		</table>
+	</div>
+</div>
+{{dispatch c='index'  a='foot'}}

@@ -1,0 +1,56 @@
+<script src="/style/js/highcharts.js"  type="text/javascript"></script>  
+<!-- 添加主题样式js文件 -->  
+<script src="/style/js/themes/grid.js"  type="text/javascript"></script>  
+<!--添加导出模式 -->  
+<script src="/style/js/modules/exporting.js"  type="text/javascript"></script>  
+<script type="text/javascript"> 
+	var chart;  
+	$(document).ready(function () {  
+		chart = new Highcharts.Chart({  
+			chart: {  
+				renderTo: 'flow',  
+				defaultSeriesType: 'line', //图表类型 line, spline, area, areaspline, column, bar, pie , column，scatter  
+				inverted: false //左右显示，默认上下正向。假如设置为true，则横纵坐标调换位置  
+			},  
+			xAxis: {  
+				//categories: ['一', '二', '三', '四', '五', '六', '日' ], //X轴的坐标值  
+				categories: [{{$cate}}] //X轴的坐标值  
+			  //  title: {text: '{{$date}}数'}  //Y轴坐标标题  labels:纵柱标尺  
+			},  
+			yAxis: {  
+			    title: {text: '流量 (Bytes)'},  //Y轴坐标标题  labels:纵柱标尺  
+				min:0  
+			},  
+			tooltip: {  
+				formatter: function() {  
+					//当鼠标悬置数据点时的格式化提示  
+					return '流量:' + Highcharts.numberFormat(this.y, 1)+' Bytes<br/>当前时间:'+ this.x ;  
+				}  
+			},  
+			credits: {  
+				enabled: false  
+			},  
+			plotOptions: {  
+				column: {  
+					pointPadding: 0.2,  //图表柱形的  
+					borderWidth: 0      //图表柱形的粗细  
+				},bar: {  
+					dataLabels: {  
+						enabled: true  
+					}  
+				}  
+			},  
+			title: { text: '当{{$datename}}流量示意图(单位:Bytes)' }, //图表主标题  
+			//subtitle: {text: '图表子标题' }, //图表副标题  
+			//series:[{ name: '人数', data: [20, 40, 30, 90] }]  
+			series:[{ {{$flow}} },{ {{$flow_cache}} }]   
+		});  
+	});  
+</script>  
+<form id="form1" runat="server">
+<div class="main">
+    <div class="public_pa">流量查看 [<a href="?c=flow&a=viewFlow&t=day">最近24小时</a>] [<a href="?c=flow&a=viewFlow&t=month">最近31天</a>]</div>
+	     <div id="flow" style="height:360px;margin:15px;"></div>
+</div>
+</form>  
+    

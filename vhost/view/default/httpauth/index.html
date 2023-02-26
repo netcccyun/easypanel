@@ -1,0 +1,78 @@
+<div class="main">
+    <div class="public_pa">HTTP认证</div>
+<!-- 修改密码 -->
+<div class="modal hide" id="changePassword">
+	<form action='?c=httpauth&a=changePassword' method='POST'>
+		<div class="modal-header">
+			<a class="close" data-dismiss="modal" onclick='hide_div("changePassword")'>×</a>
+			<h3>
+				<div id='changePasswordTitle2'></div>
+			</h3>
+		</div>
+		<div class="modal-body">
+			<p>
+				输入新密码 <input name='httpuser' type=hidden value='' id='httpuser' /> <input
+					name='passwd' id='passwd' />
+			</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#" data-dismiss="modal" class="btn" onclick='hide_div("changePassword")'>关闭</a> <input
+				type='submit' class="btn btn-primary" value='修改'>
+		</div>
+	</form>
+</div>
+<script language='javascript'>
+	function changePassword(httpuser)
+	{
+		$("#changePasswordTitle2").html("修改"+httpuser+"的密码");
+		$("#httpuser").val(httpuser);
+		$("#changePassword").show();
+		$("#passwd").focus();
+	}
+	function hide_div(id)
+	{
+		$("#"+id).hide();
+	}
+</script>
+<!-- 修改密码结束 -->
+<div id="main">
+	<table class="table table-bordered">
+		<thead>
+			<tr><th colspan="2"><a href='?c=httpauth&a=sync'>[重建]</a></th></tr>
+			<tr>
+				<th>操作</th>
+				<th>用户名</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{foreach from=$httpusers item=httpuser}}
+			<tr>
+				<td>[<a href='?c=httpauth&a=del&httpuser={{$httpuser.user}}'>删除</a>]
+					[<a href=# onclick=changePassword("{{$httpuser.user}}")>修改密码</a>]
+				</td>
+				<td>{{$httpuser.user}}</td>
+			</tr>
+			{{/foreach}}
+		</tbody>
+	</table>
+	<form action='?c=httpauth&a=add' method='post'>
+		<table class="table">
+			<thead>
+				<tr>
+					<th style="border:0" colspan=2>增加用户</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="border:0">
+					用户名：<input name='httpuser' class="span3" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					密码：<input name='passwd' class="span3" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<input type='submit' value='增加' class="btn btn-warning" />
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</div>
+</div>
+

@@ -1,0 +1,110 @@
+{{include file='common/head.html'}}
+<script language='javascript' src='{{$STATIC}}scripts/server.js'></script>
+<script language='javascript' src='/style/md5.js'></script>
+<script language='javascript'>
+$(document).ready(function() {
+	$.ajax({
+		type:'post',
+		url:'?c=slave&a=slaveGetAll',
+		data:null,
+		dataType:'json',
+		success:function(msg) {
+			if (msg['count'] <=0){
+				return;
+			}
+			for(i=0;i<msg['count'];i++){
+				check_slave(msg['slaves'][i]['server'],msg['slaves'][i]['slave']);
+			}
+		}
+	});
+});
+function check_slave(server,slave) {
+	$.ajax( {
+		type : 'get',
+		url : '?c=slave&a=checkSlave',
+		data : 'slave=' + slave + '&server=' + server,
+		dataType : 'json',
+		success : function(msg) {
+			var code = msg['code'];
+			var img = "<img src=/style/";
+			if (code == 200) {
+				if (msg['msg']!=null && msg['msg']!="") {
+					img += 'check_error.gif';
+				}else{
+					img += 'check_right.gif';
+				}
+			} else {
+				img += 'check_error.gif';
+			}
+			if (msg['msg'] != null && msg['msg']!="") {
+				img += ' title=' + msg['msg'];
+			}
+			img += ">";
+			var md5 = MD5_hexhash(slave);
+			var id = md5.substr(0,6);
+			$("#" + id).html(img);
+		}
+	});
+}
+</script>
+
+<div class="piao_wid">
+<div id='msg' class='piao_server' style='display: none'></div>
+</div>
+<div align="center">
+<div class="wid_main mar_main" align="left">
+	<div class="block_top" align="left">当前位置：DNS -->服务器设置</div>
+	<div class="add_prod">
+		<a href='javascript:piao_server_add();'><img src="{{$STATIC}}style/addprod6.gif" border="0" alt="增加域名服务器"/></a>&nbsp;&nbsp;<a
+				href='javascript:server_init();'><img src="{{$STATIC}}style/addprod7.gif" border="0" alt="初始化域名服务器"/></a></div>
+	<table class="table_public" cellpadding="0" cellspacing="1">
+		<tr>
+			<td colspan="4" class="bg_main"><b>服务器设置</b></td>
+		</tr>
+		<tr id="bg_yellow">
+			<td>操作</td>
+			<td>服务器名称</td>
+			<td>域名服务器(域名)</td>
+			<td>辅服务器</td>
+		</tr>
+	
+		{{foreach from=$list item=row}}
+		<tr>
+			<td>[<a href="javascript:server_del('{{$row.server}}')">删除</a>]
+				[<a	href="javascript:piao_server_update('{{$row.server}}','{{$row.ns}}')">修改</a>]
+				[<a href="javascript:piao_slave_add('{{$row.server}}');">添加辅服务器</a>]
+				[<a href="?c=servers&a=tools&server={{$row.server}}" >调试工具</a>]
+			</td>
+			<td>{{$row.server}}</td>
+			<td>{{$row.ns}}</td>
+			<td>
+			<table class="table_ns" cellpadding="0" cellspacing="1">
+				{{for $i=0;$i< count($row.slaves);$i++}}
+				<tr>
+					<td>[<a href="#" onclick="slave_del('{{$row.slaves[$i].server}}','{{$row.slaves[$i].slave}}')">删除</a>]
+						&nbsp;[<a href="#" onclick="piao_slave_update('{{$row.slaves[$i].server}}','{{$row.slaves[$i].slave}}','{{$row.slaves[$i].ns}}','{{$row.slaves[$i].skey}}')">修改</a>]
+					</td>
+					<td>{{$row.slaves[$i].slave}}</td>
+					<td>{{$row.slaves[$i].ns}}</td>
+					<td id='{{substr(md5($row.slaves[$i].slave),0,6)}}'></td>
+				</tr>
+				{{/for}}
+			</table>
+			</td>
+		</tr>
+		{{/foreach}}
+	
+		<tr id="bg_yellow">
+			<td colspan="8" align="right">{{if $page>1}} <a
+				href='?c=servers&a=serverPageList&page=0'>首页</a> <a
+				href='?c=servers&a=serverPageList&page={{$page-1}}'>上一页</a> {{else}}
+			首页 上一页 {{/if}} {{if $page!=$total_page}} <a
+				href='?c=servers&a=serverPageList&page={{$page+1}}'>下一页</a> <a
+				href='?c=servers&a=serverPageList&page={{$total_page}}'>尾页</a>
+			{{else}}下一页 尾页 {{/if}} {{$page}}/{{$total_page}}&nbsp;
+			共计{{$count}}记录&nbsp;</td>
+		</tr>
+	</table>
+	</div>
+</div>
+{{dispatch c='index' a='foot'}}

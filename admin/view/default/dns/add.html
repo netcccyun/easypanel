@@ -1,0 +1,29 @@
+{{include file='common/head.html'}}
+<div align="center">
+<div class="show_sync" style='display:none' id="sync"></div> 
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：DNS管理 --> 新增域名</div>
+		<table class="table_public" cellpadding="0" cellspacing="1">
+		<form action="" method="get">
+			<tr><td colspan="4" class="bg_main"><b>新增域名</b></td></tr>
+			<tr>
+				<td>新增域名:<input name="" type="text" /></td>
+				<td>
+					类型: <select name="name">
+							<option value="0">A</option>
+							<option value="0">AAAA</option>
+							<option value="0">MX</option>
+							<option value="0">TXT</option>
+							<option value="0">CNAME</option>
+						</select>
+				</td>
+				<td>值：<input name="" type="text" /></td>
+				<td>线路：<input name="" type="text" /></td>
+			</tr>
+			<tr><td colspan="4" align="center"><input type="button" value="提交"></td></tr>
+		</form>
+	  </table>
+	</div>
+</div>
+
+{{dispatch c='index'  a='foot'}}

@@ -1,0 +1,84 @@
+#top{
+height:50px;
+width:100%;
+background:url(menutitle-bg.gif) repeat-x;
+}
+#top li {
+list-style:none;
+font-size:12px;
+line-height:20px;
+text-align:left;
+margin-left:5px;
+*margin-left:-12px;
+}
+#masterdiv{
+height:100%;
+margin:0;
+}
+ul li {
+list-style:none;
+background:url(point.gif) 6px center no-repeat;
+border-bottom:1px dashed #D3CFCF;
+color:#005EB3;
+padding:2px 0 0 16px;
+font-size:12px;
+white-space:nowrap;
+}
+#masterdiv a:link{
+color::#005EB3;
+}
+.menu {
+margin-top:6px;
+height: 26px;
+width:100%;
+cursor:pointer;
+background:url(menu.gif);
+}
+.menu1 {
+margin-top:6px;
+height: 26px;
+width:100%;
+cursor:pointer;
+background:url(menu-1.gif);
+}
+h1 {
+list-style:none;
+line-height:26px;
+font-weight:normal;
+color:#fff;
+}
+#p1 {
+background:url(p1.gif) 4px center no-repeat;
+}
+#p2 {
+background:url(p2.gif) 4px center no-repeat;
+}
+#p3 {
+background:url(p3.gif) 4px center no-repeat;
+}
+#p4 {
+background:url(p4.gif) 4px center no-repeat;
+}
+#p5 {
+background:url(p5.gif) 4px center no-repeat;
+}
+#p6 {
+background:url(p6.gif) 4px center no-repeat;
+}
+#p7 {
+background:url(p7.gif) 4px center no-repeat;
+}
+#p8 {
+background:url(p8.gif) 4px center no-repeat;
+}
+#bottom {
+height:16px;
+margin-top:8px;
+background:#ECECEC;
+width:100%;
+overflow:hidden;
+}
+.lefttd {
+width:100%; 
+height:100%;
+}

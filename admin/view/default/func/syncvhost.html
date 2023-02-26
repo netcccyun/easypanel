@@ -1,0 +1,44 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+//jQuery(document).ready(function(){
+//	jQuery("tr").mouseover(function(){
+//		jQuery(this).addClass('decoration_blink');
+//	});
+//	jQuery("tr").mouseout(function(){
+//		jQuery(this).removeClass('decoration_blink');
+//	});
+//});
+function help()
+{
+	var status = $("#help").css('display');
+	if (status =='none') {
+		$("#help").css('display','');
+	}else{
+		$("#help").css('display','none');
+	}
+}
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：服务器管理 --> 导入vhms</div>
+		<form name='remotemysqldumpin' action="?c=func&a=syncVhost" method="post">
+		<table class="table" cellpadding="0" cellspacing="1">
+			<tr><td colspan="6" class="bg_main"><b>导入主控数据库</b></td></tr>
+			<tr><td >vhms数据库IP:	</td><td><input type='text' name='db_host' size='20'></td></tr>
+			<tr><td >vhms数据库账号:</td><td><input type='text' name='db_user' size='20'></td></tr>
+			<tr><td >vhms数据库密码:</td><td><input type='text' name='db_passwd' size='20'></td></tr>
+			<tr><td >vhms数据库名:	</td><td><input type='text' name='db_name' size='20'></td></tr>
+			<tr><td >vhms会员账号:	</td><td><input type='text' name='username' size='20'></td></tr>
+			<tr><td colspan="2" align="center"><input type='submit' value='确定'/>&nbsp;&nbsp;<a href="javascript:help();"><font color='red'>帮助?</font></a></td></tr>
+			
+	    </table>
+	    </form>
+	</div>
+	<div id="help"  class='help' style="display:none">
+		<p>当本节点(easypanel)连接主控(vhms),作为主控的一个被控时本节点已存在网站</p>
+		<p>可以使用本功能，将本节点已存在的网站导入到主控，从而使主控不能注</p>
+		<p>册本节点已存在的网站名,避免网站重叠&nbsp;
+		<a href="javascript:help();"><font color='red'>关闭</font></a></p>
+	</div>
+</div>
+	       	

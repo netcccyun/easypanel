@@ -1,0 +1,203 @@
+<script src="/style/js/highcharts.js" type="text/javascript"></script>
+<!-- 添加主题样式js文件 -->
+<script src="/style/js/themes/grid.js" type="text/javascript"></script>
+<!--添加导出模式 -->
+<script src="/style/js/modules/exporting.js" type="text/javascript"></script>
+
+<script type="text/javascript"> 
+function getData()
+{
+	$.getJSON('?c=capability&a=capabilityGet' ,getData_result);
+}
+
+function getData_result(result)
+{
+	var sp= result['speed'];
+	var con = result['connect'];
+	data.push(sp);
+	
+
+}
+$(function() {
+	      Highcharts.setOptions({
+		        global: {
+	          useUTC: false
+	       }
+	      });
+	      chart = new Highcharts.Chart({
+		        chart: {
+		          renderTo: 'connection',
+		          defaultSeriesType: 'line',
+		          
+		        },
+		        title: {
+		          text: '当前网站连接数分析图'
+		        },
+	        xAxis: {
+		          title: {
+				            text: '时间'
+				          },
+			          //linear" or "datetime"
+				          type: 'datetime',
+				          //坐标间隔
+				          tickPixelInterval: 150
+			        },
+		    yAxis: {
+		          title: {
+		            text: '连接数'
+		          },
+		          //指定y=3直线的样式
+		          plotLines: [
+		            {
+		              value: 0,
+		              width: 1,
+		              color: '#808080'
+		            }
+		          ]
+		        },
+		        //鼠标放在某个点上时的提示信息
+	        //dateFormat,numberFormat是highCharts的工具类
+		     tooltip: {
+		          formatter: function() {
+		            return '<b>' + this.series.name + '</b><br/>' +
+		                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+		                    Highcharts.numberFormat(this.y, 2);
+		          }
+		        },
+		        //曲线的示例说明，像地图上得图标说明一样
+	        legend: {
+		          enabled: true
+		        },
+		        //把曲线图导出成图片等格式
+		        exporting: {
+		          enabled: true
+		        },
+		        //放入数据
+	       series: [
+		          {		         
+		            name: '连接数',
+		            data: (function() {
+		            	              // 初始化数据
+		            	              var data = [],
+		            		                      time = (new Date()).getTime(),
+		            	                      i;
+		            		              for (i = -100; i <= 0; i++) {
+		                            		data.push({
+		            	                  x: time + i * 1000,
+		                              		y: 0
+		            		                });
+		            		              }
+		            		              return data;
+		            		            })()
+		          }
+		        ]
+		      });
+		      getInfo();
+		    });
+
+$(function() {
+    Highcharts.setOptions({
+	        global: {
+        useUTC: false
+     }
+    });
+    chart2 = new Highcharts.Chart({
+	        chart: {
+	          renderTo: 'bandwith',
+	          defaultSeriesType: 'line',
+	          
+	        },
+	        title: {
+	          text: '当前网站速度分析图'
+	        },
+      xAxis: {
+	          title: {
+			            text: '时间'
+			          },
+		          //linear" or "datetime"
+			          type: 'datetime',
+			          //坐标间隔
+			          tickPixelInterval: 150
+		        },
+	    yAxis: {
+	          title: {
+	            text: '速度'
+	          },
+	          //指定y=3直线的样式
+	          plotLines: [
+	            {
+	              value: 0,
+	              width: 1,
+	              color: '#808080'
+	            }
+	          ]
+	        },
+	        //鼠标放在某个点上时的提示信息
+      //dateFormat,numberFormat是highCharts的工具类
+	     tooltip: {
+	          formatter: function() {
+	            return '<b>' + this.series.name + '</b><br/>' +
+	                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+	                    Highcharts.numberFormat(this.y, 2);
+	          }
+	        },
+	        //曲线的示例说明，像地图上得图标说明一样
+      legend: {
+	          enabled: true
+	        },
+	        //把曲线图导出成图片等格式
+	        exporting: {
+	          enabled: true
+	        },
+	        //放入数据
+     series: [
+	          {		         
+	            name: '速率',
+	            data: (function() {
+	            	              // 初始化数据
+	            	              var data = [],
+	            		                      time = (new Date()).getTime(),
+	            	                      i;
+	            		              for (i = -100; i <= 0; i++) {
+	                            		data.push({
+	            	                  x: time + i * 1000,
+	                              		y: 0
+	            		                });
+	            		              }
+	            		              return data;
+	            		            })()
+	          }
+	        ]
+	      });
+	      getInfo();
+	    });
+	 
+   function getInfo() {
+    
+     $.post("?c=capability&a=capabilityGet", {"random":Math.random()}, function(data) {
+       var result = {"x":data.speed,"y":data.connect};
+       var  time = (new Date()).getTime();
+       var series = chart.series[0];
+       var series2 = chart2.series[0];
+       var x = result.x; // current time
+       var y = result.y;
+       series.addPoint([time, y], true, true);
+       series2.addPoint([time, x], true, true);
+     }, "json");
+   }
+ setInterval(getInfo, 5000);
+</script>
+
+
+<div class="main">
+    <div class="public_pa">性能分析</div>
+<form id="form1" runat="server">
+<p>
+<div id="connection" style="height:260px; margin:15px;"></div>
+</p>
+<p>
+<div id="bandwith" style="height:260px; margin:15px;"></div>
+</p>
+<div id='msg'></div>
+</form>
+</div>

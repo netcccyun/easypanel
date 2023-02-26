@@ -1,0 +1,106 @@
+﻿{{include file='common/head.html'}}
+<!-- ajax 查询节点状态 -->
+<script language='javascript' src='{{$PSTATIC}}/style/common.js'>
+</script>
+<script language='javascript'>
+var xmlhttp2=new Array();
+function checkNodeResult(node)
+{
+	if (xmlhttp2[node].readyState==4) {
+		var whm = 0;
+		var db = 0;
+		try{
+			if(xmlhttp2[node].status == 200){		
+				var dataArray = xmlhttp2[node].responseXML.getElementsByTagName('result');
+				whm = dataArray[0].getAttribute('whm');		
+				db = dataArray[0].getAttribute('db');	
+			}
+			var msg = "web:<img src='{{$PSTATIC}}/style/";
+			if(whm==1){
+				msg += "check_right.gif";
+			}else{
+				msg += "check_error.gif";
+			}
+			msg+="'/>";
+			if(db!=2){
+				msg += "db:<img src='{{$PSTATIC}}/style/";
+				if(db==1){
+					msg += "check_right.gif";
+				}else{
+					msg += "check_error.gif";
+				}
+				msg+="'/>";
+			}
+		}catch(e){
+			msg = "查询出错";
+		}
+		xxkf_obj(node).innerHTML = msg;
+	}
+}
+function checkNode(node)
+{
+	var url = '?c=nodes&a=ajaxCheckNode&node=' + node;
+	xxkf_obj(node).innerHTML="<img src='{{$PSTATIC}}/style/busy.gif'/>";
+	//ajax_open_url2(,checkNodeResult);
+	xmlhttp2[node] = create_xmlhttp();	
+	xmlhttp2[node].open("GET",url,true);
+	xmlhttp2[node].onreadystatechange=function (){
+		checkNodeResult(node);
+	};
+	xmlhttp2[node].send(null);
+}
+function checkAllNode()
+{
+	  {{foreach from=$list item=row}}
+	  checkNode('{{$row.name}}');
+	  {{/foreach}}
+}
+</script>
+<div id="container">
+{{if $msg}}
+<div align="center"><br />
+<div class="block tb_wid mar_top" align="center"><font color='red'>{{$msg}}</font></div>
+</div>
+{{/if}}
+<div class="padd mar_top">
+<div class="topimg pal1">共计 {{$sum}} 条记录</div>
+</div>
+  <div id="main" class="wid">
+  <table width="100%" align="center" cellspacing="3">
+<tr><td>[<a href='?c=nodes&a=flush'>更新配置文件</a>][<a href='javascript:checkAllNode()'>查询所有主机状态</a>][<a href="?c=nodes&a=addNode" target='main'>增加主机</a>]</td></tr>
+    </table>
+    <table width="90%" align="center" cellpadding=0 cellspacing=1 id="table">
+      <tr id="ttitle">
+        <td bgcolor='#efefef' class='color01 right'>操作</td>       
+        <td bgcolor='#efefef' class='color01 right'>名称</td>
+        <td bgcolor='#efefef' class='color01 right'>主机状态</td>
+		<td bgcolor='#efefef' class='color01 right'>主机</td>
+		<td  bgcolor='#efefef' class='color01 right'>管理端口</td>
+		<td bgcolor='#efefef' class='color01 right'>管理用户名</td>
+		<td  bgcolor='#efefef' class='color01 right'>数据库用户名</td>
+		<td  bgcolor='#efefef' class='color01 right'>物理盘/挂载点</td>
+      </tr>
+	  {{foreach from=$list item=row}}
+      <tr>
+        <td class="right">
+          [<a href="javascript:if(confirm('确定删除{{$row.name}}?')){location='?c=nodes&a=del&name={{$row.name}}';}" title="删除主机">删除</a>]
+          [<a href='?c=nodes&a=initForm&name={{$row.name}}'>初始化</a><a href="?c=vhostproduct&a=exportConfig&name={{$row.name}}"></a>] 
+       
+          [<a href="?c=nodes&a=editForm&name={{$row.name}}" title="更改信息">修改</a>]
+         </td>
+         <td class="right"><a href='http://{{$row.host}}:{{$row.port}}/' target=_blank'>{{$row.name}}</a>       
+        </td>
+        <td class="right"> <div id='{{$row.name}}'><a href="javascript:checkNode('{{$row.name}}')">查询</a></div></td>
+ 		<td class="right">{{$row.host}}</td>
+		<td class="right">{{$row.port}}</td>
+		<td class="right">{{$row.user}}</td>
+		<td class="right">{{$row.db_user}}</td>
+		<td class="right">{{$row.dev}}</td>
+      </tr>
+	  {{/foreach}}
+    </table>
+    <div align="left">
+	</div>
+  </div>
+</div>
+{{dispatch c='index'  a='foot'}}

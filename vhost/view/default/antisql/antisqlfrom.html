@@ -1,0 +1,51 @@
+<script language='javascript' src='{{$STATIC}}js/antisql.js'></script>
+
+<div class='piao_msg' align='center' style="display: none" id='msg'></div>
+<div class='piao_msg' style="display: none" id='msg'></div>
+
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">参数过滤</div>
+<form action='?c=antisql&a=antisqlAdd' method='post' name='form'>
+	<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+		<tr>
+		    <td style="text-align:center;border:0;">
+				{{if $at==0}} 
+				<a href="javascript:antisql_checkon(1)" title='开启功能'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+		        {{else}} 
+				<a href="javascript:antisql_checkon(2)" title='禁用功能'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+		        {{/if}}
+			</td>
+			<td style="border:0">
+			    禁止参数值(正则)：<input name='param_value' size='62' class="span6" id='param'><a href='javascript:piao_msg();'><font color='red'>&nbsp;帮助?</font></a>&nbsp;&nbsp;
+			    编码：<input name='charset' size='6' value='utf-8' class="span2" id='charset' />&nbsp;&nbsp;
+			    <input type='button' onclick='antisql_add();' value='提交' class="btn btn-warning" />
+			</td>
+		</tr>
+	</table>
+</form>
+
+<table class="table table-bordered" style="border-top:1px solid #bbb" cellpadding="0" cellspacing="1">
+    <thead>
+	<tr>
+		<th style="border-left:0">操作</th>
+		<th>过滤参数值</th>
+		<th>编码</th>
+		<th>过滤方式</th>
+	</tr>
+	</thead>
+	{{foreach from=$sql item=row}}
+	<tbody>
+	<tr>
+		<td style="border-left:0;width:28px;"><a href="javascript:antisql_del({{$row.id}})">删除</a></td>
+		<td>{{$row.value}}</td>
+		<td>{{$row.charset}}</td>
+		<td>{{if $row.get==1}}get&nbsp;{{/if}}{{if $row.post==1}}post{{/if}}</td>
+	</tr>
+	</tbody>
+	{{/foreach}}
+</table>
+</div>
+
+<script language='javascript'>
+	form.param_value.focus();
+</script>
