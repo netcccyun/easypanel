@@ -23,6 +23,7 @@
 
 - Kangle一键脚本主菜单选择单独安装/更新组件，然后选择更新Easypanel；或手动上传至服务器/vhs/kangle/nodewww/webftp目录下
 
-### 推荐
+### 其他推荐
 
 - [彩虹云主机](https://www.cccyun.net/)
+- [Windows版Kangle集成环境免安装优化版](https://blog.cccyun.cn/post-465.html)
