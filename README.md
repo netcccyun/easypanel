@@ -1,6 +1,6 @@
 # Easypanel面板优化版
 
-这个是集成在Kangle一键脚本（http://kangle.cccyun.cn/）中的Easypanel源码，是基于Kangle官方原版，全解密后进行了深度优化的版本。
+这个是集成在 [Kangle一键脚本](http://kangle.cccyun.cn/) 中的Easypanel源码，是基于Kangle官方原版，全解密后进行了深度优化的版本。
 
 ### 优化内容
 
@@ -25,4 +25,4 @@
 
 ### 推荐
 
-- 彩虹云主机 https://www.cccyun.net/
+- [彩虹云主机](https://www.cccyun.net/)
