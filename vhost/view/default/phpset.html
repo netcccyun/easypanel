@@ -1,8 +1,7 @@
 
 <div class="main">
     <div class="public_pa">
-		<b>切换PHP版本
-		</b>
+		<b>切换PHP版本</b>
 	</div>
 
 	<table class="table" cellpadding="0" cellspacing="1">
@@ -12,22 +11,109 @@
 		</tr>
 		<tr>
 			<td style="width:120px;">切换版本:</td>
-			<td><form action="?c=index&a=phpset&op=change" method="POST" onsubmit="return change_version()"><select name="v" id="v">
+			<td><form action="?c=phpset&a=change" method="POST" onsubmit="return change_version()"><select name="v" id="v">
 			{{foreach from=$versions key=key item=row}}
 			<option value="{{$key}}" {{if $version==$row}}selected{{/if}}>{{$row}}</option>
 			{{/foreach}}
 			</select>&nbsp;&nbsp;<input value="确定" type="submit" class="btn btn-warning"></form></td>
 		</tr>
+		<tr>
+			<td></td>
+			<td><font color="#777">提示：切换版本之后下方自定义的PHP环境设置会重置</font></td>
+		</tr>
 	</table>
 </div>
+
+<div class="main">
+    <div class="public_pa">
+		<b>{{$version}} 环境设置</b>
+	</div>
+	<form action='?c=phpset&a=edit' method='post' onsubmit="return edit_submit()" id="form-store">
+	<table class="table" cellpadding="0" cellspacing="1">
+		<thead>
+			<tr>
+				<th colspan="3"><font color="#eb7520">【PHP扩展开关】</font></th>
+			</tr>
+		</thead>
+		<tbody>
+			{{foreach from=$extlist key=key item=row}}
+			<tr>
+				<td><b>{{$row.name}}</b></td>
+				<td>
+					<label><input name='ext[{{$key}}]' type='radio' value='0' {{if $row.value==0}}checked{{/if}}/>关闭</label>
+					<label><input name='ext[{{$key}}]' type='radio' value='1' {{if $row.value==1}}checked{{/if}}/>开启</label>
+				</td>
+				<td><font color="#777">{{$row.description}}</font></td>
+			</tr>
+			{{/foreach}}
+		</tbody>
+		<thead>
+			<tr>
+				<th colspan="3"><font color="#eb7520">【PHP参数设置】</font></th>
+			</tr>
+		</thead>
+		<tbody>
+			{{foreach from=$configlist key=key item=row}}
+			<tr>
+				<td><b>{{$key}}</b></td>
+				<td>
+					{{if $row.type=='switch'}}
+					<label><input name='config[{{$key}}]' type='radio' value='0' {{if $row.value==0}}checked{{/if}}/>关闭</label>
+					<label><input name='config[{{$key}}]' type='radio' value='1' {{if $row.value==1}}checked{{/if}}/>开启</label>
+					{{elseif $row.type=='number'}}
+					<input name="config[{{$key}}]" type='number' class="wid_tpl" value="{{$row.value}}" {{if $row.maxlimit>0}}max="{{$row.maxlimit}}"{{/if}} {{if $row.minlimit>0}}min="{{$row.minlimit}}"{{/if}}>
+					{{elseif $row.type=='number-M'}}
+					<input name="config[{{$key}}]" type='number' class="wid_tpl" value="{{$row.value}}" {{if $row.maxlimit>0}}max="{{$row.maxlimit}}"{{/if}} {{if $row.minlimit>0}}min="{{$row.minlimit}}"{{/if}}>M
+					{{else}}
+					不支持的参数设置
+					{{/if}}
+				</td>
+				<td><font color="#777">{{$row.description}}</font></td>
+			</tr>
+			{{/foreach}}
+			<tr>
+				<td></td>
+				<td><input type='submit' class="btn btn-warning" value='提交'>&nbsp;&nbsp;<input type="button" value="重置" class="btn btn-default" onclick="reset_ini()"></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td colspan="3" style="padding-left:120px;color:grey">
+					<li>提交设置后会自动重启网站进程。</li>
+					<li>部分PHP扩展之间会产生冲突，请按需开启，如果都开启网站可能会出现504错误。</li>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	</form>
+</div>
+
 <script>
 function change_version()
 {
 	var v = $("#v").val();
 	if(v=="")return;
-	$.post( "?c=index&a=phpset&op=change", {v:v}, 
+	$.post( "?c=phpset&a=change", {v:v}, 
         function(data){ alert(data); window.location.reload();}
     );
 	return false;
+}
+function edit_submit(){
+	$.post( "?c=phpset&a=edit", $("#form-store").serialize(), function(msg){
+		alert(msg);
+		if (msg == "修改成功") {
+			window.location.reload();
+		}
+	});
+	return false;
+}
+function reset_ini()
+{
+	if (!confirm("确定重置PHP环境设置吗?"))return;
+	$.get('?c=phpset&a=reset', function(msg){
+		if (msg != "重置成功") {
+			return alert(msg);
+		}
+		window.location.reload();
+	});
 }
 </script>

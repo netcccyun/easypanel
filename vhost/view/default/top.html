@@ -24,9 +24,7 @@
 				
 				{{/if}}
 				 <li><a class="ljxx" href='?c=connection&a=connectionFrom'>连接信息</a></li>
-					{{if $user.cdn==0}}
 				 <li><a class="xnfx" href='?c=capability&a=capabilityFrom'>性能分析</a></li>
-					{{/if}}
 					{{if $smarty.session.login_from=='vhost'}}
 				 <li><a class="off" href='?c=session&a=logout'>安全退出</a></li>
 					{{/if}}

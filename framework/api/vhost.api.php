@@ -532,6 +532,8 @@ class VhostAPI extends API
 			@apicall('record', 'delDnsdunRecord', array($vhost['recordid']));
 		}
 
+		@unlink('/vhs/kangle/phpini/php-'.$name.'.ini');
+
 		return true;
 	}
 

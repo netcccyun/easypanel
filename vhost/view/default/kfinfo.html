@@ -91,7 +91,7 @@ var msg = '{{$msg}}';
 		    <li><a class="ymbd" href='?c=domain&a=show'>域名绑定</a></li>
 		    <li><a class="xgmm" href='?c=session&a=changePasswordForm'>修改密码</a></li>
 			{{if $user.cdn==0}}{{if $user.module=='php'}}
-			<li><a style="background-image: url({{$STATIC}}imgs/php.png);background-size:52px 52px; background-repeat: no-repeat;display: inline-block;padding-top: 48px;" href='?c=index&a=phpset'>PHP版本</a></li>
+			<li><a style="background-image: url({{$STATIC}}imgs/php.png);background-size:52px 52px; background-repeat: no-repeat;display: inline-block;padding-top: 48px;" href='?c=phpset&a=phpset'>PHP设置</a></li>
 			{{/if}}{{/if}}
 			<li><a class="dkxz" href="?c=speed&a=speedFrom">带宽限制</a></li>
 			<li><a class="hcsz" href='?c=cache&a=cacheFrom'>缓存设置</a></li>
@@ -109,7 +109,7 @@ var msg = '{{$msg}}';
 			<li><a class="sjkgl" href='{{$dbadmin_url}}' target='_blank'>数据库管理</a></li>
 			{{/if}} {{/if}}
 			{{if $user.cdn==1}}{{if $ssl}}
-			<li><a class="ssl" href='?c=index&a=sslForm'>SSL证书</a></li>
+			<li><a class="ssl" href='?c=ssl&a=sslForm'>SSL证书</a></li>
 			{{/if}}{{/if}}
 		</ul>
     </div>
@@ -125,7 +125,7 @@ var msg = '{{$msg}}';
 			{{if $user.ftp>0}}
 			<li><a class="ftp" href='?c=index&a=ftpForm'>FTP设置</a></li>
 			{{/if}} {{if $ssl}}
-			<li><a class="ssl" href='?c=index&a=sslForm'>SSL证书</a></li>
+			<li><a class="ssl" href='?c=ssl&a=sslForm'>SSL证书</a></li>
 			{{/if}} {{if $user.ssi}}
 			<li><a class="ssi" href='?c=ssi&a=show'>SSI设置</a></li>
             {{/if}} {{if $user.htaccess}}

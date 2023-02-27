@@ -14,6 +14,8 @@ function php_precreate($params)
 
 	}else{
 
+		@unlink('/vhs/kangle/phpini/php-'.$params['name'].'.ini');
+
 		apicall('vhost', 'addInfo', array($params['name'], '1,php', 3, '1,cmd:'.$default_version.',*', false));
 		apicall('vhost', 'addInfo', array($params['name'], 'moduleversion', 101, $default_version, false));
 
@@ -124,6 +126,8 @@ function php_call($params)
 		$vhost = getRole('vhost');
 		$ver = php_get_version();
 		if(!array_key_exists($v, $ver)) return;
+
+		@unlink('/vhs/kangle/phpini/php-'.$vhost.'.ini');
 
 		$arr['value'] = '1,cmd:' . $v . ',*';
 

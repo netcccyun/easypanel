@@ -198,7 +198,7 @@ function check_db(status)
 		<tr id='envs'><td >独立ip:</td>
 			<td ><input name="ip"  id='ip' value="{{$vhost.ip}}"></td></tr>
 		<tr id='envs'><td >端口:</td>
-			<td ><input name="port"  id='port' value="{{$vhost.port}}">(多个端口由,分开,ssl端口请加s，如80,443s)</td></tr>
+			<td ><input name="port"  id='port' value="{{if $vhost}}{{$vhost.port}}{{else}}80,443s{{/if}}">(多个端口由,分开,ssl端口请加s，如80,443s)</td></tr>
 		<tr id='envs'><td >计划任务:</td>
 			<td ><input size=5 name="cron"   value="{{$vhost.cron}}">条</td></tr>
 		<tr id='envs'><td >管理变量:</td>

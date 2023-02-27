@@ -32,7 +32,10 @@ class CapabilityControl extends Control
 			exit('error');
 		}
 
-		$ret = array('speed' => (string) $result->get('speed'), 'connect' => (string) $result->get('connect'));
+		$speed = (string) $result->get('speed');
+		$connect = (string) $result->get('connect');
+
+		$ret = array('speed' => intval($speed), 'connect' => intval($connect));
 		exit(json_encode($ret));
 	}
 }

@@ -13,7 +13,6 @@ if ($c == '') {
 	$_REQUEST['a'] = $a = 'main';
 }
 
-error_reporting(E_ALL || ~E_NOTICE);
 $tpl = TPL::singleton();
 loadSetting($tpl);
 $vhost = getRole('vhost');

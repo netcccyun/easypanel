@@ -7,7 +7,7 @@
 		</b>
 	</div>
 
-<form action='?c=index&a=domainSsl' method='post'>
+<form action='?c=ssl&a=domainSsl' method='post'>
 	<table class="table" cellpadding="0" cellspacing="1">
 		<tr>
 			<th colspan="2">此处是域名<font color="red">{{$domain}}</font>的SSL证书设置<input type="hidden" name="domain" id="domain" value="{{$domain}}"></td>
@@ -54,11 +54,11 @@
 function ssl_checkon(val)
 {
 	var data = 'status=' + val + '&domain=' + $("#domain").val();
-	functoin_checkon('?c=index&a=domainSslRewrite',data);
+	functoin_checkon('?c=ssl&a=domainSslRewrite',data);
 }
 function http2_checkon(val)
 {
 	var data = 'status=' + val;
-	functoin_checkon('?c=index&a=http2',data);
+	functoin_checkon('?c=ssl&a=http2',data);
 }
 </script>

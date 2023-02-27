@@ -530,6 +530,7 @@ function is_https(){
 	return false;
 }
 
+error_reporting(E_ERROR | E_PARSE | E_COMPILE_ERROR);
 define('EASYPANEL_VERSION', '2.6.28');
 define('PHP_DEFAULT_VERSION', 'php56');
 define('IIS_DEFAULT_VERSION', 'v2.0.50727');

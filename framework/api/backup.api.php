@@ -100,12 +100,12 @@ class BackupAPI extends API
 		if ($this->os != 'win') {
 			putenv('LANG=en_US');
 
-			if ($this->setting['backup_lowrun']) {
+			if ($this->setting['backup_lowrun'] && function_exists('pcntl_setpriority')) {
 				pcntl_setpriority(20);
 			}
 		}
 		else {
-			if ($this->setting['backup_lowrun']) {
+			if ($this->setting['backup_lowrun'] && function_exists('win32_lowrun')) {
 				win32_lowrun();
 			}
 		}
@@ -183,7 +183,7 @@ class BackupAPI extends API
 
 		$this->delLocalExDir();
 		$this->showMsg('success');
-		echo 'backup out please view ' . $this->kangle_dir . '/tmp/' . $this->time . ".backup.out.txt\n";
+		//echo 'backup out please view ' . $this->kangle_dir . '/tmp/' . $this->time . ".backup.out.txt\n";
 	}
 
 	/**

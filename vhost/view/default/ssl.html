@@ -7,7 +7,7 @@
 		</b>
 	</div>
 
-<form action='?c=index&a=ssl' method='post'>
+<form action='?c=ssl&a=ssl' method='post'>
 	<table class="table" cellpadding="0" cellspacing="1">
 		{{if $user.cdn}}<tr>
 			<th colspan="2">此处是当前账号的SSL证书设置，对所有绑定域名生效。如果你已经设置过单个域名的SSL证书，则不需要再设置此处的证书。SSL证书优先级：域名>账号</td>
@@ -54,11 +54,11 @@
 function ssl_checkon(val)
 {
 	var data = 'status=' + val;
-	functoin_checkon('?c=index&a=sslRewrite',data);
+	functoin_checkon('?c=ssl&a=sslRewrite',data);
 }
 function http2_checkon(val)
 {
 	var data = 'status=' + val;
-	functoin_checkon('?c=index&a=http2',data);
+	functoin_checkon('?c=ssl&a=http2',data);
 }
 </script>
