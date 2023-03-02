@@ -86,3 +86,4 @@ CREATE INDEX [IDX_VHOST_INFO_VHOST] ON [vhost_info](
 );
 alter table vhost add column recordid INTEGER NOT NULL DEFAULT 0;
 alter table vhost add column http2 INTEGER NOT NULL DEFAULT 0;
+alter table manynode add column port INTEGER NOT NULL DEFAULT 3312;

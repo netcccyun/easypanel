@@ -127,7 +127,7 @@ class CdnPrimaryAPI extends API
 
 	private function get_version($node)
 	{
-		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], 3312, $node['skey']));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], $node['port'], $node['skey']));
 
 		if (!$whm) {
 			echo 'cann\'t makeEpanelWhm for node: ' . $node['name'] . "\n";
@@ -150,7 +150,7 @@ class CdnPrimaryAPI extends API
 
 	private function get_vhost_info($node)
 	{
-		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], 3312, $node['skey']));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], $node['port'], $node['skey']));
 
 		if (!$whm) {
 			echo 'cann\'t makeEpanelWhm for node: ' . $node['name'] . "\n";
@@ -410,7 +410,7 @@ class CdnPrimaryAPI extends API
 			return false;
 		}
 
-		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], 3312, $node['skey']));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], $node['port'], $node['skey']));
 
 		if (!$whm) {
 			return false;

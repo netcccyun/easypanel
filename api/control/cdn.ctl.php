@@ -100,6 +100,8 @@ class CdnControl extends Control
 		daocall('vhost', 'delVhost', array($prefix . $vhost, null));
 		daocall('vhostinfo', 'delAllInfo', array($prefix . $vhost));
 		@unlink($acess_dir . $prefix . $vhost . '.xml');
+		@unlink($acess_dir . $prefix . $vhost . '.crt');
+		@unlink($acess_dir . $prefix . $vhost . '.key');
 		apicall('vhost', 'noticeChange', array('localhost', $prefix . $vhost));
 		whm_return(200);
 	}

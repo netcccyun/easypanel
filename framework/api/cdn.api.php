@@ -89,7 +89,7 @@ class CdnAPI extends API
 	public function test_node($node)
 	{
 		$a = 'test';
-		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], 3312, $node['skey']));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], $node['port'], $node['skey']));
 
 		if (!$whm) {
 			trigger_error('make whm is failed');
@@ -149,7 +149,7 @@ class CdnAPI extends API
 	public function del_node($node)
 	{
 		$a = 'del_all_cdn';
-		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], 3312, $node['skey']));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], $node['port'], $node['skey']));
 
 		if (!$whm) {
 			return false;
@@ -193,7 +193,7 @@ class CdnAPI extends API
 	public function del_node_cdn($node, $vhost)
 	{
 		$a = 'del_cdn';
-		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], 3312, $node['skey']));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], $node['port'], $node['skey']));
 
 		if (!$whm) {
 			return false;
@@ -222,7 +222,7 @@ class CdnAPI extends API
 	public function sync_cdn($node = array(), $poststr = array())
 	{
 		$a = 'sync_vhost_cdn';
-		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], 3312, $node['skey']));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], $node['port'], $node['skey']));
 
 		if (!$whm) {
 			$GLOBALS['sync_cdn_result'] = 'cdn.api.sync_cdn makeEpanelWhm false:host=' . $node['host'] . ' &key=' . $node['skey'];
@@ -271,7 +271,7 @@ class CdnAPI extends API
 		$flow_success = 1;
 		$post_failed = 2;
 		$this->updateSyncStatus($node['host'], $sync_failed);
-		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], 3312, $node['skey']));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($node['host'], $node['port'], $node['skey']));
 
 		if (!$whm) {
 			setLastError('make whm is error');

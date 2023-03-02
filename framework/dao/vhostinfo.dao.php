@@ -30,7 +30,7 @@ class VhostinfoDAO extends DAO
 
 	public function delNodeCdn($prefix)
 	{
-		$len = strlen($prefix);
+		$len = strlen($prefix)+1;
 		$sql = 'delete from ' . $this->_TABLE . ' where substr(`vhost`,0,' . $len . ')=\'' . $prefix . '\'';
 		return $this->executex($sql);
 	}

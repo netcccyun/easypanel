@@ -4,14 +4,14 @@ class ManynodeDAO extends DAO
 	public function __construct()
 	{
 		parent::__construct();
-		$this->MAP_ARR = array('name' => 'name', 'host' => 'host', 'mem' => 'mem', 'skey' => 'skey', 'synctime' => 'synctime', 'syncstatus' => 'syncstatus');
+		$this->MAP_ARR = array('name' => 'name', 'host' => 'host', 'port' => 'port', 'mem' => 'mem', 'skey' => 'skey', 'synctime' => 'synctime', 'syncstatus' => 'syncstatus');
 		$this->MAP_TYPE = array('syncstatus' => FIELD_TYPE_INT);
 		$this->_TABLE = DBPRE . 'manynode';
 	}
 
-	public function add($name, $host, $skey, $mem)
+	public function add($name, $host, $port, $skey, $mem)
 	{
-		$arr = array('name' => $name, 'host' => $host, 'skey' => $skey, 'mem' => $mem);
+		$arr = array('name' => $name, 'host' => $host, 'port' => $port, 'skey' => $skey, 'mem' => $mem);
 		return $this->insert($arr, 'REPLACE');
 	}
 
@@ -55,7 +55,7 @@ class ManynodeDAO extends DAO
 		$where = null;
 		$order_field = 'name';
 		$desc = true;
-		return $this->selectPage(array('name', 'host', 'skey', 'mem', 'synctime', 'syncstatus'), $where, $order_field, $desc, $page, $page_count, $count);
+		return $this->selectPage(array('name', 'host', 'port', 'skey', 'mem', 'synctime', 'syncstatus'), $where, $order_field, $desc, $page, $page_count, $count);
 	}
 }
 

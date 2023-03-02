@@ -20,6 +20,8 @@ class ManynodeControl extends control
 			$node = daocall($this->daoname, 'get', array($_REQUEST['name']));
 			$this->_tpl->assign('edit', 1);
 			$this->_tpl->assign('node', $node);
+		}else{
+			$this->_tpl->assign('node', ['port'=>3312]);
 		}
 
 		return $this->_tpl->display('manynode/addfrom.html');
@@ -110,13 +112,14 @@ class ManynodeControl extends control
 		}
 
 		$host = trim($_REQUEST['host']);
+		$port = intval($_REQUEST['port']);
 		$skey = trim($_REQUEST['skey']);
 		$mem = $_REQUEST['mem'];
 		if (!$name || !$host) {
 			return $this->pageList();
 		}
 
-		$return = daocall($this->daoname, 'add', array($name, $host, $skey, $mem));
+		$return = daocall($this->daoname, 'add', array($name, $host, $port, $skey, $mem));
 
 		if (!$return) {
 			$this->_tpl->assign('msg', '增加失败');
@@ -136,6 +139,7 @@ class ManynodeControl extends control
 		$node['name'] = $_REQUEST['name'];
 		$node['skey'] = $_REQUEST['skey'];
 		$node['host'] = $_REQUEST['host'];
+		$node['port'] = $_REQUEST['port']?$_REQUEST['port']:3312;
 		apicall('cdn', 'del_node', array($node));
 	}
 
@@ -154,7 +158,7 @@ class ManynodeControl extends control
 			return $this->_tpl->fetch('msg.html');
 		}
 
-		echo '<script language=\'javascript\' src=\'?c=manynode&a=syncDelNodeCdn&name=' . $node['name'] . '&skey=' . $node['skey'] . '&host=' . $node['host'] . '\'></script>';
+		echo '<script language=\'javascript\' src=\'?c=manynode&a=syncDelNodeCdn&name=' . $node['name'] . '&skey=' . $node['skey'] . '&host=' . $node['host'] . '&port=' . $node['port'] . '\'></script>';
 		return $this->pageList();
 	}
 

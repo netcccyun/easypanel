@@ -129,6 +129,7 @@ CREATE INDEX [vhost_webapp_user] ON [vhost_webapp](
 CREATE TABLE [manynode] (
 	[name] text  NOT NULL PRIMARY KEY,
 	[host] text  NULL,
+	[port] INTEGER NOT NULL DEFAULT 3312,
 	[skey] text  NULL,
 	[mem] text  NULL,
 	[syncstatus] INTEGER NULL,

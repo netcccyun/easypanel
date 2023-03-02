@@ -29,7 +29,7 @@ class VhostDAO extends DAO
 	 */
 	public function delNodeCdn($prefix)
 	{
-		$len = strlen($prefix);
+		$len = strlen($prefix)+1;
 		$sql = 'delete from ' . $this->_TABLE . ' where substr(`name`,0,' . $len . ')=\'' . $prefix . '\'';
 		return $this->executex($sql);
 	}

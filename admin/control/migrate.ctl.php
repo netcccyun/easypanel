@@ -6,6 +6,7 @@ class MigrateControl extends Control
 {
 	private $migrate_skey;
 	private $migrate_host;
+	private $migrate_port;
 	private $setting;
 	private $migrate_nolog;
 
@@ -16,6 +17,12 @@ class MigrateControl extends Control
 
 		if ($_SESSION['migrate_host'] != '') {
 			$this->migrate_host = $setting['migrate_host'] = $_SESSION['migrate_host'];
+		}
+
+		if ($_SESSION['migrate_port'] != '') {
+			$this->migrate_port = $setting['migrate_port'] = $_SESSION['migrate_port'];
+		}else{
+			$_SESSION['migrate_port'] = 3312;
 		}
 
 		if ($_SESSION['migrate_skey'] != '') {
@@ -61,12 +68,15 @@ class MigrateControl extends Control
 	{
 		session_start();
 		$migrate_host = trim($_REQUEST['migrate_host']);
+		$migrate_port = intval($_REQUEST['migrate_port']);
 
 		if (!$migrate_host) {
 			exit('目标服务器IP未设置');
 		}
+		if (!$migrate_port) $migrate_port = 3312;
 
 		$_SESSION['migrate_host'] = $migrate_host;
+		$_SESSION['migrate_port'] = $migrate_port;
 		$migrate_skey = trim($_REQUEST['migrate_skey']);
 
 		if (!$migrate_skey) {
@@ -177,7 +187,7 @@ class MigrateControl extends Control
 		load_lib('pub:whm');
 		srand((double) microtime() * 1000000);
 		$call = new WhmCall('api/', 'migrate_down');
-		$url = 'http://' . $this->migrate_host . ':3312/' . $call->buildEpanelUrl($this->migrate_skey);
+		$url = 'http://' . $this->migrate_host . ':'.$this->migrate_port.'/' . $call->buildEpanelUrl($this->migrate_skey);
 		$url .= '&f=' . $vh . $file_ext;
 		$vh_info = daocall('vhost', 'getVhost', array($this->setting['migrate_prefix'] . $vh));
 
@@ -342,8 +352,7 @@ class MigrateControl extends Control
 
 	private function callWhm($callName, $arr = null)
 	{
-		$port = '3312';
-		$whm = apicall('nodes', 'makeEpanelWhm', array($this->migrate_host, $port, $this->migrate_skey));
+		$whm = apicall('nodes', 'makeEpanelWhm', array($this->migrate_host, $this->migrate_port, $this->migrate_skey));
 		$whmCall = new WhmCall('api/', $callName);
 
 		if ($arr) {

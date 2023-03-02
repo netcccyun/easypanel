@@ -23,7 +23,7 @@ function migrate(val)
 			</thead>
 			<tbody>
 			<tr><td >源服务器IP:</td><td><input name="migrate_host" type="text" size='16' value="{{$session.migrate_host}}"></td></tr>
-				
+			<tr><td >源服务器端口:</td><td><input name="migrate_port" type="text" size='16' value="{{$session.migrate_port}}"></td></tr>
 			<tr><td>源服务器安全码:</td><td><input name="migrate_skey" type="text" size='16' value="{{$session.migrate_skey}}"></td></tr>
 			<tr><td >虚拟主机前缀:</td><td><input name="migrate_prefix" type="text" size='16' value="{{$session.migrate_prefix}}"></td></tr>
 			<tr><td >迁移后的空间UID是否变更:</td><td><input name="migrate_change_uid" type="checkbox"  value="1" {{if $session.migrate_change_uid==1}}checked{{/if}}></td></tr>

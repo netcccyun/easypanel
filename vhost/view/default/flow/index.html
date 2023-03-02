@@ -3,8 +3,24 @@
 <script src="/style/js/themes/grid.js"  type="text/javascript"></script>  
 <!--添加导出模式 -->  
 <script src="/style/js/modules/exporting.js"  type="text/javascript"></script>  
-<script type="text/javascript"> 
-	var chart;  
+<script type="text/javascript">
+function size_format(size){
+	var units = ' Bytes';
+	if(size/1024>10){
+		size = size/1024;
+		units = ' KB';
+	}
+	if(size/1024>10){
+		size = size/1024;
+		units = ' MB';
+	}
+	if(size/1024>10){
+		size = size/1024;
+		units = ' GB';
+	}
+	return size.toFixed(2)+units;
+}
+	var chart;
 	$(document).ready(function () {  
 		chart = new Highcharts.Chart({  
 			chart: {  
@@ -24,7 +40,7 @@
 			tooltip: {  
 				formatter: function() {  
 					//当鼠标悬置数据点时的格式化提示  
-					return '流量:' + Highcharts.numberFormat(this.y, 1)+' Bytes<br/>当前时间:'+ this.x ;  
+					return '流量:' + size_format(this.y)+'<br/>当前时间:'+ this.x ;  
 				}  
 			},  
 			credits: {  
