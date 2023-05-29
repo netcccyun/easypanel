@@ -223,7 +223,7 @@ class ShellAPI extends API
 		daocall('setting', '_setStackValue', array('cron_count', 1));
 		$setting = daocall('setting', 'getAll', array());
 		$this->setting = $setting;
-		$t = date('YmdH', time(NULL));
+		$t = date('YmdH', time());
 		$month = substr($t, 0, 6);
 		$day = substr($t, 0, 8);
 		$hour = $t;
@@ -304,7 +304,7 @@ class ShellAPI extends API
 	 */
 	public function sync_localhost_flow($db_name, $db_name2 = null, $prefix, $revers = 0)
 	{
-		$t = date('YmdH', time(NULL));
+		$t = date('YmdH', time());
 		$month = substr($t, 0, 6);
 		$day = substr($t, 0, 8);
 		$hour = $t;

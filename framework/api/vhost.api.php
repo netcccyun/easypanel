@@ -389,7 +389,7 @@ class VhostAPI extends API
 		return false;
 	}
 
-	public function updateInfo($user, $name, $arr, $type)
+	public function updateInfo($user, $name, $arr, $type = 0)
 	{
 		$node = $this->getNode($user);
 
@@ -532,7 +532,9 @@ class VhostAPI extends API
 			@apicall('record', 'delDnsdunRecord', array($vhost['recordid']));
 		}
 
-		@unlink('/vhs/kangle/phpini/php-'.$name.'.ini');
+		if (!is_win()) {
+			@unlink('/vhs/kangle/phpini/php-'.$name.'.ini');
+		}
 
 		return true;
 	}

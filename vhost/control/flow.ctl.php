@@ -12,14 +12,14 @@ class FlowControl extends Control
 
 		switch ($_REQUEST['t']) {
 		case 'day':
-			$t = date('YmdH', time(NULL) - 86400);
+			$t = date('YmdH', time() - 86400);
 			$table = 'flow_hour';
 			$date = '小时';
 			$datename = '日';
 			break;
 
 		case 'month':
-			$t = date('Ymd', time(NULL) - 31 * 86400);
+			$t = date('Ymd', time() - 31 * 86400);
 			$table = 'flow_day';
 			$date = '日';
 			$datename = '月';

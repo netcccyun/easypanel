@@ -229,7 +229,7 @@ class BindAPI extends API
 		$str = "\$TTL    3600" . "\n";
 		$str .= "\$ORIGIN " . $domain . ".\n";
 		$str .= "@\tSOA      " . $ns . " " . $email . " (\n";
-		$str .= "\t\t" . (time(NULL) - 1000000000) . "\n";
+		$str .= "\t\t" . (time() - 1000000000) . "\n";
 		$str .= "\t\t86400\n";
 		$str .= "\t\t15M;\n";
 		$str .= "\t\t1W;\n";

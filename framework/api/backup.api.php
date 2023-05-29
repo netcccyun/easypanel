@@ -1164,16 +1164,16 @@ class BackupAPI extends API
 	public function backupMysqlSingleFull($pdo)
 	{
 		$sql = 'SHOW DATABASES';
-		$conn = mysql_connect($this->db_host, $this->db_user, $this->db_passwd);
+		$conn = mysqli_connect($this->db_host, $this->db_user, $this->db_passwd);
 
 		if (!$conn) {
 			$this->showMsg('不能连接数据库');
 			return false;
 		}
 
-		$result = mysql_query($sql);
+		$result = mysqli_query($conn, $sql);
 
-		while ($row = mysql_fetch_row($result)) {
+		while ($row = mysqli_fetch_row($result)) {
 			$databasename = $row[0];
 
 			if (in_array($databasename, $this->ignoredatabase)) {

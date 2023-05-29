@@ -137,6 +137,7 @@ class DomainControl extends Control
 					$dir = substr($value, $start, $end - $start);
 					$port = substr($value, $end+1, $end2 - $end - 1);
 					if($port != '443s' && $port != '80'){
+						$port = rtrim($port, 's');
 						$dir .= ':' . $port;
 					}
 					if(strpos($value, 'proto=tcp')){
@@ -270,7 +271,7 @@ class DomainControl extends Control
 				$port = substr($subdir, strpos($subdir,':')+1);
 				$subdir = substr($subdir, 0, strpos($subdir,':'));
 			}else{
-				$port = '80';
+				$port = $proto == 'https' ? '443' : '80';
 			}
 			if(checkIp($subdir)==false || strpos($subdir,'.')==false){
 				exit('源站IP填写错误');
@@ -281,7 +282,7 @@ class DomainControl extends Control
 			if($proto == 'tcp'){
 				$subdir = 'server://nodes=' . $subdir . ':' . $port . ':0:1/proto=tcp/error_count=1/error_try_time=30';
 			}elseif($proto == 'https'){
-				$subdir = 'server://proto=https/nodes=' . $subdir . ':443s:0:1';
+				$subdir = 'server://proto=https/nodes=' . $subdir . ':' . $port . 's:0:1';
 			}elseif($proto == 'follow'){
 				$subdir = 'server://nodes=' . $subdir . ':' . $port . ':0:1|/nodes=' . $subdir . ':443s:0:1';
 			}else{

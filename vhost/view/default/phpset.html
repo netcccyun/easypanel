@@ -17,14 +17,14 @@
 			{{/foreach}}
 			</select>&nbsp;&nbsp;<input value="确定" type="submit" class="btn btn-warning"></form></td>
 		</tr>
-		<tr>
+		<tr {{if strncasecmp(PHP_OS, 'WIN', 3) == 0}}style="display:none"{{/if}}>
 			<td></td>
 			<td><font color="#777">提示：切换版本之后下方自定义的PHP环境设置会重置</font></td>
 		</tr>
 	</table>
 </div>
 
-<div class="main">
+<div class="main" {{if strncasecmp(PHP_OS, 'WIN', 3) == 0}}style="display:none"{{/if}}>
     <div class="public_pa">
 		<b>{{$version}} 环境设置</b>
 	</div>

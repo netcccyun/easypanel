@@ -408,7 +408,7 @@ class DAO
 			return 'datetime(\'now\')';
 		}
 
-		return time(NULL);
+		return time();
 	}
 }
 

@@ -254,30 +254,30 @@ class UtilsAPI extends API
 		}
 
 		if ($db_user != '') {
-			$connect = @mysql_connect($db_host, $db_user, $db_passwd);
+			$connect = mysqli_connect($db_host, $db_user, $db_passwd);
 
 			if (!$connect) {
-				$connect = @mysql_connect($db_host, $db_user, $old_passwd);
+				$connect = mysqli_connect($db_host, $db_user, $old_passwd);
 
 				if (!$connect) {
 					return false;
 				}
 			}
 
-			mysql_query('delete from `mysql`.`user` where `user`=\'' . $db_user . '\' and host!=\'%\' and host!=\'localhost\'');
-			mysql_query('DELETE FROM `mysql`.`user` where `user`=\'\'');
-			mysql_query('SET PASSWORD FOR \'' . $db_user . '\'@\'localhost\' = PASSWORD( \'' . $db_passwd . '\' )', $connect);
-			mysql_query('SET PASSWORD FOR \'' . $db_user . '\'@\'%\' = PASSWORD( \'' . $db_passwd . '\' )', $connect);
+			mysqli_query($connect, 'delete from `mysql`.`user` where `user`=\'' . $db_user . '\' and host!=\'%\' and host!=\'localhost\'');
+			mysqli_query($connect, 'DELETE FROM `mysql`.`user` where `user`=\'\'');
+			mysqli_query($connect, 'SET PASSWORD FOR \'' . $db_user . '\'@\'localhost\' = PASSWORD( \'' . $db_passwd . '\' )');
+			mysqli_query($connect, 'SET PASSWORD FOR \'' . $db_user . '\'@\'%\' = PASSWORD( \'' . $db_passwd . '\' )');
 			$roots = array('Create_tablespace_priv', 'Trigger_priv', 'Event_priv', 'Create_user_priv', 'Alter_routine_priv');
 			$i = 0;
 
 			while ($i < count($roots)) {
-				mysql_query('update mysql.`user` set ' . $roots[$i] . '=\'Y\' where  `user`=\'' . $db_user . '\'');
+				mysqli_query($connect, 'update mysql.`user` set ' . $roots[$i] . '=\'Y\' where  `user`=\'' . $db_user . '\'');
 				++$i;
 			}
 
-			mysql_query('flush privileges');
-			mysql_close($connect);
+			mysqli_query($connect, 'flush privileges');
+			mysqli_close($connect);
 		}
 
 		return true;

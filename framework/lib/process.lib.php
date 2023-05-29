@@ -101,9 +101,9 @@ class Process
 		}
 		$rs = $this->run(array(array($test_cmd)), null, $pipes, "c:\\a.txt");
 		print_r($pipes);
-		echo "time=" . time(NULL) . "\n";
+		echo "time=" . time() . "\n";
 		$this->handle($rs, $pipes, "test", $stdout, $stderr);
-		echo "time=" . time(NULL) . " stdout=" . $stdout . " stderr=" . $stderr . "\n";
+		echo "time=" . time() . " stdout=" . $stdout . " stderr=" . $stderr . "\n";
 	}
 
 	private function winrun(array $cmds, $vh, &$pipes, $stdin_file = null, $stdout_file = null, $stderr_file = null)

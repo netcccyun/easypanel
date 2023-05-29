@@ -12,7 +12,7 @@ class FlowControl extends control
 			return false;
 		}
 
-		$time = date('YmdH', time(NULL));
+		$time = date('YmdH', time());
 
 		switch ($_REQUEST['t']) {
 		case 'day':

@@ -66,7 +66,8 @@ function __dispatch_start()
 	$inst = new $class();
 	if ($inst && method_exists($inst, $__core_env['action'])) {
 		$t_start = microtime_float();
-		$result = $inst->$__core_env['action']();
+		$func = $__core_env['action'];
+		$result = $inst->$func();
 
 		if (!defined('__OUTVIEW__')) {
 			$t_end = microtime_float();

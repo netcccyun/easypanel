@@ -18,7 +18,7 @@ class CdnPrimaryAPI extends API
 		load_lib('pub:whm');
 		load_lib('pub:flow');
 		$this->setting = daocall('setting', 'getAll', array());
-		$this->t = date('YmdH', time(NULL));
+		$this->t = date('YmdH', time());
 		$this->month = substr($this->t, 0, 6);
 		$this->day = substr($this->t, 0, 8);
 		$this->hour = $this->t;

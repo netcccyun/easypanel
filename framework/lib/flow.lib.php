@@ -190,7 +190,7 @@ class Flow
 	 */
 	public function clean()
 	{
-		$t = date('YmdH', time(NULL) - 60 * 86400);
+		$t = date('YmdH', time() - 60 * 86400);
 		$month = substr($t, 0, 6);
 		$day = substr($t, 0, 8);
 		$hour = $t;

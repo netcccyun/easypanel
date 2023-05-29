@@ -291,7 +291,7 @@
 	function mysqldumpin(file)
 	{
 		var msg = '<form name="mysqldumpin" action="?c=shell&a=mysqldumpin" method="post" target="_blank">';
-			msg += '数据库密码: <input name="file" id="mysqldumpinfile" type="hidden"><input name="passwd" id="mysqldumpinpasswd" size="16"><input type="submit" value="导入">';
+			msg += '数据库密码: <input name="file" id="mysqldumpinfile" type="hidden"><input name="passwd" id="mysqldumpinpasswd" size="16" autocomplete="off"><input type="submit" value="导入">';
 			msg += '</form>';
 		art.dialog({id:'id22',content:msg,title:'导入数据库',lock:true});	
 		document.getElementById('mysqldumpinfile').value = file;
@@ -302,7 +302,7 @@
 	{
 		var msg = '<form name="restoreweb" action="?c=shell&a=restoreweb" method="post"	target="_blank">';
 		msg += "这将导致您现在的数据丢失<input name='file' id='restorewebfile' type='hidden'><br>";
-		msg += "解压密码(如无则空):<input name='password'><input name='coverfile' type='checkbox' value='1'>覆盖文件";
+		msg += "解压密码(如无则空):<input type='text' name='password' autocomplete='off'><input name='coverfile' type='checkbox' value='1'>覆盖文件";
 		msg += "<input type='submit' value='恢复'></form>";
 		art.dialog({id:'id22',content:msg,title:'恢复网站文件',lock:true});
 		document.getElementById('restorewebfile').value = file;
