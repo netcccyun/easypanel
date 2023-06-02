@@ -143,5 +143,24 @@ function php_call($params)
 	}
 }
 
+function php_get_cli_version()
+{
+	if(file_exists('/usr/bin/php')){
+		$oripath = shell_exec('ls -al /usr/bin/php | awk \'{print $NF}\'');
+		if($oripath){
+			if(preg_match('!/ext/php(\d+)/bin/php!', $oripath, $match)){
+				return 'php'.$match[1];
+			}
+		}
+	}
+	return null;
+}
 
-?>
+function php_set_cli_version($version)
+{
+	if(empty($version)){
+		shell_exec('rm -f /usr/bin/php');
+	}else{
+		shell_exec('ln -sf /vhs/kangle/ext/'.$version.'/bin/php /usr/bin/php');
+	}
+}

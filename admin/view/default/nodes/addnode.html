@@ -146,12 +146,19 @@ function testDnsdun()
 						<option value="{{$view_dir[$i]}}" {{if $setting.view_dir==$view_dir[$i]}}selected {{/if}}/>{{$view_dir[$i]}}</option>
 						{{/for}}
 					</select>  &nbsp;用于切换admin和vhost目录下view目录的模板</td></tr>
-			<tr><td>默认php版本:</td>
+			<tr><td>默认PHP版本:</td>
 				<td><select name='default_version'>
 						{{foreach from=$phpversions key=key item=row}}
 						<option value="{{$key}}" {{if $setting.default_version==$key}}selected{{/if}}>{{$row}}</option>
 						{{/foreach}}
-					</select>  &nbsp;新增网站默认的php版本</td></tr>
+					</select>  &nbsp;新增网站默认的PHP版本</td></tr>
+			<tr><td>PHP-CLI版本:</td>
+				<td><select name='phpcli_version'>
+						<option value="">未设置</option>
+						{{foreach from=$phpversions key=key item=row}}
+						<option value="{{$key}}" {{if $setting.phpcli_version==$key}}selected{{/if}}>{{$row}}</option>
+						{{/foreach}}
+					</select>  &nbsp;命令行运行php时使用的PHP版本</td></tr>
 			<tr><td>FTP相关设置:</td>
 				<td>ftp端口<input name='ftp_port' size=5  value="{{if $setting.ftp_port}}{{$setting.ftp_port}}{{else}}21{{/if}}"/>
 				pasv端口范围(最小端口:最大端口)<input name='ftp_pasv_port'  value="{{$setting.ftp_pasv_port}}"/></td></tr>

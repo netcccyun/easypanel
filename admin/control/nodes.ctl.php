@@ -141,6 +141,11 @@ class NodesControl extends Control
 
 		$phpversions = modcall('php', 'php_get_version');
 
+		$setting = daocall('setting', 'getAll');
+		if(!isset($setting['phpcli_version'])){
+			$setting['phpcli_version'] = modcall('php', 'php_get_cli_version');
+		}
+
 		$this->_tpl->assign('view_dir_count', $view_dir_count);
 		$this->_tpl->assign('view_dir', $view_dir);
 		$this->_tpl->assign('phpversions', $phpversions);
@@ -148,7 +153,7 @@ class NodesControl extends Control
 		$this->_tpl->assign('os', $os);
 		$this->_tpl->assign('action', 'edit');
 		$this->_tpl->assign('node', $node);
-		$this->assign('setting', daocall('setting', 'getAll'));
+		$this->assign('setting', $setting);
 		return $this->display('nodes/addnode.html');
 	}
 
@@ -194,6 +199,9 @@ class NodesControl extends Control
 		daocall('setting', 'add', array('cname_host', $_REQUEST['cname_host']));
 		daocall('setting', 'add', array('domain_bind', $_REQUEST['domain_bind']));
 		daocall('setting', 'add', array('default_version', $_REQUEST['default_version']));
+		daocall('setting', 'add', array('phpcli_version', $_REQUEST['phpcli_version']));
+
+		modcall('php', 'php_set_cli_version', [$_REQUEST['phpcli_version']]);
 
 		if (daocall('setting', 'get', array('kangle_type')) == 'enterprise') {
 			daocall('setting', 'add', array('title', $_REQUEST['title']));
