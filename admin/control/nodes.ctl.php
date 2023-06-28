@@ -200,6 +200,7 @@ class NodesControl extends Control
 		daocall('setting', 'add', array('domain_bind', $_REQUEST['domain_bind']));
 		daocall('setting', 'add', array('default_version', $_REQUEST['default_version']));
 		daocall('setting', 'add', array('phpcli_version', $_REQUEST['phpcli_version']));
+		daocall('setting', 'add', array('file_encoding', $_REQUEST['file_encoding']));
 
 		modcall('php', 'php_set_cli_version', [$_REQUEST['phpcli_version']]);
 

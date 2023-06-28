@@ -159,9 +159,13 @@ function testDnsdun()
 						<option value="{{$key}}" {{if $setting.phpcli_version==$key}}selected{{/if}}>{{$row}}</option>
 						{{/foreach}}
 					</select>  &nbsp;命令行运行php时使用的PHP版本</td></tr>
+			<tr><td>中文文件名编码:</td>
+				<td><select name='file_encoding'>
+					<option value="utf8" {{if $setting.file_encoding=='utf8'}}selected{{/if}}>UTF-8</option><option value="gbk" {{if $setting.file_encoding=='gbk'}}selected{{/if}}>GBK</option>
+					</select>  &nbsp;在线文件管理器中文文件名默认编码</td></tr>
 			<tr><td>FTP相关设置:</td>
 				<td>ftp端口<input name='ftp_port' size=5  value="{{if $setting.ftp_port}}{{$setting.ftp_port}}{{else}}21{{/if}}"/>
-				pasv端口范围(最小端口:最大端口)<input name='ftp_pasv_port'  value="{{$setting.ftp_pasv_port}}"/></td></tr>
+				pasv端口范围(最小端口:最大端口)<input name='ftp_pasv_port' value="{{$setting.ftp_pasv_port}}" placeholder="默认为30000:50000"/></td></tr>
 			<tr><td>面板title:</td>
 				<td><input name='title'  size=54 value="{{$setting.title}}"/></td></tr>
 			<tr><td>面板foot代码:</td>

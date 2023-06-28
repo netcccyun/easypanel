@@ -3,11 +3,15 @@
 needRole('vhost');
 class WebftpControl extends Control
 {
+	private $file_encoding;
+
 	public function __construct()
 	{
 		if ($_SESSION['webftp_user'] == '') {
 			exit('please login webftp first');
 		}
+
+		$this->file_encoding = daocall('setting', 'get', array('file_encoding'));
 
 		change_to_user($_SESSION['webftp_user'], $_SESSION['webftp_group']);
 		load_lib('pub:webftp');
@@ -121,7 +125,7 @@ class WebftpControl extends Control
 		$this->assign('cwds', $cwds);
 		$this->assign('cwd', $cwd);
 		$fa = new FileAccess(false);
-		$files = ls($this->getphyfile(''), $this->getcwd(), $fa->list_files());
+		$files = ls($this->getphyfile(''), $this->getcwd(), $fa->list_files(), $this->file_encoding);
 
 		if ($files === false) {
 			$this->_tpl->assign('msg', '不能打开目录，请检查权限');
@@ -177,7 +181,7 @@ class WebftpControl extends Control
 			$dir = $curdir . '/' . $dir;
 		}
 
-		$dir = tolocal(trimdir($dir));
+		$dir = tolocal(trimdir($dir), $this->file_encoding);
 
 		if ($dir[0] == '/') {
 			return $dir;

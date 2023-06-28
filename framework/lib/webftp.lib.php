@@ -251,14 +251,20 @@ function myrmdir($dir, &$count)
 	return true;
 }
 
-function toutf8($str)
+function toutf8($str, $encoding = null)
 {
-	return mb_convert_encoding($str, 'UTF-8', 'GBK');
+	if($encoding == 'gbk'){
+		return mb_convert_encoding($str, 'UTF-8', 'GBK');
+	}
+	return $str;
 }
 
-function tolocal($str)
+function tolocal($str, $encoding = null)
 {
-	return mb_convert_encoding($str, 'GBK', 'UTF-8');
+	if($encoding == 'gbk'){
+		return mb_convert_encoding($str, 'GBK', 'UTF-8');
+	}
+	return $str;
 }
 
 function getfileicon($file)
@@ -289,7 +295,7 @@ function getfileicon($file)
 	return $file_type;
 }
 
-function ls($dir, $cwd, $file_access = null)
+function ls($dir, $cwd, $file_access = null, $encoding = null)
 {
 	$rd = @opendir($dir);
 
@@ -314,7 +320,7 @@ function ls($dir, $cwd, $file_access = null)
 			$type = getfileicon($file);
 		}
 
-		$filename = toutf8($file);
+		$filename = toutf8($file, $encoding);
 		$propty = '';
 
 		if ($file_access) {
