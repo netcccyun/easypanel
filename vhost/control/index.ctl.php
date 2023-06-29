@@ -162,8 +162,8 @@ class IndexControl extends Control
 			$_SESSION['kangle_info']['kangle_version'] = (string) $info->get('version');
 			$_SESSION['kangle_info']['kangle_type'] = (string) $info->get('type');
 			if (0 < $user['db_quota'] && $user['db_type'] != 'sqlsrv') {
-				$dbadmin_url = 'http://' . $_SERVER['SERVER_NAME'] . ':3313/mysql/?pma_username=' . $user['db_name'];
-				if(is_https()) $dbadmin_url = 'https://' . $_SERVER['SERVER_NAME'] . ':4413/mysql/?pma_username=' . $user['db_name'];
+				$dbadmin_url = 'http://' . $_SERVER['SERVER_NAME'] . ':3313/mysql/?db=' . $user['db_name'];
+				if(is_https()) $dbadmin_url = 'https://' . $_SERVER['SERVER_NAME'] . ':4413/mysql/?db=' . $user['db_name'];
 				$this->_tpl->assign('dbadmin_url', $dbadmin_url);
 			}
 
@@ -236,8 +236,8 @@ class IndexControl extends Control
 	{
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
-		$dbadmin_url = 'http://' . $_SERVER['SERVER_NAME'] . ':3313/mysql/?pma_username=' . $user['db_name'];
-		if(is_https()) $dbadmin_url = 'https://' . $_SERVER['SERVER_NAME'] . ':4413/mysql/?pma_username=' . $user['db_name'];
+		$dbadmin_url = 'http://' . $_SERVER['SERVER_NAME'] . ':3313/mysql/?db=' . $user['db_name'];
+		if(is_https()) $dbadmin_url = 'https://' . $_SERVER['SERVER_NAME'] . ':4413/mysql/?db=' . $user['db_name'];
 		ob_clean();
 		header('Location: '.$dbadmin_url);
 	}

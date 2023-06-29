@@ -246,7 +246,7 @@ class NodesControl extends Control
 		$tpl = tpl::template_config(dirname(dirname(__FILE__)) . '/template_config/');
 		$node = $GLOBALS['node_cfg'][$name];
 		$tpl->assign('node', $node);
-		$tpl->assign('db_skey', getRandPasswd(16));
+		$tpl->assign('db_skey', getRandPasswd(29));
 		$tpl->assign('auth_type', extension_loaded('mcrypt') ? 'cookie' : 'http');
 		$phpmyadmin_config = $tpl->fetch('phpmyadmin_config.html');
 		$fp = fopen(dirname($GLOBALS['safe_dir']) . '/nodewww/dbadmin/mysql/config.inc.php', 'wb');
