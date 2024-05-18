@@ -39,6 +39,8 @@ class AnticcControl extends Control
 						$this->_tpl->assign('cc', $cc);
 					}elseif($name == 'acl_srcs'){
 						$this->_tpl->assign('whiteip', str_replace('|',"\r\n",$ch));
+					}elseif($name == 'acl_file_ext'){
+						$this->_tpl->assign('whiteext', $ch);
 					}elseif($name == 'acl_url'){
 						$white_urls[] = $ch;
 					}
@@ -117,6 +119,7 @@ class AnticcControl extends Control
 		$second = intval($_REQUEST['second']);
 		$whiteip = $_REQUEST['whiteip'];
 		$whiteurl = $_REQUEST['whiteurl'];
+		$whiteext = $_REQUEST['whiteext'];
 		if(!empty($whiteip)){
 			$whiteip = str_replace(array("\r\n", "\r", "\n"), "|", $whiteip);
 			$arrs = explode("|",$whiteip);
@@ -146,6 +149,9 @@ class AnticcControl extends Control
 				if(empty($url))continue;
 				$modeles['acl_url#'.$i++] = array('revers' => 1, 'nc' => 1, 'url' => $url);
 			}
+		}
+		if(!empty($whiteext)){
+			$modeles['acl_file_ext'] = array('revers' => 1, 'icase' => 1, 'split' => '|', 'v' => $whiteext);
 		}
 		$modeles['mark_anti_cc'] = array('request' => $request, 'second' => $second, 'wl' => $wl, 'fix_url' => $fix_url, 'skip_cache' => $skip_cache, 'msg' => $msg);
 		$result = $this->access->addChain(TABLENAME, $arr, $modeles);

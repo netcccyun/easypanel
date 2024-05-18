@@ -23,10 +23,11 @@ function anticc_add()
 	}
 	var whiteip = $("#whiteip").val();
 	var whiteurl = $("#whiteurl").val();
+	var whiteext = $("#whiteext").val();
 	$.ajax({
 		   type: "POST",
 		   url: '?c=anticc&a=anticcAdd',
-		   data: {mode:mode, request:request, second:second, whiteip:whiteip, whiteurl:whiteurl},
+		   data: {mode:mode, request:request, second:second, whiteip:whiteip, whiteurl:whiteurl, whiteext:whiteext},
 		   success: function(msg){
 		   		if(msg != "成功") { 
 		     		return alert(msg);

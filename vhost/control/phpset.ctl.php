@@ -19,6 +19,7 @@ class PhpsetControl extends Control
 		'8.0' => '/lib/php/extensions/no-debug-non-zts-20200930',
 		'8.1' => '/lib/php/extensions/no-debug-non-zts-20210902',
 		'8.2' => '/lib/php/extensions/no-debug-non-zts-20220829',
+		'8.3' => '/lib/php/extensions/no-debug-non-zts-20230831',
 	];
 
 	private $php_extensions = [

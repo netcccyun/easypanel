@@ -83,6 +83,15 @@
 			</td>
 		</tr>
 		<tr>
+		    <td style="text-align:center;width:120px;">
+			    白名单后缀
+			</td>
+			<td>
+				<input name='whiteext' value='{{$whiteext}}' id='whiteext' size="50"/>
+				<br/><font color="red">多个文件后缀用|隔开</font>
+			</td>
+		</tr>
+		<tr>
 			<td colspan="2" style="padding-left:400px;"><input type='button' value='保存设置' class="btn btn-primary" onclick='anticc_add();'>{{if $cc!=null}}&nbsp;&nbsp;<input type='button' value='删除设置' class="btn btn-default" onclick='anticc_del();'>{{/if}}</td>
 		</tr>
 	</table>
