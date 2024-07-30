@@ -34,6 +34,56 @@ class SecurityControl extends Control
 		header('Location:?c=security&a=addFrom&success=1');
 		exit();
 	}
+
+	public function sslForm()
+	{
+		$crtfile = $GLOBALS['safe_dir'] . 'server.crt';
+		$keyfile = $GLOBALS['safe_dir'] . 'server.key';
+		$crt = file_exists($crtfile) ? file_get_contents($crtfile) : '';
+		$key = file_exists($keyfile) ? file_get_contents($keyfile) : '';
+
+		$ssl = 0;
+		if($crt && $key) {
+			$ssl = 1;
+		}
+		$this->_tpl->assign('ssl', $ssl);
+		$this->_tpl->assign('crt', $crt);
+		$this->_tpl->assign('key', $key);
+
+		return $this->_tpl->fetch('security/ssl.html');
+	}
+
+	public function ssl()
+	{
+		$crt = $_REQUEST['crt'];
+		$key = $_REQUEST['key'];
+
+		if(empty($crt) || empty($key)){
+			exit("<script language='javascript'>alert('SSL证书不能为空');history.go(-1);</script>");
+		}
+
+		$check = $this->check_cert($crt, $key);
+		if($check !== true){
+			exit("<script language='javascript'>alert('{$check}');history.go(-1);</script>");
+		}
+
+		$crtfile = $GLOBALS['safe_dir'] . 'server.crt';
+		$keyfile = $GLOBALS['safe_dir'] . 'server.key';
+
+		file_put_contents($crtfile, $crt);
+		file_put_contents($keyfile, $key);
+
+		apicall('nodes', 'reboot', array('localhost'));
+		
+		exit("<script language='javascript'>alert('保存成功');history.go(-1);</script>");
+	}
+
+	private function check_cert($cert, $key){
+		if(!openssl_x509_read($cert)) return 'SSL证书填写错误，请检查！';
+		if(!openssl_get_privatekey($key)) return 'SSL证书密钥填写错误，请检查！';
+		if(!openssl_x509_check_private_key($cert, $key)) return 'SSL证书与密钥不匹配！';
+		return true;
+	}
 }
 
 ?>

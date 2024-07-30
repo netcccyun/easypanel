@@ -1,0 +1,48 @@
+{{include file='common/head.html'}}
+<script language='javascript'>
+	var msg = "{{$msg}}";
+	$(document).ready(function() {
+		if (msg != '') {
+			art.dialog({content : msg,top : '10%',title:"",lock:true});
+		}
+	})
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top" align="left">当前位置：安全设置 --> 面板SSL证书</div>
+		<form name='nodeform' action="?c=security&a=ssl" method="post">
+			<table class="table" cellpadding="0" cellspacing="1">
+				<thead>
+					<tr>
+						<td colspan="2"><b>面板SSL证书配置 ({{if $ssl==1}}<font color='green'>状态成功</font>{{else}}<font
+							color=red>状态失败</font>{{/if}}) [<a
+							href='https://bkssl.com/ssl/selfsign' target='_blank' rel='noreferrer'>自签名SSL证书生成</a>]</b></td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>ssl证书内容:</td>
+						<td><textarea name='crt' cols=80 rows=8 class="span7">{{$crt}}</textarea></td>
+					</tr>
+					<tr>
+						<td>ssl证书密钥内容:</td>
+						<td><textarea name='key' cols=80 rows=8 class="span7">{{$key}}</textarea></td>
+					</tr>
+					<tr>
+						<td colspan="2" style="padding-left:400px;"><input type='submit' value='提交' class="btn btn-primary"></td>
+					</tr>
+				</tbody>
+			</table>
+		</form>
+	</div>
+</div>
+<script>
+function change_https(status){
+	if(status == 1){
+		top.location.href='https://'+top.location.hostname+':4412'+top.location.pathname;
+	}else{
+		top.location.href='http://'+top.location.hostname+':3312'+top.location.pathname;
+	}
+}
+</script>
+{{dispatch c='index' a='foot'}}

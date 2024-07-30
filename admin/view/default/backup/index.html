@@ -33,7 +33,7 @@ function check_binlog()
 		if(msg =='success'){
 			return;
 		}else{
-			$("#logbin").html("<font color='red'>请注意：mysql bin-log未开启，无法使用增量备份,</font><a href='http:\/\/www.kangleweb.com\/thread-7330-1-1.html' target='_blank'>请点击这里查看如何开启\<\/a\>");
+			$("#logbin").html("<font color='red'>请注意：mysql bin-log未开启，无法使用增量备份");
 		}
 	});
 }
