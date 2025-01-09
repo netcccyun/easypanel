@@ -68,7 +68,7 @@ class FuncControl extends control
 	public function changeFtp()
 	{
 		$ftp = intval($_REQUEST['ftp']);
-		$where_arr['ftp'] = $ftp = 1 ? 1 : 0;
+		$where_arr = [];
 		$arr['ftp'] = $ftp;
 		$json['code'] = 400;
 
