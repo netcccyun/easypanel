@@ -136,6 +136,7 @@ class SslControl extends Control
 		}
 		change_to_super();
 		apicall('vhost', 'noticeChange', array('localhost', $vhost));
+		notice_cdn_changed();
 		exit("<script language='javascript'>alert('保存成功');history.go(-1);</script>");
 	}
 
@@ -323,6 +324,7 @@ class SslControl extends Control
 		}
 		change_to_super();
 		apicall('vhost', 'noticeChange', array('localhost', $vhost));
+		notice_cdn_changed();
 		exit("<script language='javascript'>alert('保存成功');history.go(-1);</script>");
 	}
 
@@ -374,6 +376,7 @@ class SslControl extends Control
 
 		if($result){
 			apicall('vhost', 'noticeChange', array('localhost', $vhost));
+			notice_cdn_changed();
 			exit('成功');
 		}else{
 			exit('失败');

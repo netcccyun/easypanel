@@ -103,7 +103,7 @@ class IndexControl extends Control
 
 	public function sync()
 	{
-		apicall('cdn', 'sync_vhost_all', array());
+		//apicall('cdn', 'sync_vhost_all', array());
 		exit();
 	}
 

@@ -11,7 +11,7 @@ class CdnPrimaryAPI extends API
 	private $local_vhs_loaded = false;
 	private $loaded_vhs_info = array();
 	private $acess_dir = '/vhs/kangle/cdn/';
-	static private $sync_vhost_fields = array('name', 'doc_root', 'uid', 'status', 'subdir', 'web_quota', 'log_file', 'access', 'speed_limit', 'cdn', 'sync_seq', 'ip', 'port', 'certificate', 'certificate_key', 'http2');
+	static private $sync_vhost_fields = array('name', 'doc_root', 'uid', 'status', 'subdir', 'web_quota', 'log_file', 'access', 'speed_limit', 'max_connect', 'cdn', 'sync_seq', 'ip', 'port', 'certificate', 'certificate_key', 'http2');
 
 	public function __construct()
 	{
@@ -96,7 +96,11 @@ class CdnPrimaryAPI extends API
 		}
 
 		$version = $this->get_version($node);
-		if ($version === false || $version < 20402) {
+		if ($version === false) {
+			echo 'warning: node ' . $node['name'] . " request failed!\n";
+			return false;
+		}
+		if ($version < 20402) {
 			echo 'warning: node ' . $node['name'] . " is old. please upgrade.\nnow use old function to sync\n";
 			return apicall('cdn', 'sync_old_node', array($node));
 		}

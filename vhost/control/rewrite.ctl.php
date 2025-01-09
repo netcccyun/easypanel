@@ -102,6 +102,7 @@ class RewriteControl extends Control
 		}
 
 		if ($this->access->addChain(TABLENAME, $arr, $modeles)) {
+			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 			exit('成功');
 		}
 
@@ -113,6 +114,7 @@ class RewriteControl extends Control
 		$id = intval($_REQUEST['id']);
 
 		if ($this->access->delChain(TABLENAME, $id)) {
+			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 			exit('成功');
 		}
 
@@ -148,6 +150,8 @@ class RewriteControl extends Control
 		default:
 			break;
 		}
+
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 
 		header('Location:?c=rewrite&a=rewriteFrom');
 		exit();

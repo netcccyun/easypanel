@@ -48,7 +48,7 @@
 			<td>{{$row.host}}:{{$row.port}}</td>
 			<td>{{$row.skey}}</td>
 			<td>{{$row.mem}}</td>
-			<td>{{if $row.synctime}}{{date('Y:m:d H:i:s',$row.synctime)}}{{/if}}</td>
+			<td>{{if $row.synctime}}{{date('Y-m-d H:i:s',$row.synctime)}}{{/if}}</td>
 			<td>{{if $row.syncstatus==1}}成功{{elseif $row.syncstatus==0}}等待同步{{else}}失败{{/if}}</td>
 			<td id='tr{{$row.name}}'><a href="javascript:check_node('{{$row.name}}')">查询状态</a></td>
 			</tr>
