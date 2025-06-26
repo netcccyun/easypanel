@@ -1,10 +1,10 @@
 <?php
 needRole('admin');
-define(DENY_IP_TABLE, '!deny_ip_table');
-define(DENY_FILTER_TABLE, '!deny_filter');
-define(ACTION, 'table:!deny_filter');
-define(BEGIN, 'BEGIN');
-define(PROT, '80|443');
+define('DENY_IP_TABLE', '!deny_ip_table');
+define('DENY_FILTER_TABLE', '!deny_filter');
+define('ACTION', 'table:!deny_filter');
+define('BEGIN', 'BEGIN');
+define('PROT', '80|443');
 class AccessControl extends Control
 {
 	public function __construct()

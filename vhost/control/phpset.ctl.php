@@ -66,6 +66,27 @@ class PhpsetControl extends Control
 			'data' => "zend_extension={file}",
 			'sort' => 3
 		],
+		'redis' => [
+			'name' => 'Redis',
+			'description' => 'Redis扩展',
+			'file' => 'redis.so',
+			'data' => "extension={file}",
+			'sort' => 1
+		],
+		'memcache' => [
+			'name' => 'Memcache',
+			'description' => 'Memcache扩展',
+			'file' => 'memcache.so',
+			'data' => "extension={file}",
+			'sort' => 1
+		],
+		'memcached' => [
+			'name' => 'Memcached',
+			'description' => 'Memcached扩展',
+			'file' => 'memcached.so',
+			'data' => "extension={file}",
+			'sort' => 1
+		],
 	];
 
 	private $php_configs = [

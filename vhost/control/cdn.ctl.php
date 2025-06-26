@@ -123,7 +123,7 @@ class CdnControl extends Control
 
 		if (!$access->delChain(DENY_BANIP_TABLE, $id)) {
 			$this->_tpl->assign('msg', '删除失败');
-			return $this->fecth('msg.html');
+			return $this->fetch('msg.html');
 		}
 
 		return $this->addTableFrom();

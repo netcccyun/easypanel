@@ -1,9 +1,9 @@
 <?php
 needRole('admin');
-define(CDN_TABLE, '!cdn_table');
-define(ACTION, 'table:!cdn_table');
-define(BEGIN, 'BEGIN');
-define(PROT, '80');
+define('CDN_TABLE', '!cdn_table');
+define('ACTION', 'table:!cdn_table');
+define('BEGIN', 'BEGIN');
+define('PROT', '80');
 class HostcdnControl extends control
 {
 	public function __construct()

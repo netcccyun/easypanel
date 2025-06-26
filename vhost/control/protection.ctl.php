@@ -1,8 +1,8 @@
 <?php
 needRole('vhost');
-define(DENY_PATH_TABLE, '!deny_referer');
-define(ACTION, 'table:!deny_referer');
-define(BEGIN, 'BEGIN');
+define('DENY_PATH_TABLE', '!deny_referer');
+define('ACTION', 'table:!deny_referer');
+define('BEGIN', 'BEGIN');
 class ProtectionControl extends Control
 {
 	public function __construct()

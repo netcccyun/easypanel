@@ -1,6 +1,6 @@
 <?php
 needRole('vhost');
-define(SSI_MAP, '1,ssi,*');
+define('SSI_MAP', '1,ssi,*');
 class SsiControl extends Control
 {
 	public function add()

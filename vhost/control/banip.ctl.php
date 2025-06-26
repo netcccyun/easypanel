@@ -1,10 +1,10 @@
 <?php
 needRole('vhost');
-define(DENY_BANIP_TABLE, '!deny_vhost_ip');
-define(DENY_BANURL_TABLE, '!deny_url');
-define(ACTION, 'table:!deny_vhost_ip');
-define(ACTION2, 'table:!deny_url');
-define(BEGIN, 'BEGIN');
+define('DENY_BANIP_TABLE', '!deny_vhost_ip');
+define('DENY_BANURL_TABLE', '!deny_url');
+define('ACTION', 'table:!deny_vhost_ip');
+define('ACTION2', 'table:!deny_url');
+define('BEGIN', 'BEGIN');
 class BanipControl extends Control
 {
 	private $access;

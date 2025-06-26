@@ -1,6 +1,6 @@
 <?php
 needRole('vhost');
-define(GZIPNAME, 'gzip');
+define('GZIPNAME', 'gzip');
 class ResponseControl extends control
 {
 	public function __construct()
