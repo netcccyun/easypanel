@@ -135,6 +135,7 @@
 	 */
 	function rename(file) 
 	{
+		file = file.replace(/'/g, "\\'");
 		var msg = '<form name="rename" action="javascript:addrename(\'' + file + '\')">';
 			msg += '新文件名:<input style="height:32px;line-height:32px;padding:0px;font-size:16px" name="newname" id="renamefile" >';
 			msg += '<input value="确定" style="width:80px;height:32px;" onClick="addrename(\'' + file + '\')" type="button">';
@@ -207,9 +208,10 @@
 			alert('请选择你要操作的文件');
 			return;
 		}
+		last_file = last_file.replace(/"/g, "\\\"");
 		var zipfilename = last_file + ".zip";
 		var msg = '<form name="compress" action="javascript:addzipfile()">';
-		msg += '文件:<input name="dst" id="compressdst" value=' + zipfilename + '><br><br>';
+		msg += '文件:<input name="dst" id="compressdst" value="' + zipfilename + '"><br><br>';
 		msg += '密码:<input name="password" id="compresspassword" ><br><br>';
 		msg += '<input style="width:100px;" value="压缩" onClick="addzipfile()" type="button">';
 		msg += '</form>';
@@ -223,6 +225,7 @@
 	 */
 	function decompress(file)
 	{
+		file = file.replace(/'/g, "\\'");
 		var msg = '<form name="decompress" onSubmit="return addunzipfile(\'' + file + '\')">';
 			msg += '<div >解压目录:<input name="dst" id="decompressdst"></div>';
 			msg += '<div style="margin-top:10px;">密&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;码:<input name="password" id="decompresspassword" placeholder="没有请留空"></div>';

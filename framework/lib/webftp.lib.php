@@ -327,7 +327,7 @@ function ls($dir, $cwd, $file_access = null, $encoding = null)
 			$propty = $file_access[$cwd . '/' . $filename];
 		}
 
-		$file_info = array('codename' => rawurlencode($filename), 'filename' => $filename, 'info' => $info, 'dir' => $info[2] & S_IFDIR, 'type' => $type, 'propty' => $propty);
+		$file_info = array('codename' => rawurlencode($filename), 'filename' => $filename, 'filenamejs' => addslashes($filename), 'filenamehtml' => htmlspecialchars($filename, ENT_QUOTES), 'info' => $info, 'dir' => $info[2] & S_IFDIR, 'type' => $type, 'propty' => $propty);
 
 		if ($info[2] & S_IFDIR) {
 			$test_file = $dir . '/' . $file . '/easypanel_test_for_write';

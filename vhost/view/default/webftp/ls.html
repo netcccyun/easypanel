@@ -100,16 +100,16 @@ var left = null;
 		<tr id='tr{{$tr}}' onMouseOver="setbgcolor('tr{{$tr}}','#e2efff')" onMouseOut="setbgcolor('tr{{$tr}}','#fefefe')">
 
 			<td >
-				<input name='files[]' type='checkbox' value='{{$cwd}}/{{$file.filename}}'>
-				<img src='{{$STATIC}}/webftp/icon_{{$file.type}}.gif' border='0' /> <a href="javascript:getfile('{{$cwd}}/{{$file.filename}}',{{$file.dir}})">{{$file.filename}}</a>
+				<input name='files[]' type='checkbox' value='{{$cwd}}/{{$file.filenamehtml}}'>
+				<img src='{{$STATIC}}/webftp/icon_{{$file.type}}.gif' border='0' /> <a href="javascript:getfile('{{$cwd}}/{{$file.filenamejs}}',{{$file.dir}})">{{$file.filename}}</a>
 				{{if $file.type=='zip'}} 
-				<a href="javascript:decompress('{{$cwd}}/{{$file.filename}}')">解压</a>
+				<a href="javascript:decompress('{{$cwd}}/{{$file.filenamejs}}')">解压</a>
 				{{/if}}
 				{{if substr($file.filename,-7)=='.sql.7z' || substr($file.filename,-4)=='.sql'}} 
-				<a href="javascript:mysqldumpin('{{$cwd}}/{{$file.filename}}')">导入</a>
+				<a href="javascript:mysqldumpin('{{$cwd}}/{{$file.filenamejs}}')">导入</a>
 				{{/if}}
 				{{if substr($file.filename,-7)=='.web.7z'}} 
-				<a href="javascript:restoreweb('{{$cwd}}/{{$file.filename}}')">恢复</a>
+				<a href="javascript:restoreweb('{{$cwd}}/{{$file.filenamejs}}')">恢复</a>
 				{{/if}}
 			</td>
 			<td >
@@ -120,7 +120,7 @@ var left = null;
 				{{/if}}
 			</td>
 			<td >
-				[<a	href="javascript:file_access('{{$cwd}}/{{$file.filename}}',{{$file.dir}},'{{$file.propty}}')">属性</a>]
+				[<a	href="javascript:file_access('{{$cwd}}/{{$file.filenamejs}}',{{$file.dir}},'{{$file.propty}}')">属性</a>]
 				{{if $file.propty=='deny'}}
 				<img src='{{$STATIC}}/webftp/lock.gif' title="锁定" border='0' />
 				{{/if}}
@@ -136,10 +136,10 @@ var left = null;
 				{{/if}}
 			</td>
 			<td >
-				[<a href="javascript:rmfile('{{$cwd}}/{{$file.filename}}')">删除</a>]
-				[<a href="javascript:rename('{{$cwd}}/{{$file.filename}}')">改名</a>]
+				[<a href="javascript:rmfile('{{$cwd}}/{{$file.filenamejs}}')">删除</a>]
+				[<a href="javascript:rename('{{$cwd}}/{{$file.filenamejs}}')">改名</a>]
 				{{if !$file.dir}} 
-				[<a	href="javascript:editfrom('{{$cwd}}/{{$file.filename}}')">编辑</a>]
+				[<a	href="javascript:editfrom('{{$cwd}}/{{$file.filenamejs}}')">编辑</a>]
 				{{/if}}
 			</td>
 			<td >

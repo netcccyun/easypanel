@@ -510,6 +510,7 @@ class WebftpControl extends Control
 	{
 		$file = $_REQUEST['file'];
 		$is_dir = $_REQUEST['is_dir'];
+		$file = str_replace('\'', '\'\'', $file);
 
 		if ($is_dir) {
 			$is_dir = 1;
