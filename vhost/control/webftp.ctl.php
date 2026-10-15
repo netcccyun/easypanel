@@ -573,7 +573,7 @@ class WebftpControl extends Control
 	private function whmopfile($op, $files, $dst, $arr = null)
 	{
 		$whm = apicall('nodes', 'makeWhm', array('localhost'));
-		$whmCall = new WhmCall('webapp.whm', $op);
+		$whmCall = new WhmCall('vhost.whm', $op);
 		$whmCall->addParam('vh', getRole('vhost'));
 		$whmCall->addParam('dst', $this->getusrfile($dst));
 

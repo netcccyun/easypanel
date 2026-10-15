@@ -69,18 +69,6 @@ CREATE TABLE `filter` (
 	[id] INTEGER PRIMARY KEY,
 	[value] TEXT
 );
-CREATE TABLE `vhost_webapp` (
-	[id] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
-	[user] text  NOT NULL,
-	[status] integer DEFAULT 0 NOT NULL,
-	[install_time] integer DEFAULT NULL,
-	[appid] text  NOT NULL,
-	[domain] text  NOT NULL,
-	[dir] text  NOT NULL,
-	[phy_dir] text  NOT NULL,
-	[appname] text DEFAULT  NULL,
-	[appver] text DEFAULT  NULL
-);
 CREATE TABLE [product] (
 	id integer PRIMARY KEY,
 	product_name TEXT UNIQUE,
@@ -124,9 +112,6 @@ CREATE INDEX [vhost_info_name] ON [vhost_info](
 	[type]  DESC
 );
 
-CREATE INDEX [vhost_webapp_user] ON [vhost_webapp](
-	[user]  DESC
-);
 CREATE TABLE [manynode] (
 	[name] text  NOT NULL PRIMARY KEY,
 	[host] text  NULL,
