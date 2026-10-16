@@ -44,6 +44,13 @@ class SslControl extends Control
 				}
 			}
 		}
+		else {
+			// 已关闭但文件保留：回显内容，重新开启时直接提交即可
+			$certificate = AcmeAPI::readCertFile($user['doc_root'], 'ssl.crt');
+			if ($certificate !== false) {
+				$this->_tpl->assign('certificate', $certificate);
+			}
+		}
 
 		if ($user['certificate_key']) {
 			$keyfile = $user['doc_root'] . '/' . $user['certificate_key'];
@@ -59,6 +66,12 @@ class SslControl extends Control
 					fclose($fp);
 					$this->_tpl->assign('certificate_key', $certificate_key);
 				}
+			}
+		}
+		else {
+			$certificate_key = AcmeAPI::readCertFile($user['doc_root'], 'ssl.key');
+			if ($certificate_key !== false) {
+				$this->_tpl->assign('certificate_key', $certificate_key);
 			}
 		}
 
@@ -136,11 +149,7 @@ class SslControl extends Control
 		change_to_user($user['uid'], $user['gid']);
 
 		if (empty($certificate) && empty($certificate_key)){
-			@unlink($user['doc_root'] . '/' . $user['certificate']);
-			@unlink($user['doc_root'] . '/' . $user['certificate_key']);
-			// 清理旧版散放在根目录的证书文件
-			@unlink($user['doc_root'] . '/ssl.crt');
-			@unlink($user['doc_root'] . '/ssl.key');
+			// 关闭=停用：清空字段引用，保留 cert/ 下文件，重新开启时提交回显内容即可
 		}else{
 			AcmeAPI::writeCertFile($user['doc_root'], basename($user['certificate']), $certificate);
 			AcmeAPI::writeCertFile($user['doc_root'], basename($user['certificate_key']), $certificate_key);
@@ -159,7 +168,8 @@ class SslControl extends Control
 		change_to_super();
 		apicall('vhost', 'noticeChange', array('localhost', $vhost));
 		notice_cdn_changed();
-		exit("<script language='javascript'>alert('保存成功');history.go(-1);</script>");
+		// 跳转而非 history.go(-1)：后者从浏览器缓存恢复旧页面，状态与内容不实时
+		exit("<script language='javascript'>alert('保存成功');location.href='?c=ssl&a=sslForm';</script>");
 	}
 
 	public function sslRewrite()
@@ -352,6 +362,7 @@ class SslControl extends Control
 			// 旧版后缀（散放根目录）在保存时规范化到 cert/ 子目录
 			$arr['value'] = substr($info['value'], 0, $p) . $newSuffix;
 			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
+			$legacyCertCleanup = true;
 		}
 
 		change_to_user($user['uid'], $user['gid']);
@@ -368,10 +379,16 @@ class SslControl extends Control
 		array(self::CERT_SUBDIR . $info['name'] . '.crt', self::CERT_SUBDIR . $info['name'] . '.key')
 		));
 		}
+		if (!empty($legacyCertCleanup)) {
+			// 内容已写入 cert/，清理旧版散放在根目录的证书文件
+			@unlink($user['doc_root'] . '/' . $info['name'] . '.crt');
+			@unlink($user['doc_root'] . '/' . $info['name'] . '.key');
+		}
 		change_to_super();
 		apicall('vhost', 'noticeChange', array('localhost', $vhost));
 		notice_cdn_changed();
-		exit("<script language='javascript'>alert('保存成功');history.go(-1);</script>");
+		// 跳转而非 history.go(-1)：后者从浏览器缓存恢复旧页面，状态与内容不实时
+		exit("<script language='javascript'>alert('保存成功');location.href='?c=ssl&a=sslForm&domain=" . rawurlencode($domain) . "';</script>");
 	}
 
 	public function domainSslRewrite()
