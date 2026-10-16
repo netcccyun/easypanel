@@ -79,6 +79,8 @@ class AcmeAPI extends API
 	 */
 	public function issue($vhost, $domain)
 	{
+		// ACME 轮询可能超过面板默认的 max_execution_time，放开限制避免签发被中途掐断
+		@set_time_limit(300);
 		$domain = strtolower(trim($domain));
 		$user = daocall('vhost', 'getVhost', array($vhost));
 		if (!is_array($user)) {
