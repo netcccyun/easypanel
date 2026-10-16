@@ -106,6 +106,7 @@ class IndexControl extends Control
 		$info = apicall('nodes', 'getKangleInfo', array('localhost'));
 		$this->assign('info', $info);
 		$this->assign('EASYPANEL_VERSION', EASYPANEL_VERSION);
+		$this->assign('admin_php_version', 'PHP-' . PHP_VERSION);
 		$kangle_console_url = 'http://' . $_SERVER['SERVER_NAME'] . ':3311/';
 		$this->assign('kangle_console_url', $kangle_console_url);
 		$this->display('main.html');

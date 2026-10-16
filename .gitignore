@@ -1,0 +1,10 @@
+# 运行时 / 生成 / 机器相关文件，不纳入版本控制
+/config.php
+/admin/vhs.db
+/framework/install.lock
+/framework/templates_c/
+
+# 编辑器/临时文件
+*.swp
+*.tmp
+*~
