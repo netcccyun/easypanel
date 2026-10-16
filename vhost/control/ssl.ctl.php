@@ -1,8 +1,12 @@
 <?php
 needRole('vhost');
+load_api('acme');
 class SslControl extends Control
 {
 	private $access;
+
+	// 证书统一存放子目录（doc_root 相对），与 AcmeAPI::CERT_DIR 一致
+	const CERT_SUBDIR = 'cert/';
 
 	public function __construct()
 	{
@@ -115,45 +119,35 @@ class SslControl extends Control
 			}
 		}
 
+		// 统一使用 cert/ 子目录存放证书；旧版散放根目录的证书在保存时规范化（并清理旧文件）
+		$crt_name = self::CERT_SUBDIR . 'ssl.crt';
+		$key_name = self::CERT_SUBDIR . 'ssl.key';
 		if (empty($certificate) && empty($certificate_key) && ($user['certificate'] || $user['certificate_key'])){
 			$arr = array('certificate' => null, 'certificate_key' => null);
 			daocall('vhost', 'updateVhost', array($vhost, $arr));
 		}
-		elseif (!$user['certificate'] || !$user['certificate_key']) {
-			$user['certificate'] = 'ssl.crt';
-			$user['certificate_key'] = 'ssl.key';
+		elseif (!$user['certificate'] || !$user['certificate_key'] || strpos($user['certificate'], self::CERT_SUBDIR) !== 0) {
+			$user['certificate'] = $crt_name;
+			$user['certificate_key'] = $key_name;
 			$arr = array('certificate' => $user['certificate'], 'certificate_key' => $user['certificate_key']);
 			daocall('vhost', 'updateVhost', array($vhost, $arr));
 		}
 
 		change_to_user($user['uid'], $user['gid']);
-		$crt_file = $user['doc_root'] . '/' . $user['certificate'];
-		$key_file = $user['doc_root'] . '/' . $user['certificate_key'];
-
-		if (is_link($crt_file)) {
-			unlink($crt_file);
-		}
-
-		if (is_link($key_file)) {
-			unlink($key_file);
-		}
 
 		if (empty($certificate) && empty($certificate_key)){
-			@unlink($crt_file);
-			@unlink($key_file);
+			@unlink($user['doc_root'] . '/' . $user['certificate']);
+			@unlink($user['doc_root'] . '/' . $user['certificate_key']);
+			// 清理旧版散放在根目录的证书文件
+			@unlink($user['doc_root'] . '/ssl.crt');
+			@unlink($user['doc_root'] . '/ssl.key');
 		}else{
-
-			$fp = @fopen($crt_file, 'wb');
-			$fp2 = @fopen($key_file, 'wb');
-
-			if ($fp) {
-				fwrite($fp, $certificate);
-				fclose($fp);
-			}
-
-			if ($fp2) {
-				fwrite($fp2, $certificate_key);
-				fclose($fp2);
+			AcmeAPI::writeCertFile($user['doc_root'], basename($user['certificate']), $certificate);
+			AcmeAPI::writeCertFile($user['doc_root'], basename($user['certificate_key']), $certificate_key);
+			// 旧版证书文件规范化迁移后清理
+			if (strpos($user['certificate'], self::CERT_SUBDIR) === 0) {
+				@unlink($user['doc_root'] . '/ssl.crt');
+				@unlink($user['doc_root'] . '/ssl.key');
 			}
 
 			apicall('vhost', 'setSystemFile', array(
@@ -268,39 +262,19 @@ class SslControl extends Control
 			$ssl = 1;
 		}
 
-		// 证书文件存在即回显（含已关闭但未删除的情况），重新开启时直接提交即可
-		$file = $user['doc_root'] . '/' . $info['name'] . '.crt';
-
-		if (is_link($file)) {
-			unlink($file);
-		}
-		else {
-			$fp = @fopen($file, 'rb');
-
-			if ($fp) {
-				$certificate = fread($fp, 1024000);
-				fclose($fp);
-				$this->_tpl->assign('certificate', $certificate);
-			} else if ($ssl) {
-				$ssl = 0;
-			}
+		// 证书文件存在即回显（含已关闭但未删除的情况），重新开启时直接提交即可；cert/ 优先，回退旧版根目录路径
+		$certificate = AcmeAPI::readCertFile($user['doc_root'], $info['name'] . '.crt');
+		if ($certificate !== false) {
+			$this->_tpl->assign('certificate', $certificate);
+		} else if ($ssl) {
+			$ssl = 0;
 		}
 
-		$keyfile = $user['doc_root'] . '/' . $info['name'] . '.key';
-
-		if (is_link($keyfile)) {
-			unlink($keyfile);
-		}
-		else {
-			$fp = @fopen($keyfile, 'rb');
-
-			if ($fp) {
-				$certificate_key = fread($fp, 1024000);
-				fclose($fp);
-				$this->_tpl->assign('certificate_key', $certificate_key);
-			} else if ($ssl) {
-				$ssl = 0;
-			}
+		$certificate_key = AcmeAPI::readCertFile($user['doc_root'], $info['name'] . '.key');
+		if ($certificate_key !== false) {
+			$this->_tpl->assign('certificate_key', $certificate_key);
+		} else if ($ssl) {
+			$ssl = 0;
 		}
 
 		$this->_tpl->assign('ssl', $ssl);
@@ -354,58 +328,44 @@ class SslControl extends Control
 			}
 		}
 		
-		if (empty($certificate) && empty($certificate_key) && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
-			$temp = explode(';',$info['value']);
-			$arr['value'] = $temp[0];
+		// 统一使用 cert/ 子目录后缀；旧版后缀（无 cert/ 前缀）在保存时规范化
+		$newSuffix = ';' . self::CERT_SUBDIR . $domain . '.crt|' . self::CERT_SUBDIR . $domain . '.key';
+		$p = strpos($info['value'], ';');
+		if (empty($certificate) && empty($certificate_key) && $p !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
+			$arr['value'] = substr($info['value'], 0, $p);
 			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
 			// 关闭证书后该域名可能无法 https，同步清理域名级的HTTP跳转与HSTS，避免站点不可访问
 			$this->access->delChainByName('BEGIN', '!ssl_rewrite_'.substr(md5($domain),0,6));
 			$this->access->delChainByName('BEGIN', '!hsts_'.substr(md5($domain),0,6));
 		}
-		elseif (strncasecmp($info['value'], 'http://', 7) != 0 && strncasecmp($info['value'], 'https://', 8) != 0 && strpos($info['value'],';')===false && strpos($info['value'],'.crt')===false && strpos($info['value'],'.key')===false) {
-			$arr['value'] = $info['value'] . ';' . $domain . '.crt|' . $domain . '.key';
+		elseif (strncasecmp($info['value'], 'http://', 7) != 0 && strncasecmp($info['value'], 'https://', 8) != 0 && $p === false) {
+			$arr['value'] = $info['value'] . $newSuffix;
 			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
 		}
-		elseif (strncasecmp($info['value'], 'server://', 9) != 0 && strncasecmp($info['value'], 'http://', 7) == 0 && strpos($info['value'],';')===false) {
+		elseif (strncasecmp($info['value'], 'http://', 7) == 0 && $p === false) {
 			$ip = substr($info['value'], 7);
 			$ip = trim($ip, '/');
-			$arr['value'] = 'server://proto=http/nodes=' . $ip . ':80:0:1' . ';' . $domain . '.crt|' . $domain . '.key';
+			$arr['value'] = 'server://proto=http/nodes=' . $ip . ':80:0:1' . $newSuffix;
+			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
+		}
+		elseif ($p !== false && !empty($certificate) && strpos($info['value'],'.crt') !== false && strpos($info['value'], self::CERT_SUBDIR) === false) {
+			// 旧版后缀（散放根目录）在保存时规范化到 cert/ 子目录
+			$arr['value'] = substr($info['value'], 0, $p) . $newSuffix;
 			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
 		}
 
 		change_to_user($user['uid'], $user['gid']);
-		$crt_file = $user['doc_root'] . '/' . $info['name'] . '.crt';
-		$key_file = $user['doc_root'] . '/' . $info['name'] . '.key';
-
-		if (is_link($crt_file)) {
-			unlink($crt_file);
-		}
-
-		if (is_link($key_file)) {
-			unlink($key_file);
-		}
 
 		if (empty($certificate) && empty($certificate_key)){
 			// 关闭=停用：保留证书文件，仅剥离 value 后缀并清理域名级跳转/HSTS，重新开启时提交回显内容即可
 		}else{
-
-			$fp = @fopen($crt_file, 'wb');
-			$fp2 = @fopen($key_file, 'wb');
-
-			if ($fp) {
-				fwrite($fp, $certificate);
-				fclose($fp);
-			}
-
-			if ($fp2) {
-				fwrite($fp2, $certificate_key);
-				fclose($fp2);
-			}
+			AcmeAPI::writeCertFile($user['doc_root'], $info['name'] . '.crt', $certificate);
+			AcmeAPI::writeCertFile($user['doc_root'], $info['name'] . '.key', $certificate_key);
 
 			apicall('vhost', 'setSystemFile', array(
 		$vhost,
 		$user['doc_root'],
-		array($info['name'] . '.crt', $info['name'] . '.key')
+		array(self::CERT_SUBDIR . $info['name'] . '.crt', self::CERT_SUBDIR . $info['name'] . '.key')
 		));
 		}
 		change_to_super();

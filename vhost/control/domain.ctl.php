@@ -431,13 +431,16 @@ class DomainControl extends Control
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
 		if (is_array($user) && !empty($user['doc_root'])){
-			$file = $user['doc_root'] . '/' . $domain . '.crt';
-			$keyfile = $user['doc_root'] . '/' . $domain . '.key';
-			if(file_exists($file)){
-				unlink($file);
-			}
-			if(file_exists($keyfile)){
-				unlink($keyfile);
+			// 清理 cert/ 子目录与旧版散放根目录两处的证书文件
+			foreach (array('cert/' . $domain, $domain) as $base) {
+				$file = $user['doc_root'] . '/' . $base . '.crt';
+				$keyfile = $user['doc_root'] . '/' . $base . '.key';
+				if(file_exists($file)){
+					unlink($file);
+				}
+				if(file_exists($keyfile)){
+					unlink($keyfile);
+				}
 			}
 		}
 

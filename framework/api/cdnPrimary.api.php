@@ -343,21 +343,22 @@ class CdnPrimaryAPI extends API
 				continue;
 			}
 			if ($info['type'] == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
-				$certificate_name = ep_safe_name($info['name']);
-				if ($certificate_name !== '' && !empty($vh['doc_root'])) {
-					$certificate_file = $certificate_name . '.crt';
-					$fp = @fopen($vh['doc_root'] . '/' . $certificate_file, 'rb');
-					if ($fp) {
-						$data = stream_get_contents($fp);
-						$this->loaded_vhs_info[$name]['certs'][$certificate_file] = base64_encode($data);
-						fclose($fp);
-					}
-					$certificate_key_file = $certificate_name . '.key';
-					$fp = @fopen($vh['doc_root'] . '/' . $certificate_key_file, 'rb');
-					if ($fp) {
-						$data = stream_get_contents($fp);
-						$this->loaded_vhs_info[$name]['certs'][$certificate_key_file] = base64_encode($data);
-						fclose($fp);
+				// 按 value 证书后缀的路径读取（cert/ 子目录或旧版根目录散放），键名用文件名供节点落盘
+				$p = strpos($info['value'], ';');
+				$pair = explode('|', substr($info['value'], $p + 1));
+				if (count($pair) === 2 && !empty($vh['doc_root'])) {
+					load_api('acme');
+					foreach ($pair as $certpath) {
+						$certpath = str_replace('\\', '/', trim($certpath));
+						$basename = basename($certpath);
+						$safe_name = ep_safe_name($basename);
+						if ($safe_name === '' || (substr($safe_name, -4) !== '.crt' && substr($safe_name, -4) !== '.key')) {
+							continue;
+						}
+						$data = AcmeAPI::readCertFile($vh['doc_root'], $basename);
+						if ($data !== false) {
+							$this->loaded_vhs_info[$name]['certs'][$safe_name] = base64_encode($data);
+						}
 					}
 				}
 			}

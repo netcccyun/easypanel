@@ -8,6 +8,51 @@ class AcmeAPI extends API
 	// 证书剩余有效期低于该天数时自动续期（Let's Encrypt 有效期 90 天）
 	const RENEW_BEFORE_DAYS = 30;
 
+	// 证书统一存放子目录（doc_root 相对），kangle 的 cert 解析为 doc_root + 相对路径
+	const CERT_DIR = 'cert/';
+
+	/**
+	 * 证书文件相对路径（doc_root 相对），如 cert/xxx.crt
+	 */
+	public static function certFile($filename)
+	{
+		return self::CERT_DIR . basename(str_replace('\\', '/', $filename));
+	}
+
+	/**
+	 * 读取证书文件内容：cert/ 子目录优先，回退旧版散放在 doc_root 根的路径
+	 */
+	public static function readCertFile($doc_root, $filename)
+	{
+		$filename = basename(str_replace('\\', '/', $filename));
+		if (empty($doc_root)) {
+			return false;
+		}
+		$pem = @file_get_contents(rtrim($doc_root, '/') . '/' . self::CERT_DIR . $filename);
+		if ($pem !== false) {
+			return $pem;
+		}
+		return @file_get_contents(rtrim($doc_root, '/') . '/' . $filename);
+	}
+
+	/**
+	 * 写证书文件到 cert/ 子目录（自动建目录），返回完整物理路径；失败返回 false
+	 */
+	public static function writeCertFile($doc_root, $filename, $content)
+	{
+		$filename = basename(str_replace('\\', '/', $filename));
+		$dir = rtrim($doc_root, '/') . '/' . self::CERT_DIR;
+		if (!is_dir($dir) && !@mkdir($dir, 0700, true)) {
+			return false;
+		}
+		$file = $dir . $filename;
+		if (@file_put_contents($file, $content) === false) {
+			return false;
+		}
+		@chmod($file, 0600);
+		return $file;
+	}
+
 	/**
 	 * 读取域名证书剩余有效天数（负数表示已过期），无证书或解析失败返回 null
 	 */
@@ -17,7 +62,7 @@ class AcmeAPI extends API
 		if (empty($doc_root) || !preg_match('/^[a-z0-9.-]+$/', $domain)) {
 			return null;
 		}
-		$pem = @file_get_contents(rtrim($doc_root, '/') . '/' . $domain . '.crt');
+		$pem = self::readCertFile($doc_root, $domain . '.crt');
 		if ($pem === false) {
 			return null;
 		}
@@ -181,30 +226,25 @@ class AcmeAPI extends API
 			}
 			$certPem = $acme->downloadCertificate($finalOrder['certificate']);
 
-			$crtFile = rtrim($user['doc_root'], '/') . '/' . $domain . '.crt';
-			$keyOut  = rtrim($user['doc_root'], '/') . '/' . $domain . '.key';
-
 			change_to_user($user['uid'], $user['gid']);
-			$w1 = @file_put_contents($crtFile, $certPem);
-			$w2 = @file_put_contents($keyOut, $ck['pem']);
-			@chmod($crtFile, 0600);
-			@chmod($keyOut, 0600);
+			$crtFile = self::writeCertFile($user['doc_root'], $domain . '.crt', $certPem);
+			$keyOut  = self::writeCertFile($user['doc_root'], $domain . '.key', $ck['pem']);
 			change_to_super();
-			if ($w1 === false || $w2 === false) {
+			if ($crtFile === false || $keyOut === false) {
 				throw new Exception('证书文件写入失败');
 			}
 
 			// 部署为该域名的单域名SSL证书（svh级），与"单域名ssl证书设置"页状态一致；
-			// 多个域名各自签发互不影响。证书文件名固定为 域名.crt|域名.key，续期时无需改 value
+			// 多个域名各自签发互不影响。旧版后缀（无 cert/ 前缀）在续期时规范化到新目录
 			$p = strpos($info['value'], ';');
+			$newSuffix = ';' . self::CERT_DIR . $domain . '.crt|' . self::CERT_DIR . $domain . '.key';
 			if ($p === false) {
-				apicall('vhost', 'updateInfo', array($vhost, $domain, array('value' => $info['value'] . ';' . $domain . '.crt|' . $domain . '.key')));
+				apicall('vhost', 'updateInfo', array($vhost, $domain, array('value' => $info['value'] . $newSuffix)));
+			} elseif (strpos($info['value'], self::CERT_DIR) === false) {
+				apicall('vhost', 'updateInfo', array($vhost, $domain, array('value' => substr($info['value'], 0, $p) . $newSuffix)));
 			}
-			// 主机级默认证书为空时兜底设置一次，保证其他未单独签发证书的域名 https 可用
-			if (empty($user['certificate']) || empty($user['certificate_key'])) {
-				daocall('vhost', 'updateVhost', array($vhost, array('certificate' => $domain . '.crt', 'certificate_key' => $domain . '.key')));
-			}
-			apicall('vhost', 'setSystemFile', array($vhost, $user['doc_root'], array($domain . '.crt', $domain . '.key')));
+			// 主机级默认证书不自动设置，需要默认证书请在 SSL 证书设置页显式配置
+			apicall('vhost', 'setSystemFile', array($vhost, $user['doc_root'], array(self::CERT_DIR . $domain . '.crt', self::CERT_DIR . $domain . '.key')));
 			apicall('vhost', 'noticeChange', array('localhost', $vhost));
 			notice_cdn_changed();
 
@@ -232,7 +272,7 @@ class AcmeAPI extends API
 		if (empty($doc_root) || !preg_match('/^[a-z0-9.-]+$/', $domain)) {
 			return false;
 		}
-		$pem = @file_get_contents(rtrim($doc_root, '/') . '/' . $domain . '.crt');
+		$pem = self::readCertFile($doc_root, $domain . '.crt');
 		if ($pem === false) {
 			return false;
 		}

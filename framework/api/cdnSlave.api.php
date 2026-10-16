@@ -93,10 +93,16 @@ class CdnSlaveAPI extends API
 		foreach (ep_iter($infos) as $info) {
 			$infovalue = $info['value'];
 			if ($info['type'] == 0 && strncasecmp($infovalue, 'http://', 7) != 0 && strncasecmp($infovalue, 'https://', 8) != 0 && strncasecmp($infovalue, 'server://', 9) != 0) {
-				//保留源站的单域名SSL证书后缀(;域名.crt|域名.key)
+				//保留源站的单域名SSL证书后缀；证书文件在节点上按文件名平铺存放（certs数组），子目录前缀需去掉
 				$p = strpos($infovalue, ';');
 				if ($p !== false && strpos($infovalue, '.crt') !== false && strpos($infovalue, '.key') !== false) {
-					$infovalue = 'http://' . $ip . ':0/' . substr($infovalue, $p);
+					$pair = explode('|', substr($infovalue, $p + 1));
+					if (count($pair) === 2) {
+						$suffix = ';' . basename(str_replace('\\', '/', $pair[0])) . '|' . basename(str_replace('\\', '/', $pair[1]));
+					} else {
+						$suffix = '';
+					}
+					$infovalue = 'http://' . $ip . ':0/' . $suffix;
 				} else {
 					$infovalue = 'http://' . $ip . ':0/';
 				}
