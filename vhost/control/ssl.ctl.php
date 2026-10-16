@@ -13,6 +13,10 @@ class SslControl extends Control
 
 	public function sslForm()
 	{
+		$domain = strtolower(trim(ep_request('domain')));
+		if ($domain !== '') {
+			return $this->domainSslForm();
+		}
 		$vhost = getRole('vhost');
 		$user = daocall('vhost', 'getVhost', array($vhost));
 		if (!is_array($user) || !isset($user['port']) || strpos($user['port'], 's')===false) {
@@ -70,8 +74,31 @@ class SslControl extends Control
 			}
 		}
 
+		$find_result = $this->access->findChain('BEGIN', '!hsts');
+		if ($find_result) {
+			if($ssl==0){
+				$this->access->delChainByName('BEGIN', '!hsts');
+			}else{
+				$this->_tpl->assign('hsts', 1);
+			}
+		}
+
 		change_to_super();
+		$this->assignDomainOptions($vhost);
 		return $this->_tpl->fetch('ssl.html');
+	}
+
+	/**
+	 * 域名下拉选项（sslForm/domainSslForm 按域名切换配置用）
+	 */
+	private function assignDomainOptions($vhost)
+	{
+		$list = daocall('vhostinfo', 'getDomain', array($vhost));
+		$domains = array();
+		foreach (ep_iter($list) as $d) {
+			$domains[] = $d['name'];
+		}
+		$this->_tpl->assign('domains', $domains);
 	}
 
 	public function ssl()
@@ -174,6 +201,40 @@ class SslControl extends Control
 		}
 	}
 
+	public function hsts()
+	{
+		$find_result = $this->access->findChain('BEGIN', '!hsts');
+		$result = false;
+		$status = intval($_REQUEST['status']);
+
+		switch ($status) {
+		case 1:
+			if ($find_result == false) {
+				$arr = array();
+				$arr['action'] = 'continue';
+				$arr['name'] = '!hsts';
+				// ponytail: HTTP 响应中的 Strict-Transport-Security 头会被浏览器按 RFC 6797 忽略，故无条件添加；仅 max-age 固定一年，includeSubDomains 未提供
+				$models = array();
+				$models['add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
+				$result = $this->access->addChain('BEGIN', $arr, $models);
+				break;
+			}
+		case 2:
+			if ($find_result != null) {
+				$result = $this->access->delChainByName('BEGIN', '!hsts');
+				break;
+			}
+		default:
+			break;
+		}
+		if($result){
+			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+			exit('成功');
+		}else{
+			exit('失败');
+		}
+	}
+
 	public function domainSslForm()
 	{
 		$domain = strtolower(trim(ep_request('domain')));
@@ -191,6 +252,7 @@ class SslControl extends Control
 			exit("<script language='javascript'>alert('TCP回源协议的不支持设置SSL证书');history.go(-1);</script>");
 		}
 		$this->_tpl->assign('domain', $domain);
+		$this->assignDomainOptions($vhost);
 
 		$ssl = 0;
 

@@ -9,6 +9,18 @@
 
 <form action='?c=ssl&a=domainSsl' method='post'>
 	<table class="table" cellpadding="0" cellspacing="1">
+		{{if $domains}}<tr>
+			<td>按域名配置:</td>
+			<td>
+				<select onchange="if(this.value)window.location='?c=ssl&a=sslForm&domain='+encodeURIComponent(this.value);else window.location='?c=ssl&a=sslForm'">
+					<option value="">默认证书（对所有域名生效）</option>
+					{{foreach from=$domains item=d}}
+					<option value="{{$d}}" {{if $d==$domain}}selected{{/if}}>{{$d}}</option>
+					{{/foreach}}
+				</select>
+				<span style="color:#999;">切换要配置证书的域名，优先级：域名 &gt; 默认</span>
+			</td>
+		</tr>{{/if}}
 		<tr>
 			<th colspan="2">此处是域名<font color="red">{{$domain}}</font>的SSL证书设置<input type="hidden" name="domain" id="domain" value="{{$domain}}"></td>
 		</tr>

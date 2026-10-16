@@ -9,9 +9,21 @@
 
 <form action='?c=ssl&a=ssl' method='post'>
 	<table class="table" cellpadding="0" cellspacing="1">
-		{{if $user.cdn}}<tr>
-			<th colspan="2">此处是当前账号的SSL证书设置，对所有绑定域名生效。如果你已经设置过单个域名的SSL证书，则不需要再设置此处的证书。SSL证书优先级：域名>账号</td>
+		{{if $domains}}<tr>
+			<td>按域名配置:</td>
+			<td>
+				<select onchange="if(this.value)window.location='?c=ssl&a=sslForm&domain='+encodeURIComponent(this.value)">
+					<option value="">默认证书（对所有域名生效）</option>
+					{{foreach from=$domains item=d}}
+					<option value="{{$d}}">{{$d}}</option>
+					{{/foreach}}
+				</select>
+				<span style="color:#999;">选择域名后可单独设置该域名的证书，优先级：域名 &gt; 默认</span>
+			</td>
 		</tr>{{/if}}
+		<tr>
+			<th colspan="2">此处是当前账号的默认SSL证书，对所有绑定域名生效。如果已单独设置某个域名的SSL证书，则该域名使用自己的证书。证书优先级：域名 &gt; 账号</th>
+		</tr>
 		<tr>
 			<td>ssl证书内容:</td>
 			<td><textarea name='certificate' cols=80 rows=8 class="span7">{{$certificate}}</textarea></td>
@@ -32,6 +44,19 @@
 				{{else}}
 				<a href="javascript:ssl_checkon(2)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
 				{{/if}}
+			</td>
+		</tr>
+		{{/if}}
+		{{if $ssl==1||$hsts==1}}
+		<tr>
+			<td>HSTS:</td>
+			<td>
+				{{if $hsts==0}}
+				<a href="javascript:hsts_checkon(1)" title='开启'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+				{{else}}
+				<a href="javascript:hsts_checkon(2)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+				{{/if}}
+				<span style="color:#999;">强制浏览器后续访问使用HTTPS（max-age=31536000），开启前请确保HTTPS可正常访问</span>
 			</td>
 		</tr>
 		{{/if}}
@@ -67,6 +92,11 @@ function ssl_checkon(val)
 {
 	var data = 'status=' + val;
 	functoin_checkon('?c=ssl&a=sslRewrite',data);
+}
+function hsts_checkon(val)
+{
+	var data = 'status=' + val;
+	functoin_checkon('?c=ssl&a=hsts',data);
 }
 function http2_checkon(val)
 {
