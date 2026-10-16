@@ -62,13 +62,20 @@
 <script>
 	nodeform.domain.focus();
 
+	var domain_acme_running = false;
+
 	function domain_acme(domain)
 	{
+		if (domain_acme_running) {
+			alert('已有证书正在签发，请稍候');
+			return;
+		}
 		if (confirm('确认为 ' + domain + ' 一键签发 Let\'s Encrypt 证书？\n\n要求：该域名已解析到本机，且 80 端口可被公网访问。') != true) {
 			return;
 		}
 		var d = art.dialog({id:'domain_acme', title:'正在签发证书'});
 		d.content('<div style="padding:12px;">正在为 ' + domain + ' 申请证书，请稍候（约 10-60 秒）...</div>');
+		domain_acme_running = true;
 		$.ajax({
 			type:'POST',
 			url:'?c=acmecert&a=issue',
@@ -77,6 +84,7 @@
 			timeout:180000,
 			success:function(data){
 				d.close();
+				domain_acme_running = false;
 				if (data && data.code == 0) {
 					alert('证书签发成功');
 					window.location.reload();
@@ -86,6 +94,7 @@
 			},
 			error:function(xhr, st){
 				d.close();
+				domain_acme_running = false;
 				alert('请求失败: ' + st);
 			}
 		});
