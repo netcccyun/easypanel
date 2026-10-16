@@ -26,14 +26,17 @@
 		</tr>
 		<tr>
 			<td>ssl证书内容:</td>
-			<td><textarea name='certificate' cols=80 rows=8 class="span7">{{$certificate}}</textarea></td>
+			<td><textarea name='certificate' id='certificate' cols=80 rows=8 class="span7">{{$certificate}}</textarea></td>
 		</tr>
 		<tr>
 			<td>ssl证书密钥内容:</td>
-			<td><textarea name='certificate_key' cols=80 rows=8 class="span7">{{$certificate_key}}</textarea></td>
+			<td><textarea name='certificate_key' id='certificate_key' cols=80 rows=8 class="span7">{{$certificate_key}}</textarea></td>
 		</tr>
 		<tr>
-			<td colspan="2" style="padding-left:400px;"><input type='submit' value='提交' class="btn btn-primary"></td>
+			<td colspan="2" style="padding-left:400px;">
+				<input type='submit' value='提交' class="btn btn-primary">
+				{{if $ssl==1}}<input type='button' value='关闭证书' class="btn btn-danger" onclick="if(confirm('确定关闭域名 {{$domain}} 的SSL证书？\n关闭后该域名将使用默认证书，证书文件会保留，重新开启时直接提交即可')){document.getElementById('certificate').value='';document.getElementById('certificate_key').value='';this.form.submit();}">{{/if}}
+			</td>
 		</tr>
 		{{if $ssl==1||$ssl_rewrite==1}}
 		<tr>
@@ -44,6 +47,19 @@
 				{{else}}
 				<a href="javascript:ssl_checkon(2)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
 				{{/if}}
+			</td>
+		</tr>
+		{{/if}}
+		{{if $ssl==1||$hsts==1}}
+		<tr>
+			<td>HSTS:</td>
+			<td>
+				{{if $hsts==0}}
+				<a href="javascript:hsts_checkon(1)" title='开启'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+				{{else}}
+				<a href="javascript:hsts_checkon(2)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+				{{/if}}
+				<span style="color:#999;">强制浏览器后续访问该域名时使用HTTPS（max-age=31536000），开启前请确保HTTPS可正常访问</span>
 			</td>
 		</tr>
 		{{/if}}
@@ -79,6 +95,11 @@ function ssl_checkon(val)
 {
 	var data = 'status=' + val + '&domain=' + $("#domain").val();
 	functoin_checkon('?c=ssl&a=domainSslRewrite',data);
+}
+function hsts_checkon(val)
+{
+	var data = 'status=' + val + '&domain=' + $("#domain").val();
+	functoin_checkon('?c=ssl&a=domainHsts',data);
 }
 function http2_checkon(val)
 {

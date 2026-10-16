@@ -256,41 +256,43 @@ class SslControl extends Control
 
 		$ssl = 0;
 
+		// 启用状态以 value 的证书后缀为准
 		if (strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
 			$ssl = 1;
+		}
 
-			$file = $user['doc_root'] . '/' . $info['name'] . '.crt';
+		// 证书文件存在即回显（含已关闭但未删除的情况），重新开启时直接提交即可
+		$file = $user['doc_root'] . '/' . $info['name'] . '.crt';
 
-			if (is_link($file)) {
-				unlink($file);
+		if (is_link($file)) {
+			unlink($file);
+		}
+		else {
+			$fp = @fopen($file, 'rb');
+
+			if ($fp) {
+				$certificate = fread($fp, 1024000);
+				fclose($fp);
+				$this->_tpl->assign('certificate', $certificate);
+			} else if ($ssl) {
+				$ssl = 0;
 			}
-			else {
-				$fp = @fopen($file, 'rb');
+		}
 
-				if ($fp) {
-					$certificate = fread($fp, 1024000);
-					fclose($fp);
-					$this->_tpl->assign('certificate', $certificate);
-				} else {
-					$ssl = 0;
-				}
-			}
+		$keyfile = $user['doc_root'] . '/' . $info['name'] . '.key';
 
-			$keyfile = $user['doc_root'] . '/' . $info['name'] . '.key';
+		if (is_link($keyfile)) {
+			unlink($keyfile);
+		}
+		else {
+			$fp = @fopen($keyfile, 'rb');
 
-			if (is_link($keyfile)) {
-				unlink($keyfile);
-			}
-			else {
-				$fp = @fopen($keyfile, 'rb');
-
-				if ($fp) {
-					$certificate_key = fread($fp, 1024000);
-					fclose($fp);
-					$this->_tpl->assign('certificate_key', $certificate_key);
-				} else {
-					$ssl = 0;
-				}
+			if ($fp) {
+				$certificate_key = fread($fp, 1024000);
+				fclose($fp);
+				$this->_tpl->assign('certificate_key', $certificate_key);
+			} else if ($ssl) {
+				$ssl = 0;
 			}
 		}
 
@@ -308,6 +310,17 @@ class SslControl extends Control
 				$this->access->delChainByName('BEGIN', $table_name);
 			}else{
 				$this->_tpl->assign('ssl_rewrite', 1);
+			}
+		}
+
+		$table_name = '!hsts_'.substr(md5($domain),0,6);
+
+		$find_result = $this->access->findChain('BEGIN', $table_name);
+		if ($find_result) {
+			if($ssl==0){
+				$this->access->delChainByName('BEGIN', $table_name);
+			}else{
+				$this->_tpl->assign('hsts', 1);
 			}
 		}
 
@@ -338,6 +351,9 @@ class SslControl extends Control
 			$temp = explode(';',$info['value']);
 			$arr['value'] = $temp[0];
 			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
+			// 关闭证书后该域名可能无法 https，同步清理域名级的HTTP跳转与HSTS，避免站点不可访问
+			$this->access->delChainByName('BEGIN', '!ssl_rewrite_'.substr(md5($domain),0,6));
+			$this->access->delChainByName('BEGIN', '!hsts_'.substr(md5($domain),0,6));
 		}
 		elseif (strncasecmp($info['value'], 'http://', 7) != 0 && strncasecmp($info['value'], 'https://', 8) != 0 && strpos($info['value'],';')===false && strpos($info['value'],'.crt')===false && strpos($info['value'],'.key')===false) {
 			$arr['value'] = $info['value'] . ';' . $domain . '.crt|' . $domain . '.key';
@@ -363,8 +379,7 @@ class SslControl extends Control
 		}
 
 		if (empty($certificate) && empty($certificate_key)){
-			@unlink($crt_file);
-			@unlink($key_file);
+			// 关闭=停用：保留证书文件，仅剥离 value 后缀并清理域名级跳转/HSTS，重新开启时提交回显内容即可
 		}else{
 
 			$fp = @fopen($crt_file, 'wb');
@@ -412,6 +427,46 @@ class SslControl extends Control
 				$arr['name'] = $table_name;
 				$models['acl_wide_host'] = array('v' => $domain.'|');
 				$models['mark_url_rewrite'] = array('url' => '^http://(.*)$', 'dst' => 'https://$1', 'nc' => '1', 'code' => '301');
+				$result = $this->access->addChain('BEGIN', $arr, $models);
+				break;
+			}
+		case 2:
+			if ($find_result != null) {
+				$result = $this->access->delChainByName('BEGIN', $table_name);
+				break;
+			}
+		default:
+			break;
+		}
+		if($result){
+			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+			exit('成功');
+		}else{
+			exit('失败');
+		}
+	}
+
+	public function domainHsts()
+	{
+		$domain = strtolower(trim(ep_request('domain')));
+		$vhost = getRole('vhost');
+		$info = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
+		if(!$info){
+			exit('域名不存在');
+		}
+		$table_name = '!hsts_'.substr(md5($domain),0,6);
+		$find_result = $this->access->findChain('BEGIN', $table_name);
+		$result = false;
+		$status = intval($_REQUEST['status']);
+
+		switch ($status) {
+		case 1:
+			if ($find_result == false) {
+				$arr['action'] = 'continue';
+				$arr['name'] = $table_name;
+				// ponytail: HTTP 响应中的 HSTS 头会被浏览器按 RFC 6797 忽略，故无条件添加；仅 max-age 固定一年
+				$models['acl_wide_host'] = array('v' => $domain.'|');
+				$models['add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
 				$result = $this->access->addChain('BEGIN', $arr, $models);
 				break;
 			}

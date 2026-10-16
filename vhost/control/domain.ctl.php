@@ -95,6 +95,12 @@ class DomainControl extends Control
 			$this->_tpl->assign('ssl', 1);
 		}
 
+		//每个域名的证书剩余有效天数（无证书为空）
+		foreach ($list as $i => $row) {
+			$days = apicall('acme', 'getCertDays', array($user['doc_root'], $row['name']));
+			$list[$i]['cert_days'] = ($days === null) ? '' : $days;
+		}
+
 		$list = ep_iter($list);
 		$sum = count($list);
 		$this->_tpl->assign('sum', $sum);

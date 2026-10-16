@@ -7,6 +7,8 @@ class CrontabAPI extends API
 	public function runDay()
 	{
 		daocall('vhost', 'expireUser');
+		// ACME 证书自动续期（剩余不足30天重签）
+		apicall('acme', 'autoRenew');
 		$nodes = ep_iter(daocall('nodes', 'listNodes'));
 		$i = 0;
 

@@ -26,14 +26,17 @@
 		</tr>
 		<tr>
 			<td>ssl证书内容:</td>
-			<td><textarea name='certificate' cols=80 rows=8 class="span7">{{$certificate}}</textarea></td>
+			<td><textarea name='certificate' id='certificate' cols=80 rows=8 class="span7">{{$certificate}}</textarea></td>
 		</tr>
 		<tr>
 			<td>ssl证书密钥内容:</td>
-			<td><textarea name='certificate_key' cols=80 rows=8 class="span7">{{$certificate_key}}</textarea></td>
+			<td><textarea name='certificate_key' id='certificate_key' cols=80 rows=8 class="span7">{{$certificate_key}}</textarea></td>
 		</tr>
 		<tr>
-			<td colspan="2" style="padding-left:400px;"><input type='submit' value='提交' class="btn btn-primary"></td>
+			<td colspan="2" style="padding-left:400px;">
+				<input type='submit' value='提交' class="btn btn-primary">
+				{{if $ssl==1}}<input type='button' value='关闭证书' class="btn btn-danger" onclick="if(confirm('确定关闭默认SSL证书？\n请确认每个域名都已单独设置证书，否则请先关闭HTTP跳转和HSTS开关')){document.getElementById('certificate').value='';document.getElementById('certificate_key').value='';this.form.submit();}">{{/if}}
+			</td>
 		</tr>
 		{{if $ssl==1||$ssl_rewrite==1}}
 		<tr>
