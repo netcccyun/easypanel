@@ -95,10 +95,16 @@ class DomainControl extends Control
 			$this->_tpl->assign('ssl', 1);
 		}
 
-		//每个域名的证书剩余有效天数（无证书为空）
+		//每个域名的证书剩余有效天数（无证书为空）；普通虚拟主机目录可点击进入webftp
 		foreach ($list as $i => $row) {
 			$days = apicall('acme', 'getCertDays', array($user['doc_root'], $row['name']));
 			$list[$i]['cert_days'] = ($days === null) ? '' : $days;
+			if (!$user['cdn']) {
+				$d = trim($row['value'], '/');
+				$list[$i]['dir_url'] = ($d === '') ? '' : '?c=webftp&a=cd&file=/' . rawurlencode($d);
+			} else {
+				$list[$i]['dir_url'] = '';
+			}
 		}
 
 		$list = ep_iter($list);
