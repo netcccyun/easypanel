@@ -81,6 +81,8 @@ class CdnControl extends Control
 				if (!$access->addChain(BEGIN, $arr)) {
 					exit('不能增加链');
 				}
+
+				$access->sortBeginChains();
 			}
 
 			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));

@@ -148,6 +148,7 @@ class SpeedControl extends Control
 				if (!$this->access->addChain(BEGIN, $arr)) {
 					exit('开启失败');
 				}
+				$this->access->sortBeginChains();
 			}
 			break;
 

@@ -3,6 +3,7 @@ needRole('vhost');
 define('BEGIN', 'BEGIN');
 define('TABLENAME', '!anticc');
 define('ACTION', 'table:!anticc');
+define('SHIELD_TABLE', '!shield_method');
 class AnticcControl extends Control
 {
 	private $access;
@@ -66,6 +67,41 @@ class AnticcControl extends Control
 		}
 		$this->_tpl->assign('modes', $modes);
 		$this->_tpl->assign('whiteurl', implode("\r\n", $white_urls));
+
+		$shield_blocked = array();
+		$customs = array();
+		$shield_result = $this->access->listChain(SHIELD_TABLE, 1);
+
+		if ($shield_result) {
+			$id = 0;
+
+			foreach ($shield_result->children() as $chain) {
+				$chain_name = (string) $chain['name'];
+				if (strpos($chain_name, '!shield_') === 0) {
+					$shield_blocked[substr($chain_name, 8)] = 1;
+				}
+				else {
+					// 非预置命名的链 = 自定义方法链（与黑名单条目一样匿名存储）
+					foreach ($chain->children() as $mname => $ch) {
+						if ($mname == 'acl_meth') {
+							$customs[] = array('meth' => (string) $ch['meth'], 'id' => $id);
+							break;
+						}
+					}
+				}
+
+				$id++;
+			}
+		}
+
+		$shields = array();
+
+		foreach ($this->shield_methods() as $m) {
+			$shields[$m] = isset($shield_blocked[$m]) ? 1 : 0;
+		}
+
+		$this->_tpl->assign('shield_rows', array_chunk($shields, 3, true));
+		$this->_tpl->assign('customs', $customs);
 
 		return $this->_tpl->fetch('anticc/anticcfrom.html');
 	}
@@ -188,6 +224,7 @@ class AnticcControl extends Control
 		case '1':
 			$arr = array('action' => ACTION, 'name' => TABLENAME);
 			$this->access->addChain(BEGIN, $arr);
+			$this->access->sortBeginChains();
 			break;
 
 		default:
@@ -216,6 +253,152 @@ class AnticcControl extends Control
 
 		$arr = array('action' => ACTION, 'name' => TABLENAME);
 		$this->access->addChain(BEGIN, $arr);
+		$this->access->sortBeginChains();
+	}
+
+	private function shield_methods()
+	{
+		return array('get', 'post', 'head', 'put', 'delete', 'connect', 'trace', 'options', 'patch');
+	}
+
+	/**
+	 * 屏蔽请求：按HTTP方法拒绝，每方法一条 acl_meth 链；全部取消后自动摘除 BEGIN 引用链。
+	 */
+	public function shieldMethod()
+	{
+		$meth = strtolower(trim(ep_request('meth')));
+
+		if (!in_array($meth, $this->shield_methods(), true)) {
+			exit('未知请求方法');
+		}
+
+		$status = intval($_REQUEST['status']);
+		$chain_name = '!shield_' . $meth;
+
+		if ($status == 1) {
+			if (!$this->ensureTable(SHIELD_TABLE)) {
+				exit('失败');
+			}
+
+			$models = array();
+			$models['acl_meth'] = array('meth' => $meth);
+			$arr = array('action' => 'deny', 'name' => $chain_name);
+			$this->access->delChainByName(SHIELD_TABLE, $chain_name);
+
+			if (!$this->access->addChain(SHIELD_TABLE, $arr, $models)) {
+				exit('失败');
+			}
+		}
+		else if ($status == 2) {
+			$this->access->delChainByName(SHIELD_TABLE, $chain_name);
+		}
+		else {
+			exit('失败');
+		}
+
+		$this->syncShieldBegin();
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+		exit('成功');
+	}
+
+	private function syncShieldBegin()
+	{
+		$result = $this->access->listChain(SHIELD_TABLE, 0);
+		$has = false;
+
+		if ($result) {
+			foreach ($result->children() as $chain) {
+				$has = true;
+				break;
+			}
+		}
+
+		if ($has) {
+			if (!$this->access->findChain(BEGIN, SHIELD_TABLE)) {
+				$this->access->addChain(BEGIN, array('action' => 'table:' . SHIELD_TABLE, 'name' => SHIELD_TABLE));
+			}
+
+			$this->access->sortBeginChains();
+		}
+		else {
+			while ($this->access->findChain(BEGIN, SHIELD_TABLE)) {
+				if (!$this->access->delChainByName(BEGIN, SHIELD_TABLE)) {
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * 添加自定义屏蔽方法：kangle acl_meth 支持单方法、逗号分隔多方法与 * 全部。
+	 * 支持 ! 反选（!GET,POST = 只放行列表内方法，其余全拒），与 addBanurl 对称。
+	 * 自定义链与黑名单条目一样匿名存储（无 name），按 acl_meth 值展示。
+	 */
+	public function addShieldCustom()
+	{
+		$meth = strtoupper(trim(ep_str(isset($_REQUEST['meth']) ? $_REQUEST['meth'] : '')));
+
+		if ($meth === '') {
+			exit('方法不能为空');
+		}
+
+		$revers = 0;
+
+		if (substr($meth, 0, 1) == '!') {
+			$revers = 1;
+			$meth = substr($meth, 1);
+		}
+
+		if (!preg_match('/^[A-Z*!,]+$/', $meth)) {
+			exit('方法格式错误：仅支持字母、逗号分隔多个方法或 * 全部');
+		}
+
+		if (!$this->ensureTable(SHIELD_TABLE)) {
+			exit('增加失败');
+		}
+
+		$models = array();
+		$models['acl_meth'] = array('meth' => $meth);
+
+		if ($revers) {
+			$models['acl_meth']['revers'] = 1;
+		}
+
+		$arr = array('action' => 'deny');
+
+		if (!$this->access->addChain(SHIELD_TABLE, $arr, $models)) {
+			exit('增加失败');
+		}
+
+		$this->syncShieldBegin();
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+		exit('成功');
+	}
+
+	public function delShieldCustom()
+	{
+		$id = intval($_REQUEST['id']);
+
+		if (!$this->access->delChain(SHIELD_TABLE, $id)) {
+			exit('删除失败');
+		}
+
+		$this->syncShieldBegin();
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+		exit('成功');
+	}
+
+	private function ensureTable($tablename)
+	{
+		$tables = $this->access->listTable();
+
+		foreach (ep_iter($tables) as $table) {
+			if ($table == $tablename) {
+				return true;
+			}
+		}
+
+		return $this->access->addTable($tablename);
 	}
 
 	/**

@@ -1,0 +1,25 @@
+<script language='javascript' src='{{$STATIC}}js/banip.js?v=5'></script>
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">CDN真实IP获取</div>
+<form onsubmit='return false;'>
+	<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+		<tr>
+			<td style="border:0">
+			    header：
+				<select name='realip_common' id='realip_common' onchange='realip_select();'>
+					<option value=""{{if $mode==''}} selected{{/if}}>不启用</option>
+					<option value="X-Forwarded-For"{{if $mode=='X-Forwarded-For'}} selected{{/if}}>X-Forwarded-For</option>
+					<option value="X-Real-Ip"{{if $mode=='X-Real-Ip'}} selected{{/if}}>X-Real-Ip</option>
+					<option value="CF-Connecting-IP"{{if $mode=='CF-Connecting-IP'}} selected{{/if}}>CF-Connecting-IP</option>
+					<option value="Cdn-Src-Ip"{{if $mode=='Cdn-Src-Ip'}} selected{{/if}}>Cdn-Src-Ip</option>
+					<option value="True-Client-Ip"{{if $mode=='True-Client-Ip'}} selected{{/if}}>True-Client-Ip</option>
+					<option value="custom"{{if $mode=='custom'}} selected{{/if}}>自定义…</option>
+				</select>
+				<input name='realip_custom' id='realip_custom' size='20' value='{{$custom}}' placeholder="自定义header名"{{if $mode!='custom'}} style='display:none'{{/if}} />&nbsp;
+			    <input type='button' onclick='realip_save();' value='保存' class="btn btn-primary" />
+			</td>
+		</tr>
+	</table>
+</form>
+<font color="red">站点套CDN后，选择CDN传递真实访客IP的header，黑白名单/防CC等按IP的功能即按真实IP匹配。<strong>XFF可被伪造，请勿单独依赖</strong>（建议有条件时优先 X-Real-Ip / CF-Connecting-IP）；被使用的header会从请求中移除，PHP端将无法读取该header。选「不启用」并保存即关闭。</font>
+</div>

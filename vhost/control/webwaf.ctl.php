@@ -84,6 +84,7 @@ class WebwafControl extends Control
 			if (!$this->linkBegin()) {
 				exit('开启Web安全防护失败');
 			}
+			$this->access->sortBeginChains();
 		} elseif ($status === 2 && $enabled) {
 			if (!$this->access->delChainByName('BEGIN', self::ACTION)) {
 				exit('关闭Web安全防护失败');

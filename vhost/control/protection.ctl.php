@@ -146,6 +146,7 @@ class ProtectionControl extends Control
 					exit('不能增加链');
 				}
 
+				$access->sortBeginChains();
 				break;
 			}
 

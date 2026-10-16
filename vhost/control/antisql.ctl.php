@@ -114,6 +114,7 @@ class AntisqlControl extends Control
 		case '1':
 			$arr = array('action' => ACTION, 'name' => SQL_TABLE_NAME);
 			$this->access->addChain(BEGIN, $arr);
+			$this->access->sortBeginChains();
 			break;
 
 		case '2':

@@ -1,4 +1,65 @@
-<script language='javascript' src='{{$STATIC}}js/anticc.js?v=2'></script>
+<script language='javascript' src='{{$STATIC}}js/anticc.js?v=3'></script>
+<script type='text/javascript'>
+// 屏蔽请求开关（内联避免旧缓存 anticc.js 缺少本函数）
+function shield_checkon(meth, val)
+{
+	$.ajax({
+		type:'post',
+		url:'?c=anticc&a=shieldMethod',
+		data:'meth=' + encodeURIComponent(meth) + '&status=' + val,
+		success:function(msg){
+			if (msg != "成功") {
+				alert(msg);
+			}
+			window.location.reload();
+		},
+		complete: function(msg){
+			show_sync();
+		}
+	});
+}
+function shield_custom_add()
+{
+	var meth = $("#shield_custom").val();
+	if (meth == ""){
+		return alert("方法不能为空");
+	}
+	$.ajax({
+		type:'post',
+		url:'?c=anticc&a=addShieldCustom',
+		data:'meth=' + encodeURIComponent(meth),
+		success:function(msg){
+			if (msg != "成功") {
+				alert(msg);
+			}
+			window.location.reload();
+		},
+		complete: function(msg){
+			show_sync();
+		}
+	});
+}
+function shield_custom_del(id)
+{
+	if (confirm("确定要删除?") == false) {
+		return;
+	}
+	$.ajax({
+		type:'post',
+		url:'?c=anticc&a=delShieldCustom',
+		data:'id=' + id,
+		success:function(msg){
+			if (msg != "成功") {
+				alert(msg);
+			}
+			window.location.reload();
+		},
+		complete: function(msg){
+			show_sync();
+		}
+	});
+}
+</script>
 
 <div class='pro_msg' style="display: none" id='msg'></div>
 
@@ -97,4 +158,42 @@
 	</table>
 </form>
 
+</div>
+
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">屏蔽请求</div>
+	<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
+		{{foreach from=$shield_rows item=row}}
+		<tr>
+			{{foreach from=$row key=meth item=on}}
+			<td style="border:0;width:33%;white-space:nowrap;">
+				<span style="display:inline-block;width:75px;">{{$meth|upper}}:</span>
+				{{if $on==0}}
+				<a href="javascript:shield_checkon('{{$meth}}',1)" title='开启功能'><img src="{{$STATIC}}style/start_on.png" border="0" style="vertical-align:middle" /></a>
+				{{else}}
+				<a href="javascript:shield_checkon('{{$meth}}',2)" title='禁用功能'><img src="{{$STATIC}}style/start_off.png" border="0" style="vertical-align:middle" /></a>
+				{{/if}}
+			</td>
+			{{/foreach}}
+		</tr>
+		{{/foreach}}
+		<tr>
+			<td colspan="3" style="border:0;">
+				自定义方法: <input name='shield_custom' id='shield_custom' size='20' />&nbsp;<input type='button' onclick='shield_custom_add();' value='增加' class="btn btn-warning" />&nbsp;<font color="red">支持单个方法、逗号分隔多个（PUT,DELETE）、* 全部；! 反选（!GET,POST = 只放行列表内方法）。其余方法如 PROPFIND,MKCOL,LOCK（WebDAV）、PURGE（缓存清理）等可直接输入</font>
+			</td>
+		</tr>
+		{{if $customs}}
+		<tr>
+			<td colspan="3" style="border:0;">
+				已添加:
+				{{foreach from=$customs item=row}}
+				&nbsp;{{$row.meth}} <a href="javascript:shield_custom_del({{$row.id}})">删除</a>
+				{{/foreach}}
+			</td>
+		</tr>
+		{{/if}}
+		<tr>
+			<td colspan="3" style="border:0;"><font color="red">被屏蔽的HTTP方法直接返回403；全部取消后自动关闭本功能</font></td>
+		</tr>
+	</table>
 </div>

@@ -4,6 +4,24 @@ function anticc_checkon(val)
 	functoin_checkon('?c=anticc&a=anticcCheckOn',data);
 }
 
+function shield_checkon(meth, val)
+{
+	$.ajax({
+		type:'post',
+		url:'?c=anticc&a=shieldMethod',
+		data:'meth=' + encodeURIComponent(meth) + '&status=' + val,
+		success:function(msg){
+			if (msg != "成功") {
+				alert(msg);
+			}
+			window.location.reload();
+		},
+		complete: function(msg){
+			show_sync();
+		}
+	});
+}
+
 function anticc_add()
 {
 	var frequency = $("#frequency").val();

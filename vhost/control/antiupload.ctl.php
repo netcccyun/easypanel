@@ -142,6 +142,7 @@ class AntiuploadControl extends Control
 		case 0:
 			if ($find_result == false) {
 				$this->access->addChain(BEGIN, array('action' => ACTION, 'name' => UPLOAD_TABLE_NAME));
+				$this->access->sortBeginChains();
 				break;
 			}
 

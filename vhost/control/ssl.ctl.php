@@ -183,6 +183,9 @@ class SslControl extends Control
 				$models = array();
 				$models['mark_url_rewrite'] = array('url' => '^http://(.*)$', 'dst' => 'https://$1', 'nc' => '1', 'code' => '301');
 				$result = $this->access->addChain('BEGIN', $arr, $models);
+				if ($result) {
+					$this->access->sortBeginChains();
+				}
 				break;
 			}
 		case 2:
@@ -217,6 +220,9 @@ class SslControl extends Control
 				$models = array();
 				$models['add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
 				$result = $this->access->addChain('BEGIN', $arr, $models);
+				if ($result) {
+					$this->access->sortBeginChains();
+				}
 				break;
 			}
 		case 2:
@@ -428,6 +434,9 @@ class SslControl extends Control
 				$models['acl_wide_host'] = array('v' => $domain.'|');
 				$models['mark_url_rewrite'] = array('url' => '^http://(.*)$', 'dst' => 'https://$1', 'nc' => '1', 'code' => '301');
 				$result = $this->access->addChain('BEGIN', $arr, $models);
+				if ($result) {
+					$this->access->sortBeginChains();
+				}
 				break;
 			}
 		case 2:
@@ -468,6 +477,9 @@ class SslControl extends Control
 				$models['acl_wide_host'] = array('v' => $domain.'|');
 				$models['add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
 				$result = $this->access->addChain('BEGIN', $arr, $models);
+				if ($result) {
+					$this->access->sortBeginChains();
+				}
 				break;
 			}
 		case 2:
