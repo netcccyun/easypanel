@@ -217,8 +217,9 @@ class SslControl extends Control
 				$arr['action'] = 'continue';
 				$arr['name'] = '!hsts';
 				// ponytail: HTTP 响应中的 Strict-Transport-Security 头会被浏览器按 RFC 6797 忽略，故无条件添加；仅 max-age 固定一年，includeSubDomains 未提供
+				// kangle WHM 协议要求模型键带 mark_ 前缀（KChain::to_xml 只识别 acl_/mark_ 前缀并剥掉得模块名）
 				$models = array();
-				$models['add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
+				$models['mark_add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
 				$result = $this->access->addChain('BEGIN', $arr, $models);
 				if ($result) {
 					$this->access->sortBeginChains();
@@ -474,8 +475,9 @@ class SslControl extends Control
 				$arr['action'] = 'continue';
 				$arr['name'] = $table_name;
 				// ponytail: HTTP 响应中的 HSTS 头会被浏览器按 RFC 6797 忽略，故无条件添加；仅 max-age 固定一年
+				// kangle WHM 协议要求模型键带 mark_ 前缀（KChain::to_xml 只识别 acl_/mark_ 前缀并剥掉得模块名）
 				$models['acl_wide_host'] = array('v' => $domain.'|');
-				$models['add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
+				$models['mark_add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
 				$result = $this->access->addChain('BEGIN', $arr, $models);
 				if ($result) {
 					$this->access->sortBeginChains();
