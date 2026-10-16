@@ -75,6 +75,13 @@ class DomainControl extends Control
 
 			foreach (ep_iter($list) as $domain) {
 				$domain['id'] = $id;
+				$p = strpos($domain['value'], ';');
+				if ($p !== false && strpos($domain['value'], '.crt') !== false && strpos($domain['value'], '.key') !== false) {
+					$domain['ssl'] = 1;
+					$domain['value'] = substr($domain['value'], 0, $p);
+				} else {
+					$domain['ssl'] = 0;
+				}
 				$li[] = $domain;
 				++$id;
 			}
@@ -169,7 +176,12 @@ class DomainControl extends Control
 				$result['subdir'] = $dir;
 			}else{
 				$result['cdn'] = 0;
-				$result['subdir'] = $value;
+				$p = strpos($value, ';');
+				if ($p !== false && strpos($value, '.crt') !== false && strpos($value, '.key') !== false) {
+					$result['subdir'] = substr($value, 0, $p);
+				} else {
+					$result['subdir'] = $value;
+				}
 			}
 			exit(json_encode($result));
 		}else{
@@ -327,12 +339,26 @@ class DomainControl extends Control
 			}
 		}
 		elseif ($user['subdir_flag'] == 1) {
+			if (strpos($subdir, ';') !== false || strpos($subdir, '|') !== false) {
+				exit('目录名不能包含 ; 或 | 字符');
+			}
 			if (!daocall('vhostinfo', 'checkDomainSubdir', array($vhost, $subdir, $user['max_subdir']))) {
 				exit('最多绑定子目录限制为:' . $user['max_subdir']);
 			}
 		}
 		else {
 			$subdir = $user['subdir'];
+		}
+
+		//普通虚拟主机修改域名目录时，保留已设置的单域名SSL证书
+		if ($isreplace && !$user['cdn']) {
+			$old = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
+			if (is_array($old) && !empty($old[0])) {
+				$p = strpos($old[0]['value'], ';');
+				if ($p !== false && strpos($old[0]['value'], '.crt') !== false && strpos($old[0]['value'], '.key') !== false) {
+					$subdir .= substr($old[0]['value'], $p);
+				}
+			}
 		}
 
 		if (!$isreplace) {
@@ -353,7 +379,12 @@ class DomainControl extends Control
 		}
 
 		if (!$user['cdn']) {
-			apicall('vhost', 'copyIndexForUser', array($vhost, $subdir));
+			$dir = $subdir;
+			$p = strpos($dir, ';');
+			if ($p !== false) {
+				$dir = substr($dir, 0, $p);
+			}
+			apicall('vhost', 'copyIndexForUser', array($vhost, $dir));
 		}
 
 		notice_cdn_changed();
@@ -387,7 +418,7 @@ class DomainControl extends Control
 
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
-		if (is_array($user) && !empty($user['cdn']) && !empty($user['doc_root'])){
+		if (is_array($user) && !empty($user['doc_root'])){
 			$file = $user['doc_root'] . '/' . $domain . '.crt';
 			$keyfile = $user['doc_root'] . '/' . $domain . '.key';
 			if(file_exists($file)){

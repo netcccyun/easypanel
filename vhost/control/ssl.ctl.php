@@ -187,9 +187,6 @@ class SslControl extends Control
 		if (!is_array($user) || !isset($user['port']) || strpos($user['port'], 's')===false) {
 			exit("<script language='javascript'>alert('您的账号不支持设置SSL证书');history.go(-1);</script>");
 		}
-		if ($user['cdn']==0) {
-			exit("<script language='javascript'>alert('虚拟主机不支持设置单域名SSL证书');history.go(-1);</script>");
-		}
 		if(strpos($info['value'], 'proto=tcp') !== false){
 			exit("<script language='javascript'>alert('TCP回源协议的不支持设置SSL证书');history.go(-1);</script>");
 		}
@@ -197,7 +194,7 @@ class SslControl extends Control
 
 		$ssl = 0;
 
-		if (strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
+		if (strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
 			$ssl = 1;
 
 			$file = $user['doc_root'] . '/' . $info['name'] . '.crt';
@@ -275,16 +272,16 @@ class SslControl extends Control
 			}
 		}
 		
-		if (empty($certificate) && empty($certificate_key) && strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
+		if (empty($certificate) && empty($certificate_key) && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
 			$temp = explode(';',$info['value']);
 			$arr['value'] = $temp[0];
 			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
 		}
-		elseif (strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';')===false && strpos($info['value'],'.crt')===false && strpos($info['value'],'.key')===false) {
+		elseif (strncasecmp($info['value'], 'http://', 7) != 0 && strncasecmp($info['value'], 'https://', 8) != 0 && strpos($info['value'],';')===false && strpos($info['value'],'.crt')===false && strpos($info['value'],'.key')===false) {
 			$arr['value'] = $info['value'] . ';' . $domain . '.crt|' . $domain . '.key';
 			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
 		}
-		elseif (strncasecmp($info['value'], 'server://', 9) != 0 && strncasecmp($info['value'], 'http://', 7) == 0) {
+		elseif (strncasecmp($info['value'], 'server://', 9) != 0 && strncasecmp($info['value'], 'http://', 7) == 0 && strpos($info['value'],';')===false) {
 			$ip = substr($info['value'], 7);
 			$ip = trim($ip, '/');
 			$arr['value'] = 'server://proto=http/nodes=' . $ip . ':80:0:1' . ';' . $domain . '.crt|' . $domain . '.key';

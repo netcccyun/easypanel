@@ -93,7 +93,13 @@ class CdnSlaveAPI extends API
 		foreach (ep_iter($infos) as $info) {
 			$infovalue = $info['value'];
 			if ($info['type'] == 0 && strncasecmp($infovalue, 'http://', 7) != 0 && strncasecmp($infovalue, 'https://', 8) != 0 && strncasecmp($infovalue, 'server://', 9) != 0) {
-				$infovalue = 'http://' . $ip . ':0/';
+				//保留源站的单域名SSL证书后缀(;域名.crt|域名.key)
+				$p = strpos($infovalue, ';');
+				if ($p !== false && strpos($infovalue, '.crt') !== false && strpos($infovalue, '.key') !== false) {
+					$infovalue = 'http://' . $ip . ':0/' . substr($infovalue, $p);
+				} else {
+					$infovalue = 'http://' . $ip . ':0/';
+				}
 			}
 
 			daocall('vhostinfo', 'addInfo', array($vh_name, $info['name'], $info['type'], $infovalue, true, $info['id']));

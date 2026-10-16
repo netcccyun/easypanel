@@ -187,9 +187,16 @@ class AcmecertControl extends Control
 				throw new Exception('证书文件写入失败');
 			}
 
-			// 普通虚拟主机：kangle 以账号级证书服务 443s，生效于本次签发的域名
-			$arr = array('certificate' => $domain . '.crt', 'certificate_key' => $domain . '.key');
-			daocall('vhost', 'updateVhost', array($vhost, $arr));
+			// 部署为该域名的单域名SSL证书（svh级），与"单域名ssl证书设置"页状态一致；
+			// 多个域名各自签发互不影响。证书文件名固定为 域名.crt|域名.key，续期时无需改 value
+			$p = strpos($info['value'], ';');
+			if ($p === false) {
+				apicall('vhost', 'updateInfo', array($vhost, $domain, array('value' => $info['value'] . ';' . $domain . '.crt|' . $domain . '.key')));
+			}
+			// 主机级默认证书为空时兜底设置一次，保证其他未单独签发证书的域名 https 可用
+			if (empty($user['certificate']) || empty($user['certificate_key'])) {
+				daocall('vhost', 'updateVhost', array($vhost, array('certificate' => $domain . '.crt', 'certificate_key' => $domain . '.key')));
+			}
 			apicall('vhost', 'setSystemFile', array($vhost, $user['doc_root'], array($domain . '.crt', $domain . '.key')));
 			apicall('vhost', 'noticeChange', array('localhost', $vhost));
 			notice_cdn_changed();
