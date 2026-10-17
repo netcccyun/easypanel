@@ -1,13 +1,15 @@
 <?php
 needRole('vhost');
-define('DENY_BANIP_TABLE', '!deny_vhost_ip');
-define('DENY_BANURL_TABLE', '!deny_url');
-define('DENY_BANGEO_TABLE', '!deny_geo');
-define('ACTION', 'table:!deny_vhost_ip');
-define('ACTION2', 'table:!deny_url');
 define('BEGIN', 'BEGIN');
 class BanipControl extends Control
 {
+	protected $ipTable = '!deny_vhost_ip';
+	protected $urlTable = '!deny_url';
+	protected $geoTable = '!deny_geo';
+	protected $ruleAction = 'deny';
+	protected $listLabel = '黑名单';
+	protected $listController = 'banip';
+	protected $templatePath = 'banip';
 	private $access;
 	private $geoAvailable;
 
@@ -26,16 +28,16 @@ class BanipControl extends Control
 			return $this->show_msg($check_result);
 		}
 
-		$this->addTable(DENY_BANIP_TABLE);
-		$this->addTable(DENY_BANURL_TABLE);
-		$result = $this->access->listChain(DENY_BANIP_TABLE, 1);
-		$result2 = $this->access->listChain(DENY_BANURL_TABLE, 1);
+		$this->addTable($this->ipTable);
+		$this->addTable($this->urlTable);
+		$result = $this->access->listChain($this->ipTable, 1);
+		$result2 = $this->access->listChain($this->urlTable, 1);
 
-		if ($this->access->findChain(BEGIN, DENY_BANIP_TABLE) != false) {
+		if ($this->access->findChain(BEGIN, $this->ipTable) != false) {
 			$this->assign('banip', 1);
 		}
 
-		if ($this->access->findChain(BEGIN, DENY_BANURL_TABLE) != false) {
+		if ($this->access->findChain(BEGIN, $this->urlTable) != false) {
 			$this->assign('banurl', 1);
 		}
 
@@ -75,12 +77,15 @@ class BanipControl extends Control
 		}
 
 		$this->assign('urls', $urls);
+		$this->assign('request_methods', Access::requestMethods());
+		$this->assign('list_label', $this->listLabel);
+		$this->assign('list_controller', $this->listController);
 		$this->assign('geo_available', $this->geoAvailable());
 		if ($this->geoAvailable()) {
-			$this->assign('bangeo', (bool) $this->access->findChain(BEGIN, DENY_BANGEO_TABLE));
+			$this->assign('bangeo', (bool) $this->access->findChain(BEGIN, $this->geoTable));
 			$this->assign('regions', $this->geoRules());
 		}
-		return $this->_tpl->fetch('banip/addFrom.html');
+		return $this->_tpl->fetch($this->templatePath . '/addFrom.html');
 	}
 
 	private function geoAvailable()
@@ -109,7 +114,7 @@ class BanipControl extends Control
 	private function geoRules()
 	{
 		$rows = array();
-		$chains = $this->access->listChain(DENY_BANGEO_TABLE, 1);
+		$chains = $this->access->listChain($this->geoTable, 1);
 		$id = 0;
 		foreach ($chains ? $chains->children() : array() as $chain) {
 			$rows[] = array('id' => $id++, 'region' => (string) $chain['name']);
@@ -128,16 +133,16 @@ class BanipControl extends Control
 		$this->requireGeo();
 		$status = ep_request('status');
 		if ($status !== '1' && $status !== '0') { $this->geoJson(400, '参数错误'); }
-		$exists = $this->access->findChain(BEGIN, DENY_BANGEO_TABLE);
+		$exists = $this->access->findChain(BEGIN, $this->geoTable);
 		if ($status === '1') {
-			$ok = $this->ensureGeoTable(DENY_BANGEO_TABLE) && $this->ensureGeoTable(BEGIN);
+			$ok = $this->ensureGeoTable($this->geoTable) && $this->ensureGeoTable(BEGIN);
 			if ($ok && !$exists) {
-				$ok = $this->access->addChain(BEGIN, array('name' => DENY_BANGEO_TABLE, 'action' => 'table:' . DENY_BANGEO_TABLE));
+				$ok = $this->access->addChain(BEGIN, array('name' => $this->geoTable, 'action' => 'table:' . $this->geoTable));
 			}
 		} else {
-			$ok = !$exists || $this->access->delChainByName(BEGIN, DENY_BANGEO_TABLE);
+			$ok = !$exists || $this->access->delChainByName(BEGIN, $this->geoTable);
 		}
-		if (!$ok) { $this->geoJson(500, '保存地区黑名单开关失败'); }
+		if (!$ok) { $this->geoJson(500, '保存地区' . $this->listLabel . '开关失败'); }
 		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 		$this->geoJson(200, '成功');
 	}
@@ -151,13 +156,13 @@ class BanipControl extends Control
 		if ($path === false) { $this->geoJson(400, '请选择有效的大洲、国家和省份'); }
 		$name = implode(' / ', $path);
 		foreach ($this->geoRules() as $rule) {
-			if ($rule['region'] === $name) { $this->geoJson(400, '该地区已在黑名单中'); }
+			if ($rule['region'] === $name) { $this->geoJson(400, '该地区已在' . $this->listLabel . '中'); }
 		}
 		// Header matching uses regular expressions; match one complete geo label.
 		$models = array('acl_header' => array('header' => '_geo', 'val' => '^' . preg_quote(end($path), '/') . '$', 'nc' => 0));
-		if (!$this->ensureGeoTable(DENY_BANGEO_TABLE) ||
-			!$this->access->addChain(DENY_BANGEO_TABLE, array('action' => 'deny', 'name' => $name), $models)) {
-			$this->geoJson(500, '增加地区黑名单失败');
+		if (!$this->ensureGeoTable($this->geoTable) ||
+			!$this->access->addChain($this->geoTable, array('action' => $this->ruleAction, 'name' => $name), $models)) {
+			$this->geoJson(500, '增加地区' . $this->listLabel . '失败');
 		}
 		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 		$this->geoJson(200, '成功');
@@ -169,7 +174,7 @@ class BanipControl extends Control
 		$id = ep_request('id');
 		$rules = $this->geoRules();
 		if ($id === '' || !ctype_digit($id) || !isset($rules[intval($id)])) { $this->geoJson(400, '地区规则不存在'); }
-		if (!$this->access->delChain(DENY_BANGEO_TABLE, intval($id))) { $this->geoJson(500, '删除失败'); }
+		if (!$this->access->delChain($this->geoTable, intval($id))) { $this->geoJson(500, '删除失败'); }
 		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 		$this->geoJson(200, '成功');
 	}
@@ -177,7 +182,7 @@ class BanipControl extends Control
 	public function delBangeoAll()
 	{
 		$this->requireGeo();
-		if (!$this->access->emptyTable(DENY_BANGEO_TABLE)) { $this->geoJson(500, '清空失败'); }
+		if (!$this->access->emptyTable($this->geoTable)) { $this->geoJson(500, '清空失败'); }
 		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
 		$this->geoJson(200, '成功');
 	}
@@ -209,13 +214,13 @@ class BanipControl extends Control
 
 		switch ($status) {
 		case 1:
-			$this->addTable(DENY_BANIP_TABLE);
+			$this->addTable($this->ipTable);
 			$this->addTable(BEGIN);
 
-			if ($this->access->findChain(BEGIN, DENY_BANIP_TABLE) == false) {
+			if ($this->access->findChain(BEGIN, $this->ipTable) == false) {
 				$arr = array();
-				$arr['action'] = ACTION;
-				$arr['name'] = DENY_BANIP_TABLE;
+				$arr['action'] = 'table:' . $this->ipTable;
+				$arr['name'] = $this->ipTable;
 
 				if (!$this->access->addChain(BEGIN, $arr)) {
 					return $this->show_msg('不能增加链');
@@ -225,7 +230,7 @@ class BanipControl extends Control
 			break;
 
 		case 2:
-			$this->access->delChainByName(BEGIN, DENY_BANIP_TABLE);
+			$this->access->delChainByName(BEGIN, $this->ipTable);
 			break;
 
 		default:
@@ -248,11 +253,18 @@ class BanipControl extends Control
 		}
 
 		$models = array();
-		$models['acl_src'] = array('ip' => $ip);
+		$parts = explode('/', $ip, 2);
+		// kangle's single-IP module treats mask 0 as an exact address.
+		// Its range-based module correctly handles all IPv4/IPv6 addresses.
+		if (isset($parts[1]) && intval($parts[1]) === 0) {
+			$models['acl_srcs'] = array('v' => $ip);
+		} else {
+			$models['acl_src'] = array('ip' => $ip);
+		}
 		$arr = array();
-		$arr['action'] = 'deny';
+		$arr['action'] = $this->ruleAction;
 
-		if (!$this->access->addChain(DENY_BANIP_TABLE, $arr, $models)) {
+		if (!$this->access->addChain($this->ipTable, $arr, $models)) {
 			exit('增加失败');
 		}
 
@@ -264,7 +276,7 @@ class BanipControl extends Control
 	{
 		$id = intval($_REQUEST['id']);
 
-		if (!$this->access->delChain(DENY_BANIP_TABLE, $id)) {
+		if (!$this->access->delChain($this->ipTable, $id)) {
 			exit('删除失败');
 		}
 
@@ -274,7 +286,7 @@ class BanipControl extends Control
 
 	public function delBanipAll()
 	{
-		if (!$this->access->emptyTable(DENY_BANIP_TABLE)) {
+		if (!$this->access->emptyTable($this->ipTable)) {
 			exit('删除失败');
 		}
 
@@ -288,12 +300,12 @@ class BanipControl extends Control
 
 		switch ($status) {
 		case 1:
-			$this->addTable(DENY_BANURL_TABLE);
+			$this->addTable($this->urlTable);
 			$this->addTable(BEGIN);
 
-			if ($this->access->findChain(BEGIN, DENY_BANURL_TABLE) == false) {
-				$arr['action'] = ACTION2;
-				$arr['name'] = DENY_BANURL_TABLE;
+			if ($this->access->findChain(BEGIN, $this->urlTable) == false) {
+				$arr['action'] = 'table:' . $this->urlTable;
+				$arr['name'] = $this->urlTable;
 
 				if (!$this->access->addChain(BEGIN, $arr)) {
 					return $this->show_msg('不能增加链');
@@ -303,7 +315,7 @@ class BanipControl extends Control
 			break;
 
 		case 2:
-			$this->access->delChainByName(BEGIN, DENY_BANURL_TABLE);
+			$this->access->delChainByName(BEGIN, $this->urlTable);
 			break;
 
 		default:
@@ -323,7 +335,7 @@ class BanipControl extends Control
 			exit('URL和请求方法不能同时为空');
 		}
 		$methodName = substr($meth, 0, 1) === '!' ? substr($meth, 1) : $meth;
-		if ($meth !== '' && !in_array($methodName, array('GET', 'POST', 'PUT', 'DELETE'), true)) {
+		if ($meth !== '' && !in_array($methodName, Access::requestMethods(), true)) {
 			exit('请求方法错误');
 		}
 		$models = array();
@@ -338,9 +350,9 @@ class BanipControl extends Control
 		if ($url !== '') {
 			$models['acl_url'] = array('url' => $url, 'nc' => 1);
 		}
-		$arr['action'] = 'deny';
+		$arr['action'] = $this->ruleAction;
 
-		if (!$this->access->addChain(DENY_BANURL_TABLE, $arr, $models)) {
+		if (!$this->access->addChain($this->urlTable, $arr, $models)) {
 			exit('增加失败');
 		}
 
@@ -352,7 +364,7 @@ class BanipControl extends Control
 	{
 		$id = intval($_REQUEST['id']);
 
-		if (!$this->access->delChain(DENY_BANURL_TABLE, $id)) {
+		if (!$this->access->delChain($this->urlTable, $id)) {
 			exit('删除失败');
 		}
 
@@ -362,7 +374,7 @@ class BanipControl extends Control
 
 	public function delBanurlAll()
 	{
-		if (!$this->access->emptyTable(DENY_BANURL_TABLE)) {
+		if (!$this->access->emptyTable($this->urlTable)) {
 			exit('删除失败');
 		}
 

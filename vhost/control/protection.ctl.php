@@ -28,11 +28,24 @@ class ProtectionControl extends Control
 
 		if ($result) {
 			foreach ($result->children() as $chain) {
+				$row = array('path' => '', 'file_ext' => '', 'allow_empty' => false, 'id' => $id++);
+				$hasPath = false;
 				foreach ($chain as $ch) {
 					if ($ch->getName() == 'acl_reg_path') {
-						$paths[] = array('path' => (string) $ch['path'], 'referer' => (string) $ch['referer'], 'id' => $id++);
+						$row['path'] = (string) $ch['path'];
+						$hasPath = true;
+					}
+					if ($ch->getName() == 'acl_file_ext') {
+						$split = (string) $ch['split'];
+						$value = isset($ch['v']) ? (string) $ch['v'] : (string) $ch;
+						$row['file_ext'] = $split !== '' ? str_replace($split, '|', $value) : $value;
+					}
+					if ($ch->getName() == 'acl_header' && strcasecmp((string) $ch['header'], 'Referer') === 0
+						&& (string) $ch['revers'] !== '1' && (string) $ch['val'] === '\\S') {
+						$row['allow_empty'] = true;
 					}
 				}
+				if ($hasPath) { $paths[] = $row; }
 			}
 		}
 
@@ -90,9 +103,35 @@ class ProtectionControl extends Control
 		if ($path == '') {
 			return $this->show_msg('目录不能为空');
 		}
+		$fileExt = isset($_REQUEST['file_ext']) ? $_REQUEST['file_ext'] : '';
+		if (!is_string($fileExt) || strlen($fileExt) > 1024) {
+			exit('URL后缀格式错误或内容过长');
+		}
+		$extensions = array();
+		if (trim($fileExt) !== '') {
+			foreach (explode('|', $fileExt) as $extension) {
+				$extension = strtolower(ltrim(trim($extension), '.'));
+				if (!preg_match('/\A[a-z0-9_-]+\z/D', $extension)) {
+					exit('URL后缀请使用|分隔，仅填写后缀名称');
+				}
+				$extensions[] = $extension;
+			}
+			$extensions = array_unique($extensions);
+		}
+		$allowEmpty = ep_request('allow_empty', '0');
+		if ($allowEmpty !== '0' && $allowEmpty !== '1') {
+			exit('空来源请求设置无效');
+		}
 
 		$models = array();
 		$models['acl_reg_path'] = array('path' => $path);
+		if ($extensions) {
+			$models['acl_file_ext'] = array('icase' => 1, 'split' => '|', 'v' => implode('|', $extensions));
+		}
+		if ($allowEmpty === '1') {
+			// Only deny nonempty Referer values; empty requests still run later rules.
+			$models['acl_header#nonempty'] = array('header' => 'Referer', 'val' => '\\S', 'regex' => 1);
+		}
 
 		if ($_REQUEST['referer'] == '') {
 			$models['acl_referer'] = array('referer' => 'EqHost', 'revers' => 1);

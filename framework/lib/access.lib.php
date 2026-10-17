@@ -2,6 +2,12 @@
 class Access
 {
 	const REAL_IP_CHAIN = '!real_ip';
+
+	/** The HTTP method names recognized by kangle's KHttpKeyValue table. */
+	public static function requestMethods()
+	{
+		return array('GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS');
+	}
 	private $vh;
 	private $access;
 	private $whm;
@@ -257,12 +263,15 @@ class Access
 		if ($name === self::REAL_IP_CHAIN || isset($chain->mark_replace_ip)) { return 0; }
 		if ($name === '!ssl_rewrite' || strpos($name, '!ssl_rewrite_') === 0) { return 10; }
 		if ($name === '!ssl_hsts' || strpos($name, '!ssl_hsts_') === 0) { return 20; }
+		if ($name === '!rewrite' || $target === '!rewrite') { return 25; }
+		$whitelists = array('!allow_vhost_ip', '!allow_url', '!allow_geo');
+		if (in_array($name, $whitelists, true) || in_array($target, $whitelists, true)) { return 28; }
 		$blacklists = array('!deny_vhost_ip', '!deny_url', '!deny_ip_table', '!deny_geo');
 		if (in_array($name, $blacklists, true) || in_array($target, $blacklists, true)) { return 30; }
 		if ($action === 'deny' && (isset($chain->acl_src) || isset($chain->acl_srcs) || isset($chain->acl_url))) { return 30; }
 		$security = array('!deny_referer', '!anti_sql', '!anti_up_inject', '!anticc', '!safeline_waf', '!deny_filter');
 		if (in_array($name, $security, true) || in_array($target, $security, true)) { return 50; }
-		// Domain redirects, speed limits and unrecognized custom rules remain
+		// Speed limits and unrecognized custom rules remain
 		// in the basic group; same-group rules keep their relative order.
 		return 40;
 	}

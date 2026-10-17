@@ -1,7 +1,7 @@
-<script language='javascript' src='{{$STATIC}}js/protection.js'></script>
+<script language='javascript' src='{{$STATIC}}js/protection.js?v=3'></script>
 <div class="main" style="padding-bottom:10px">
     <div class="public_pa">防盗链设置</div>
-<form action='?c=protection&a=addPath' method='post'>
+<form action='?c=protection&a=addPath' method='post' onsubmit='protection_add();return false;'>
 	<table class="table" cellpadding="0" cellspacing="1">
 	    <tr>
 		    <td style="border:0">
@@ -18,8 +18,16 @@
 			<td style="border:0"><input name='path' id='path' size='40' /></td>
 		</tr>
 		<tr>
+			<td style="border:0">URL后缀（用|分隔，留空不限制）</td>
+			<td style="border:0"><input name="file_ext" id="file_ext" size="40" value="jpg|jpeg|gif|png|js|css" /></td>
+		</tr>
+		<tr>
 			<td style="border:0">合法来源url(正则，不写表示相同主机)</td>
 			<td style="border:0"><input name='referer' id='referer' size='40' /></td>
+		</tr>
+		<tr>
+			<td style="border:0">允许空来源请求</td>
+			<td style="border:0"><label><input type="checkbox" name="allow_empty" id="allow_empty" value="1" /> 允许未发送 Referer 或 Referer 为空的请求</label></td>
 		</tr>
 		<tr>
 			<td style="border:0">非法请求重定向(不写则默认拒绝处理)</td>
@@ -36,13 +44,17 @@
 		<tr>
 			<th style="border-left:0">操作</th>
 			<th>目录规则</th>
+			<th>URL后缀</th>
+			<th>空来源请求</th>
 		</tr>
 	</thead>
 	{{foreach from=$paths item=row}}
 	<tbody>
 	<tr>
 		<td style="border-left:0">[<a href='javascript:protection_del({{$row.id}})'>删除</a>]</td>
-		<td>{{$row.path}}</td>
+		<td>{{$row.path|escape:'html'}}</td>
+		<td>{{if $row.file_ext}}{{$row.file_ext|escape:'html'}}{{else}}不限{{/if}}</td>
+		<td>{{if $row.allow_empty}}允许{{else}}不允许{{/if}}</td>
 	</tr>
 	</tbody>
 	{{/foreach}}

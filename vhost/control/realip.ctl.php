@@ -28,6 +28,7 @@ class RealipControl extends Control
 			$this->_tpl->assign('msg', '读取真实IP设置失败，请重试');
 			return $this->_tpl->fetch('msg.html');
 		}
+		$settings['custom'] = $settings['enabled'] && !in_array($settings['header'], $this->headers(), true);
 		$this->_tpl->assign('realip', $settings);
 		$this->_tpl->assign('realip_headers', $this->headers());
 		return $this->_tpl->fetch('realip.html');
@@ -41,9 +42,15 @@ class RealipControl extends Control
 		}
 		$status = ep_request('status');
 		$header = ep_request('header');
-		if (($status !== '0' && $status !== '1')
-			|| ($status === '1' && !in_array($header, $this->headers(), true))) {
+		if ($status !== '0' && $status !== '1') {
 			exit('参数错误');
+		}
+		if ($status === '1') {
+			if (!is_string($header)) { exit('请输入有效的Header名称'); }
+			$header = trim($header);
+			if (!preg_match('/\A[!#$%&\'*+.^_`|~0-9A-Za-z-]+\z/D', $header)) {
+				exit('请输入有效的Header名称，不要包含冒号、空格或换行');
+			}
 		}
 		if (!$this->saveSettings($status === '1', $header)) {
 			exit('保存设置失败，请重试');

@@ -1,4 +1,5 @@
-<script language='javascript' src='{{$STATIC}}js/banip.js?v=3'></script>
+<script>window.epListController = 'banip';</script>
+<script language='javascript' src='{{$STATIC}}js/banip.js?v=4'></script>
 <div class="main" style="padding-bottom:10px">
     <div class="public_pa">IP黑名单</div>
 <form action='?c=banip&a=addBanip' method='post'>
@@ -55,16 +56,14 @@
 				<input name='url' id='url' style="width: 50%;" placeholder="留空则仅按方法拦截"/>&nbsp;&nbsp;
 				方法：
 				<select name='meth' id='meth'>
-					<option value="">全部</option>
-					<option value="GET">GET</option>
-					<option value="POST">POST</option>
-					<option value="PUT">PUT</option>
-					<option value="DELETE">DELETE</option>
-					<option value="!GET">!GET</option>
-					<option value="!POST">!POST</option>
-					<option value="!PUT">!PUT</option>
-					<option value="!DELETE">!DELETE</option>
-			    </select>&nbsp;&nbsp;&nbsp;&nbsp;
+                    <option value="">全部</option>
+                    {{foreach from=$request_methods item=method}}
+                    <option value="{{$method}}">{{$method}}</option>
+                    {{/foreach}}
+                    {{foreach from=$request_methods item=method}}
+                    <option value="!{{$method}}">!{{$method}}</option>
+                    {{/foreach}}
+                </select>&nbsp;&nbsp;&nbsp;&nbsp;
 			    <input type='button' onclick='banurl_add();' value='增加' class="btn btn-warning" />
 			</td>
 		</tr>

@@ -25,6 +25,10 @@ class SpeedControl extends Control
 
 			foreach ($result->children() as $chain) {
 				foreach ($chain->children() as $ch) {
+					if ($ch->getName() == 'acl_per_ip') {
+						$sp[$id]['mode'] = 'c';
+						$sp[$id]['max'] = (int) $ch['max'];
+					}
 					if ($ch->getName() == 'mark_speed_limit') {
 						$sp[$id]['mode'] = 's';
 					}
@@ -71,8 +75,11 @@ class SpeedControl extends Control
 
 	public function speedAdd()
 	{
-		$path = filterParam($_REQUEST['path'], 'dir');
-		$limit = intval($_REQUEST['limit']);
+		$path = filterParam(isset($_REQUEST['path']) ? $_REQUEST['path'] : '', 'dir');
+		$mode = trim(ep_request('mode'));
+		$models = array();
+		$arr = array('action' => 'continue');
+		$limit = $mode === 'per_ip' ? 0 : intval(isset($_REQUEST['limit']) ? $_REQUEST['limit'] : 0);
 
 		if ($limit < 0) {
 			exit('参数错误');
@@ -80,9 +87,23 @@ class SpeedControl extends Control
 
 		$limit *= 1024;
 
-		switch (trim(ep_request('mode'))) {
+		switch ($mode) {
+		case 'per_ip':
+			$max = ep_request('max');
+			if (!is_string($max) || !preg_match('/\A[0-9]+\z/D', $max)
+				|| (float) $max < 1 || (float) $max > 2147483647) {
+				exit('单IP并发数必须是1到2147483647之间的整数');
+			}
+			// Check the directory before per_ip, whose match updates connection counts.
+			if ($path !== '') {
+				$models['acl_path'] = array('path' => $path);
+			}
+			$models['acl_per_ip'] = array('max' => (int) $max);
+			$arr['action'] = 'deny';
+			break;
+
 		case 'speed_limit':
-			if ($_REQUEST['min_size']) {
+			if (!empty($_REQUEST['min_size'])) {
 				$min_size = intval($_REQUEST['min_size']);
 			}
 			else {
@@ -110,12 +131,9 @@ class SpeedControl extends Control
 			exit('error');
 		}
 
-		if ($path != '') {
+		if ($path != '' && $mode !== 'per_ip') {
 			$models['acl_path'] = array('path' => $path);
 		}
-
-		$arr = array();
-		$arr['action'] = 'continue';
 
 		if ($this->access->addChain(TABLENAME, $arr, $models)) {
 			apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));

@@ -3,6 +3,8 @@
     $(function () {
         var panel = $('#bangeo-panel');
         if (!panel.length) return;
+        var controller = panel.attr('data-controller') || 'banip';
+        var listLabel = panel.attr('data-list-label') || '黑名单';
         var tree = {}, continent = $('#bangeo-continent'), country = $('#bangeo-country'), province = $('#bangeo-province');
         var hint = $('#bangeo-data-status'), add = $('#bangeo-add');
 
@@ -15,7 +17,7 @@
         function request(action, data, onError) {
             var loading = layer.load(2, {shade: [0.1, '#fff']});
             $.ajax({
-                url: '?c=banip&a=' + action, type: 'POST', data: data, dataType: 'json',
+                url: '?c=' + controller + '&a=' + action, type: 'POST', data: data, dataType: 'json',
                 success: function (result) {
                     if (result && result.code == 200) { window.location.reload(); }
                     else {
@@ -66,12 +68,12 @@
         });
         panel.on('click', '[data-geo-delete]', function () {
             var id = $(this).attr('data-geo-delete');
-            layer.confirm('确定删除该地区黑名单吗？', {icon: 3, title: '确认删除'}, function (index) {
+            layer.confirm('确定删除该地区' + listLabel + '吗？', {icon: 3, title: '确认删除'}, function (index) {
                 layer.close(index); request('delBangeo', {id: id});
             });
         });
         $('#bangeo-clear').on('click', function () {
-            layer.confirm('确定清空全部地区黑名单吗？', {icon: 3, title: '确认清空'}, function (index) {
+            layer.confirm('确定清空全部地区' + listLabel + '吗？', {icon: 3, title: '确认清空'}, function (index) {
                 layer.close(index); request('delBangeoAll', {});
             });
         });

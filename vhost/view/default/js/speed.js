@@ -3,11 +3,24 @@ function speed_checkon(val)
 	var data = 'status=' + val;
 	functoin_checkon('?c=speed&a=speedCheckOn',data);
 }
+function speed_mode_inputs(mode)
+{
+	var concurrent = mode === 'per_ip';
+	document.getElementById('speed-bandwidth-input').style.display = concurrent ? 'none' : '';
+	document.getElementById('speed-concurrency-input').style.display = concurrent ? '' : 'none';
+	document.getElementById('limit').disabled = concurrent;
+	document.getElementById('per_ip_max').disabled = !concurrent;
+}
 function speed_add()
 {
 	var mode = $("#mode").val();
 	var limit = $("#limit").val();
-	if (limit == "") {
+	var max = $.trim($("#per_ip_max").val());
+	if (mode === 'per_ip') {
+		if (!/^[0-9]+$/.test(max) || Number(max) < 1 || Number(max) > 2147483647) {
+			return alert("单IP并发数必须是1到2147483647之间的整数");
+		}
+	} else if ($.trim(limit) === "") {
 		return alert("带宽值不能为空");
 	}
 	var path = $("#path").val();
@@ -17,14 +30,12 @@ function speed_add()
 	if (mode == 'gspeed_limit' && path == "") {
 		return alert("该模式目录不能为空!");
 	}
-	//var min_size = $("#min_size").val();
-	var data = 'mode=' + mode + '&limit=' + limit;
-	if (path != "") {
-		data += '&path=' + path;
+	var data = {mode: mode, path: path};
+	if (mode === 'per_ip') {
+		data.max = max;
+	} else {
+		data.limit = limit;
 	}
-//	if (min_size != "") {
-//		data += '&min_size=' + min_size;
-//	}
 	var url = '?c=speed&a=speedAdd';
 	$.ajax({
 		   type: "POST",
@@ -32,7 +43,7 @@ function speed_add()
 		   data: data ,
 		   success: function(msg){
 			   if (msg != "成功"){
-			     alert(msg);
+			     return alert(msg);
 			   }
 		   		window.location.reload();
 		   },
@@ -52,11 +63,15 @@ function close_piao()
 }
 function piao_msg(mode)
 {
+	speed_mode_inputs(mode);
 	if ($.cookie('not_piao') == 1) {
 		return;
 	}
-	var ddlog = art.dialog({id:'id22',content:msg,icon: 'face-smile',left:'50%',top:'20%'});
+	var ddlog = art.dialog({id:'id22',content:'',icon: 'face-smile',left:'50%',top:'20%'});
 	switch (mode) {
+		case 'per_ip':
+			ddlog.content("限制同一IP同时保持的连接数，超过后拒绝访问<br>");
+			break;
 		case 'speed_limit':
 			//document.getElementById('size').style.display = '';
 			ddlog.content("该模式可以将某个目录的<b id='red'>每次请求</b>进行带宽限制<br>");
@@ -110,6 +125,7 @@ function check_onblur_value(id)
 	}
 }
 $(document).ready(function(){
+	speed_mode_inputs($("#mode").val());
 //	var min = document.getElementById("min_size");
 //	min.onfocus = function(){
 //		min.value = '';

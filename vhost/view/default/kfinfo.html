@@ -93,7 +93,7 @@ var msg = '{{$msg}}';
 			{{if $user.cdn==0}}{{if $user.module=='php'}}
 			<li><a style="background-image: url({{$STATIC}}imgs/php.png);background-size:52px 52px; background-repeat: no-repeat;display: inline-block;padding-top: 48px;" href='?c=phpset&a=phpset'>PHP设置</a></li>
 			{{/if}}{{/if}}
-			<li><a class="dkxz" href="?c=speed&a=speedFrom">带宽限制</a></li>
+			<li><a class="dkxz" href="?c=speed&a=speedFrom">流量限制</a></li>
 			<li><a class="hcsz" href='?c=cache&a=cacheFrom'>缓存设置</a></li>
 			<li><a class="qchc" href="?c=cacheclean&a=cachecleanFrom">清除缓存</a></li>
 			<li><a class="cwdy" href='?c=info&a=showErrorPage'>错误码定义</a></li>
@@ -139,6 +139,7 @@ var msg = '{{$msg}}';
 	    <div class="ep_main_title">安全管理</div>
 	    <ul>
 		    <li><a style="background:url({{$STATIC}}imgs/ip.png) no-repeat center top;background-size:52px 52px;display:inline-block;padding-top:48px" href='?c=realip&a=show'>真实IP设置</a></li>
+		    <li><a style="background:url({{$STATIC}}imgs/white.png) no-repeat center top;background-size:52px 52px;display:inline-block;padding-top:48px" href='?c=whitelist&a=addTableFrom'>白名单</a></li>
 		    <li><a class="jzip" href='?c=banip&a=addTableFrom'>黑名单</a></li>
 		    <li><a class="fdl" href='?c=protection&a=addProtectionTableFrom'>防盗链</a></li>
 			<li><a class="csgl" href='?c=antisql&a=antisqlFrom'>参数过滤</a></li>

@@ -1,11 +1,11 @@
-<script language='javascript' src='{{$STATIC}}js/speed.js'></script>
+<script language='javascript' src='{{$STATIC}}js/speed.js?v=2'></script>
 <script language='javascript'></script>
 
 <div class='pro_msg' style="display: none" id='msg'></div>
 
 <div class="main" style="padding-bottom:10px">
-    <div class="public_pa">带宽限制</div>
-	<form action='?c=speed&a=speedAdd' method='post' name='from'>
+    <div class="public_pa">流量限制</div>
+	<form action='?c=speed&a=speedAdd' method='post' name='from' onsubmit='speed_add();return false;'>
 		<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
 			<tr>
 				<td style="text-align:center;border:0">
@@ -20,8 +20,10 @@
 						 <option value="speed_limit">每个请求限制</option>
 						 <option value="ip_speed_limit">每IP限制</option>
 						 <option value='gspeed_limit'>分组限制</option>
+						 <option value="per_ip">单IP并发数限制</option>
 				     </select>&nbsp;&nbsp;&nbsp;&nbsp;
-				 带宽：<input name="limit" class="span2" id='limit' />&nbsp;KB/秒&nbsp;&nbsp;&nbsp;&nbsp;
+				 <span id="speed-bandwidth-input">带宽：<input name="limit" class="span2" id='limit' />&nbsp;KB/秒&nbsp;&nbsp;&nbsp;&nbsp;</span>
+				 <span id="speed-concurrency-input" style="display:none;">并发数：<input type="number" name="max" id="per_ip_max" class="span2" min="1" max="2147483647" step="1" disabled="disabled" />&nbsp;个连接&nbsp;&nbsp;&nbsp;&nbsp;</span>
 				 目录：<input name='path' value='可为空' onfocus='check_onfocus_value(this.id)' onblur='check_onblur_value(this.id)' id='path' class="span3" />&nbsp;&nbsp;&nbsp;&nbsp;
 				 <input type='button' value='增加' onclick='speed_add();' class="btn btn-warning" />
 				</td>
@@ -34,7 +36,7 @@
 		<tr>
 			<th style="border-left:0">操作</th>
 			<th>限制模式</th>
-			<th>限制带宽</th>
+			<th>限制值</th>
 			<th>目录</th>
 		</tr>
 		</thead>
@@ -43,8 +45,8 @@
 		<tr>
 			<td style="border-left:0"><a href="javascript:speed_del({{$row.id}})">删除</a></td>
 			<td>{{if $row.mode=='s'}}每个请求限制{{elseif
-				$row.mode=='i'}}每IP限制{{else}}分组限制{{/if}}</td>
-			<td>{{$row.limit/1024}}KB/秒</td>
+				$row.mode=='i'}}每IP限制{{elseif $row.mode=='c'}}单IP并发数限制{{else}}分组限制{{/if}}</td>
+			<td>{{if $row.mode=='c'}}{{$row.max}}个连接{{else}}{{$row.limit/1024}}KB/秒{{/if}}</td>
 			<td>{{$row.path}}</td>
 		</tr>
 		</tbody>

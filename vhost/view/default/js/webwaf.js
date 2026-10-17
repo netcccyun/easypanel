@@ -20,7 +20,3 @@ function webwafSwitch(status) {
         webwafRequest('webwafSwitch', {status: status});
     }
 }
-
-function webwafSave() {
-    webwafRequest('webwafSave', {whiteip: $('#whiteip').val(), whiteurl: $('#whiteurl').val()});
-}

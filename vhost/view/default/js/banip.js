@@ -6,7 +6,7 @@ function banip_add()
 	}
 	$.ajax({
 		type:'post',
-		url:'?c=banip&a=addBanip',
+		url:'?c=' + (window.epListController || 'banip') + '&a=addBanip',
 		data:'ip=' + encodeURIComponent(ip),
 		success:function(msg) {
 			if (msg != "成功"){
@@ -28,7 +28,7 @@ function banurl_add()
 	}
 	$.ajax({
 		type:'post',
-		url:'?c=banip&a=addBanurl',
+		url:'?c=' + (window.epListController || 'banip') + '&a=addBanurl',
 		data:'url=' + encodeURIComponent(url) + '&meth=' + encodeURIComponent(meth),
 		success:function(msg) {
 			if (msg != "成功"){
@@ -48,7 +48,7 @@ function banip_del(id)
 	}
 	$.ajax({
 		type:'post',
-		url:'?c=banip&a=delBanip',
+		url:'?c=' + (window.epListController || 'banip') + '&a=delBanip',
 		data:'id=' + id,
 		success:function(msg){
 			if (msg != "成功") {
@@ -68,7 +68,7 @@ function banurl_del(id)
 	}
 	$.ajax({
 		type:'post',
-		url:'?c=banip&a=delBanurl',
+		url:'?c=' + (window.epListController || 'banip') + '&a=delBanurl',
 		data:'id=' + id,
 		success:function(msg){
 			if (msg != "成功") {
@@ -88,7 +88,7 @@ function banip_del_all()
 	}
 	$.ajax({
 		type:'get',
-		url:'?c=banip&a=delBanipAll',
+		url:'?c=' + (window.epListController || 'banip') + '&a=delBanipAll',
 		success:function(msg){
 			if (msg != "成功") {
 				alert(msg);
@@ -107,7 +107,7 @@ function banurl_del_all()
 	}
 	$.ajax({
 		type:'get',
-		url:'?c=banip&a=delBanurlAll',
+		url:'?c=' + (window.epListController || 'banip') + '&a=delBanurlAll',
 		success:function(msg){
 			if (msg != "成功") {
 				alert(msg);
@@ -122,10 +122,10 @@ function banurl_del_all()
 function banip_checkon(val)
 {
 	var data = 'status=' + val;
-	functoin_checkon('?c=banip&a=switchIp',data);
+	functoin_checkon('?c=' + (window.epListController || 'banip') + '&a=switchIp',data);
 }
 function banurl_checkon(val)
 {
 	var data = 'status=' + val;
-	functoin_checkon('?c=banip&a=switchUrl',data);
+	functoin_checkon('?c=' + (window.epListController || 'banip') + '&a=switchUrl',data);
 }

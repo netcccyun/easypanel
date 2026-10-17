@@ -1,16 +1,21 @@
-<script type="text/javascript" src="{{$STATIC}}js/realip.js?v=2"></script>
+<script type="text/javascript" src="{{$STATIC}}js/realip.js?v=3"></script>
 <div class="main" style="padding-bottom:10px">
     <div class="public_pa">CDN真实IP获取</div>
     <form id="realip-form" action="?c=realip&a=save" method="post" onsubmit="return realip_save(this);">
         <table class="table" cellpadding="0" cellspacing="1">
             <tr>
                 <td style="text-align:center;width:140px;">真实IP Header</td>
-                <td><select name="header">
+                <td><select name="header" onchange="realip_header_changed(this.form);">
                     <option value="" {{if !$realip.enabled}}selected="selected"{{/if}}>不开启</option>
                     {{foreach from=$realip_headers item=header}}
                     <option value="{{$header|escape:'html'}}" {{if $realip.enabled&&$realip.header==$header}}selected="selected"{{/if}}>{{$header|escape:'html'}}</option>
                     {{/foreach}}
+                    <option value="__custom__" {{if $realip.custom}}selected="selected"{{/if}}>自定义</option>
                 </select></td>
+            </tr>
+            <tr id="realip-custom-row" {{if !$realip.custom}}style="display:none;"{{/if}}>
+                <td style="text-align:center;">自定义Header</td>
+                <td><input type="text" name="custom_header" value="{{if $realip.custom}}{{$realip.header|escape:'html'}}{{/if}}" placeholder="例如 X-Client-IP" {{if $realip.custom}}required="required"{{else}}disabled="disabled"{{/if}}></td>
             </tr>
             <tr><td colspan="2" style="padding-left:150px;"><input type="submit" value="保存设置" class="btn btn-primary"></td></tr>
         </table>

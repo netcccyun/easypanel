@@ -128,7 +128,7 @@ class SslControl extends Control
 			$this->sslMessage('配置已保存，但加载失败，请重试');
 		}
 		notice_cdn_changed();
-		exit("<script language='javascript'>alert('保存成功');history.go(-1);</script>");
+		exit("<script language='javascript'>alert('保存成功');location.href='?c=ssl&a=sslForm';</script>");
 	}
 
 	public function sslRewrite()
