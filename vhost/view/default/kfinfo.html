@@ -154,6 +154,7 @@ var msg = '{{$msg}}';
 	    <ul>
 		    <li><a class="llt" href='?c=flow&a=viewFlow&t=day'>流量图</a></li>
 		    <li><a class="ljxx" href='?c=connection&a=connectionFrom'>连接信息</a></li>
+			{{if $user.log_file && $user.log_file!='/nolog'}}<li><a style="background:url({{$STATIC}}imgs/log.png) no-repeat center top;background-size:52px 52px;display:inline-block;padding-top:48px" href="?c=sitelog&a=index">网站日志</a></li>{{/if}}
 			<li><a class="rzfx" href='/vhost/log.php/index.html' target='_blank'>日志分析</a></li>
 			<li><a class="xnfx" href='?c=capability&a=capabilityFrom'>性能分析</a></li>
 			{{if $user.cdn==0}}

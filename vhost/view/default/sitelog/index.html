@@ -1,0 +1,11 @@
+<link rel="stylesheet" href="{{$PSTATIC}}/style/sitelog.css?v=2" />
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">网站日志</div>
+    <div style="padding:12px;">
+        <button type="button" id="site-log-refresh" class="btn btn-primary">刷新日志</button>
+        <label class="site-log-wrap-toggle"><input type="checkbox" id="site-log-wrap" /> 自动换行</label>
+        <span id="site-log-status" role="status">显示最新500行</span>
+        <pre id="site-log-output" tabindex="0" aria-label="网站访问日志">正在读取日志…</pre>
+    </div>
+</div>
+<script src="{{$PSTATIC}}/style/sitelog.js?v=2"></script>
