@@ -325,6 +325,7 @@ class CdnPrimaryAPI extends API
 	 */
 	private function load_vhost_info($name, $vhs)
 	{
+		load_lib('pub:ssl');
 		if (isset($this->loaded_vhs_info[$name])) {
 			return $this->loaded_vhs_info[$name];
 		}
@@ -342,7 +343,8 @@ class CdnPrimaryAPI extends API
 			if ($info['type'] == 2 || $info['type'] == 3 || $info['type'] == 4 || $info['type'] == 5 || $info['type'] == 7) {
 				continue;
 			}
-			if ($info['type'] == 0 && strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
+			$binding = EpSsl::splitBinding($info['value']);
+			if ($info['type'] == 0 && $binding['ssl']) {
 				$certificate_name = ep_safe_name($info['name']);
 				if ($certificate_name !== '' && !empty($vh['doc_root'])) {
 					$certificate_file = $certificate_name . '.crt';

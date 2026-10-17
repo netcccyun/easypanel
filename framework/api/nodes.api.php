@@ -176,6 +176,17 @@ class NodesAPI extends API
 		return $whm->call($whmCall, 'info');
 	}
 
+	public function supportsHttp3($node = 'localhost')
+	{
+		$whm = $this->makeWhm($node);
+		if (!$whm) {
+			return false;
+		}
+		$result = $whm->call(new WhmCall('core.whm', 'info'), 5);
+		// Older servers do not expose this field and do not support HTTP3.
+		return $result && $result->getCode() == 200 && (string) $result->get('support_http3') === '1';
+	}
+
 	public function makeDbProduct($node, $db_type = 'mysql')
 	{
 		$node_cfg = $GLOBALS['node_cfg'][$node];

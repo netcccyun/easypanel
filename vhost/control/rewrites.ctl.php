@@ -7,6 +7,7 @@ class RewritesControl extends Control
 	public function __construct()
 	{
 		parent::__construct();
+		load_lib('pub:ssl');
 	}
 
 	private function getPathList($vhost)
@@ -16,7 +17,8 @@ class RewritesControl extends Control
 		$i = 0;
 		$paths = array();
 		foreach (ep_iter($list) as $domain) {
-			$path = '/' . trim($domain['value'], '/');
+			$binding = EpSsl::splitBinding($domain['value']);
+			$path = '/' . trim($binding['dir'], '/');
 			if(!in_array($path,$paths)){
 				$paths[$i++] = $path;
 			}

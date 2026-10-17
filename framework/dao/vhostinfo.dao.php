@@ -79,24 +79,17 @@ class VhostinfoDAO extends DAO
 			return true;
 		}
 
-		$ret = $this->select(array('value'), $this->getFieldValue2('vhost', $vhost) . ' AND ' . $this->getFieldValue2('value', $subdir) . ' AND ' . $this->getFieldValue2('type', 0), 'row');
-
-		if ($ret) {
-			return true;
+		load_lib('pub:ssl');
+		$binding = EpSsl::splitBinding($subdir);
+		$directories = array();
+		foreach (ep_iter($this->getDomain($vhost)) as $domain) {
+			$existing = EpSsl::splitBinding($domain['value']);
+			if ($existing['dir'] === $binding['dir']) {
+				return true;
+			}
+			$directories[$existing['dir']] = true;
 		}
-
-		$sql = 'SELECT COUNT(DISTINCT value) as count FROM ' . $this->_TABLE . ' WHERE ' . $this->getFieldValue2('vhost', $vhost) . ' AND ' . $this->getFieldValue2('type', 0);
-		$ret = $this->executex($sql, 'row');
-
-		if (!$ret) {
-			return true;
-		}
-
-		if ($max_subdir <= $ret['count']) {
-			return false;
-		}
-
-		return true;
+		return count($directories) < $max_subdir;
 	}
 
 	public function findDomain($domain, $vhost = null)

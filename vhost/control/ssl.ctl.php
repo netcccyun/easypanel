@@ -8,6 +8,7 @@ class SslControl extends Control
 	{
 		parent::__construct();
 		load_lib('pub:access');
+		load_lib('pub:ssl');
 		$this->access = new Access(getRole('vhost'));
 	}
 
@@ -20,39 +21,10 @@ class SslControl extends Control
 		}
 		change_to_user($user['uid'], $user['gid']);
 
-		if ($user['certificate']) {
-			$file = $user['doc_root'] . '/' . $user['certificate'];
-
-			if (is_link($file)) {
-				unlink($file);
-			}
-			else {
-				$fp = @fopen($file, 'rb');
-
-				if ($fp) {
-					$certificate = fread($fp, 1024000);
-					fclose($fp);
-					$this->_tpl->assign('certificate', $certificate);
-				}
-			}
-		}
-
-		if ($user['certificate_key']) {
-			$keyfile = $user['doc_root'] . '/' . $user['certificate_key'];
-
-			if (is_link($keyfile)) {
-				unlink($keyfile);
-			}
-			else {
-				$fp = @fopen($keyfile, 'rb');
-
-				if ($fp) {
-					$certificate_key = fread($fp, 1024000);
-					fclose($fp);
-					$this->_tpl->assign('certificate_key', $certificate_key);
-				}
-			}
-		}
+		$certificate = EpSsl::readFile($user['doc_root'], ep_str($user['certificate']));
+		$certificate_key = EpSsl::readFile($user['doc_root'], ep_str($user['certificate_key']));
+		$this->assignCertificate($certificate, $certificate_key);
+		$this->_tpl->assign('ssl_configured', !empty($user['certificate']) || !empty($user['certificate_key']));
 
 		$ssl = apicall('vhost', 'check_ssl', array($vhost));
 		$this->_tpl->assign('ssl', $ssl);
@@ -71,6 +43,8 @@ class SslControl extends Control
 		}
 
 		change_to_super();
+		$this->_tpl->assign('hsts', $this->hstsEnabled() ? 1 : 0);
+		$this->_tpl->assign('support_http3', apicall('nodes', 'supportsHttp3', array('localhost')));
 		return $this->_tpl->fetch('ssl.html');
 	}
 
@@ -79,7 +53,11 @@ class SslControl extends Control
 		$certificate = ep_str(isset($_REQUEST['certificate']) ? $_REQUEST['certificate'] : '');
 		$certificate_key = ep_str(isset($_REQUEST['certificate_key']) ? $_REQUEST['certificate_key'] : '');
 		$vhost = getRole('vhost');
-		$user = $_SESSION['user'][$vhost];
+		$user = daocall('vhost', 'getVhost', array($vhost));
+		if (!is_array($user) || strpos(ep_str($user['port']), 's') === false) {
+			$this->sslMessage('您的账号不支持设置SSL证书');
+		}
+		$remove = empty($certificate) && empty($certificate_key);
 
 		if (!empty($certificate) && !empty($certificate_key)){
 			$check = $this->check_cert($certificate, $certificate_key);
@@ -88,9 +66,11 @@ class SslControl extends Control
 			}
 		}
 
-		if (empty($certificate) && empty($certificate_key) && ($user['certificate'] || $user['certificate_key'])){
+		if ($remove) {
 			$arr = array('certificate' => null, 'certificate_key' => null);
-			daocall('vhost', 'updateVhost', array($vhost, $arr));
+			if (!daocall('vhost', 'updateVhost', array($vhost, $arr))) {
+				$this->sslMessage('证书配置保存失败');
+			}
 		}
 		elseif (!$user['certificate'] || !$user['certificate_key']) {
 			$user['certificate'] = 'ssl.crt';
@@ -136,7 +116,17 @@ class SslControl extends Control
 		));
 		}
 		change_to_super();
-		apicall('vhost', 'noticeChange', array('localhost', $vhost));
+		if ($remove && $this->access->findChain('BEGIN', '!ssl_rewrite')) {
+			if (!$this->access->delChainByName('BEGIN', '!ssl_rewrite')) {
+				$this->sslMessage('证书已移除，但关闭HTTP跳转HTTPS失败，请重试');
+			}
+		}
+		if ($remove && !$this->setHsts(false)) {
+			$this->sslMessage('证书已移除，但关闭HSTS失败，请重试');
+		}
+		if (!apicall('vhost', 'noticeChange', array('localhost', $vhost))) {
+			$this->sslMessage('配置已保存，但加载失败，请重试');
+		}
 		notice_cdn_changed();
 		exit("<script language='javascript'>alert('保存成功');history.go(-1);</script>");
 	}
@@ -174,163 +164,121 @@ class SslControl extends Control
 		}
 	}
 
-	public function domainSslForm()
+	private function domainContext()
 	{
 		$domain = strtolower(trim(ep_request('domain')));
 		$vhost = getRole('vhost');
-		$info = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
-		if(!$info){
-			exit("<script language='javascript'>alert('域名不存在');history.go(-1);</script>");
+		if ($domain === '' || ep_safe_name($domain) !== $domain || strpos($domain, ';') !== false || strpos($domain, '|') !== false) {
+			$this->sslMessage('域名不合法');
 		}
-		$info = $info[0];
+		// getInfo's optional type filter does not filter type=0; select domains explicitly.
+		$list = daocall('vhostinfo', 'getDomain', array($vhost));
+		$info = false;
+		foreach (ep_iter($list) as $row) {
+			if ($row['name'] === $domain) {
+				$info = $row;
+				break;
+			}
+		}
+		if (!$info) {
+			$this->sslMessage('域名不存在');
+		}
 		$user = daocall('vhost', 'getVhost', array($vhost));
-		if (!is_array($user) || !isset($user['port']) || strpos($user['port'], 's')===false) {
-			exit("<script language='javascript'>alert('您的账号不支持设置SSL证书');history.go(-1);</script>");
+		if (!is_array($user) || strpos(ep_str($user['port']), 's') === false) {
+			$this->sslMessage('您的账号不支持设置SSL证书');
 		}
-		if ($user['cdn']==0) {
-			exit("<script language='javascript'>alert('虚拟主机不支持设置单域名SSL证书');history.go(-1);</script>");
+		$binding = EpSsl::splitBinding($info['value']);
+		if (!empty($user['cdn']) && strpos($binding['dir'], 'proto=tcp') !== false) {
+			$this->sslMessage('TCP回源协议的不支持设置SSL证书');
 		}
-		if(strpos($info['value'], 'proto=tcp') !== false){
-			exit("<script language='javascript'>alert('TCP回源协议的不支持设置SSL证书');history.go(-1);</script>");
-		}
+		return array($vhost, $domain, $user, $binding);
+	}
+
+	private function assignCertificate($certificate, $key, $domain = null)
+	{
+		$this->_tpl->assign('certificate', $certificate);
+		$this->_tpl->assign('certificate_key', $key);
+		$this->_tpl->assign('certificate_info', EpSsl::certificateInfo($certificate, null, $domain));
+	}
+
+	private function sslMessage($message)
+	{
+		exit("<script language='javascript'>alert('" . ep_js_str($message) . "');history.go(-1);</script>");
+	}
+
+	public function domainSslForm()
+	{
+		list($vhost, $domain, $user, $binding) = $this->domainContext();
 		$this->_tpl->assign('domain', $domain);
-
-		$ssl = 0;
-
-		if (strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
-			$ssl = 1;
-
-			$file = $user['doc_root'] . '/' . $info['name'] . '.crt';
-
-			if (is_link($file)) {
-				unlink($file);
-			}
-			else {
-				$fp = @fopen($file, 'rb');
-
-				if ($fp) {
-					$certificate = fread($fp, 1024000);
-					fclose($fp);
-					$this->_tpl->assign('certificate', $certificate);
-				} else {
-					$ssl = 0;
-				}
-			}
-
-			$keyfile = $user['doc_root'] . '/' . $info['name'] . '.key';
-
-			if (is_link($keyfile)) {
-				unlink($keyfile);
-			}
-			else {
-				$fp = @fopen($keyfile, 'rb');
-
-				if ($fp) {
-					$certificate_key = fread($fp, 1024000);
-					fclose($fp);
-					$this->_tpl->assign('certificate_key', $certificate_key);
-				} else {
-					$ssl = 0;
-				}
-			}
+		$certificate = '';
+		$key = '';
+		change_to_user($user['uid'], $user['gid']);
+		if ($binding['ssl']) {
+			$certificate = EpSsl::readFile($user['doc_root'], $binding['certificate']);
+			$key = EpSsl::readFile($user['doc_root'], $binding['key']);
 		}
-
-		$this->_tpl->assign('ssl', $ssl);
+		change_to_super();
+		$this->assignCertificate($certificate, $key, $domain);
+		$this->_tpl->assign('ssl_configured', $binding['ssl']);
+		$ssl = $binding['ssl'] && $certificate !== '' && $key !== '' && $this->check_cert($certificate, $key) === true;
+		$this->_tpl->assign('ssl', $ssl ? 1 : 0);
+		$this->_tpl->assign('http2', isset($user['http2']) ? intval($user['http2']) : 0);
 		$this->_tpl->assign('http3', isset($user['http3']) ? intval($user['http3']) : 0);
-		if($ssl){
-			$this->_tpl->assign('http2', $user['http2']);
-		}
-
-		$table_name = '!ssl_rewrite_'.substr(md5($domain),0,6);
-
-		$find_result = $this->access->findChain('BEGIN', $table_name);
-		if ($find_result) {
-			if($ssl==0){
-				$this->access->delChainByName('BEGIN', $table_name);
-			}else{
-				$this->_tpl->assign('ssl_rewrite', 1);
-			}
-		}
-
+		$table_name = '!ssl_rewrite_' . substr(md5($domain), 0, 6);
+		$this->_tpl->assign('ssl_rewrite', $this->access->findChain('BEGIN', $table_name) ? 1 : 0);
+		$this->_tpl->assign('hsts', $this->hstsEnabled($domain) ? 1 : 0);
+		$this->_tpl->assign('support_http3', apicall('nodes', 'supportsHttp3', array('localhost')));
 		return $this->_tpl->fetch('domainSsl.html');
 	}
 
 	public function domainSsl()
 	{
-		$domain = strtolower(trim(ep_request('domain')));
-		$vhost = getRole('vhost');
-		$info = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
-		if(!$info){
-			exit("<script language='javascript'>alert('域名不存在');history.go(-1);</script>");
-		}
-		$info = $info[0];
-		$certificate = ep_str(isset($_REQUEST['certificate']) ? $_REQUEST['certificate'] : '');
-		$certificate_key = ep_str(isset($_REQUEST['certificate_key']) ? $_REQUEST['certificate_key'] : '');
-		$user = $_SESSION['user'][$vhost];
-
-		if (!empty($certificate) && !empty($certificate_key)){
-			$check = $this->check_cert($certificate, $certificate_key);
-			if($check !== true){
-				exit("<script language='javascript'>alert('".ep_js_str($check)."');history.go(-1);</script>");
+		list($vhost, $domain, $user, $binding) = $this->domainContext();
+		$certificate = trim(ep_request('certificate'));
+		$key = trim(ep_request('certificate_key'));
+		$remove = $certificate === '' && $key === '';
+		if (!$remove) {
+			$check = $this->check_cert($certificate, $key);
+			if ($check !== true) {
+				$this->sslMessage($check);
+			}
+			change_to_user($user['uid'], $user['gid']);
+			$saved = EpSsl::writePair($user['doc_root'], $domain . '.crt', $domain . '.key', $certificate, $key);
+			if ($saved) {
+				apicall('vhost', 'setSystemFile', array($vhost, $user['doc_root'], array($domain . '.crt', $domain . '.key')));
+			}
+			change_to_super();
+			if (!$saved) {
+				$this->sslMessage('证书文件保存失败，请检查目录权限');
 			}
 		}
-		
-		if (empty($certificate) && empty($certificate_key) && strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';') !== false && strpos($info['value'],'.crt') !== false && strpos($info['value'],'.key') !== false){
-			$temp = explode(';',$info['value']);
-			$arr['value'] = $temp[0];
-			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
+		// Keep the local directory or the complete CDN upstream configuration intact.
+		$value = $binding['dir'];
+		if (!$remove) {
+			$value .= ';' . $domain . '.crt|' . $domain . '.key';
 		}
-		elseif (strncasecmp($info['value'], 'server://', 9) == 0 && strpos($info['value'],';')===false && strpos($info['value'],'.crt')===false && strpos($info['value'],'.key')===false) {
-			$arr['value'] = $info['value'] . ';' . $domain . '.crt|' . $domain . '.key';
-			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
+		if (!daocall('vhostinfo', 'updateInfo', array($vhost, $domain, array('value' => $value), 0))) {
+			$this->sslMessage('证书配置保存失败');
 		}
-		elseif (strncasecmp($info['value'], 'server://', 9) != 0 && strncasecmp($info['value'], 'http://', 7) == 0) {
-			$ip = substr($info['value'], 7);
-			$ip = trim($ip, '/');
-			$arr['value'] = 'server://proto=http/nodes=' . $ip . ':80:0:1' . ';' . $domain . '.crt|' . $domain . '.key';
-			apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
+		// Force a reload even when renewing files under the same names.
+		if (!apicall('vhost', 'noticeChange', array('localhost', $vhost))) {
+			$this->sslMessage('配置已保存，但加载失败，请检查证书文件后重试');
 		}
-
-		change_to_user($user['uid'], $user['gid']);
-		$crt_file = $user['doc_root'] . '/' . $info['name'] . '.crt';
-		$key_file = $user['doc_root'] . '/' . $info['name'] . '.key';
-
-		if (is_link($crt_file)) {
-			unlink($crt_file);
-		}
-
-		if (is_link($key_file)) {
-			unlink($key_file);
-		}
-
-		if (empty($certificate) && empty($certificate_key)){
-			@unlink($crt_file);
-			@unlink($key_file);
-		}else{
-
-			$fp = @fopen($crt_file, 'wb');
-			$fp2 = @fopen($key_file, 'wb');
-
-			if ($fp) {
-				fwrite($fp, $certificate);
-				fclose($fp);
+		if ($remove) {
+			change_to_user($user['uid'], $user['gid']);
+			@unlink($user['doc_root'] . '/' . $domain . '.crt');
+			@unlink($user['doc_root'] . '/' . $domain . '.key');
+			change_to_super();
+			$table_name = '!ssl_rewrite_' . substr(md5($domain), 0, 6);
+			if ($this->access->findChain('BEGIN', $table_name)) {
+				$this->access->delChainByName('BEGIN', $table_name);
 			}
-
-			if ($fp2) {
-				fwrite($fp2, $certificate_key);
-				fclose($fp2);
+			if (!$this->setHsts(false, $domain)) {
+				$this->sslMessage('证书已移除，但关闭HSTS失败，请重试');
 			}
-
-			apicall('vhost', 'setSystemFile', array(
-		$vhost,
-		$user['doc_root'],
-		array($info['name'] . '.crt', $info['name'] . '.key')
-		));
 		}
-		change_to_super();
-		apicall('vhost', 'noticeChange', array('localhost', $vhost));
 		notice_cdn_changed();
-		exit("<script language='javascript'>alert('保存成功');history.go(-1);</script>");
+		$this->sslMessage('保存成功');
 	}
 
 	public function domainSslRewrite()
@@ -372,6 +320,60 @@ class SslControl extends Control
 		}
 	}
 
+	private function hstsChainName($domain = '')
+	{
+		return $domain === '' ? '!ssl_hsts' : '!ssl_hsts_' . substr(md5($domain), 0, 6);
+	}
+
+	private function hstsEnabled($domain = '')
+	{
+		$access = new Access(getRole('vhost'), 'request');
+		return (bool) $access->findChain('BEGIN', $this->hstsChainName($domain));
+	}
+
+	private function setHsts($enabled, $domain = '')
+	{
+		$access = new Access(getRole('vhost'), 'request');
+		$name = $this->hstsChainName($domain);
+		$exists = $access->findChain('BEGIN', $name);
+		if (!$enabled) {
+			return !$exists || $access->delChainByName('BEGIN', $name);
+		}
+		if ($exists) {
+			return true;
+		}
+		$models = array();
+		if ($domain !== '') {
+			$models['acl_wide_host'] = array('v' => $domain . '|');
+		}
+		// WHM form names prefix control-action modules with "mark_".
+		$models['mark_add_response_header'] = array('attr' => 'Strict-Transport-Security', 'val' => 'max-age=31536000');
+		return $access->addChain('BEGIN', array('action' => 'continue', 'name' => $name), $models);
+	}
+
+	public function hsts()
+	{
+		$status = ep_request('status');
+		if ($status !== '0' && $status !== '1') {
+			exit('参数错误');
+		}
+		$domain = strtolower(trim(ep_request('domain')));
+		if ($domain !== '') {
+			// Check ownership and reject TCP upstreams just like domain SSL uploads.
+			$this->domainContext();
+		} else {
+			$user = daocall('vhost', 'getVhost', array(getRole('vhost')));
+			if (!$user || ($status === '1' && strpos(ep_str($user['port']), 's') === false)) {
+				exit('您的账号不支持设置SSL证书');
+			}
+		}
+		if (!$this->setHsts($status === '1', $domain)) {
+			exit('失败');
+		}
+		notice_cdn_changed();
+		exit('成功');
+	}
+
 	public function http2()
 	{
 		$status = intval($_REQUEST['status']);
@@ -395,6 +397,9 @@ class SslControl extends Control
 		if ($status !== '0' && $status !== '1') {
 			exit('参数错误');
 		}
+		if ($status === '1' && !apicall('nodes', 'supportsHttp3', array('localhost'))) {
+			exit('当前服务器不支持HTTP3或无法获取HTTP3支持状态');
+		}
 		$vhost = getRole('vhost');
 		$user = daocall('vhost', 'getVhost', array($vhost));
 		if (!$user || ($status === '1' && strpos(ep_str($user['port']), 's') === false)) {
@@ -415,9 +420,9 @@ class SslControl extends Control
 	}
 
 	private function check_cert($cert, $key){
-		if(!openssl_x509_read($cert)) return 'SSL证书填写错误，请检查！';
-		if(!openssl_get_privatekey($key)) return 'SSL证书密钥填写错误，请检查！';
-		if(!openssl_x509_check_private_key($cert, $key)) return 'SSL证书与密钥不匹配！';
+		if(!@openssl_x509_read($cert)) return 'SSL证书填写错误，请检查！';
+		if(!@openssl_get_privatekey($key)) return 'SSL证书密钥填写错误，请检查！';
+		if(!@openssl_x509_check_private_key($cert, $key)) return 'SSL证书与密钥不匹配！';
 		return true;
 	}
 }

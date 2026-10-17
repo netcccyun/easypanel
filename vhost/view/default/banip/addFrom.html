@@ -1,4 +1,4 @@
-<script language='javascript' src='{{$STATIC}}js/banip.js?v=2'></script>
+<script language='javascript' src='{{$STATIC}}js/banip.js?v=3'></script>
 <div class="main" style="padding-bottom:10px">
     <div class="public_pa">IP黑名单</div>
 <form action='?c=banip&a=addBanip' method='post'>
@@ -40,7 +40,7 @@
 
 <div class="main" style="padding-bottom:10px">
     <div class="public_pa">URL黑名单</div>
-<form action='?c=banip&a=addBanip' method='post'>
+<form action='?c=banip&a=addBanurl' method='post'>
 	<table class="table" style="margin:10px 0" cellpadding="0" cellspacing="1">
 		<tr>
 		    <td style="border:0;text-align:center;width:50px;">
@@ -52,7 +52,7 @@
 			</td>
 			<td style="border:0">
 			    URL：
-				<input name='url' id='url' style="width: 50%;"/>&nbsp;&nbsp;
+				<input name='url' id='url' style="width: 50%;" placeholder="留空则仅按方法拦截"/>&nbsp;&nbsp;
 				方法：
 				<select name='meth' id='meth'>
 					<option value="">全部</option>
@@ -83,10 +83,14 @@
 	<tbody>
 	<tr>
 		<td style="border-left:0"><a href="javascript:banurl_del({{$row.id}})">删除</a></td>
-		<td>{{$row.meth}}</td>
-		<td>{{$row.url}}</td>
+		<td>{{$row.meth|escape:'html'}}</td>
+		<td>{{if $row.url==''}}全部URL{{else}}{{$row.url|escape:'html'}}{{/if}}</td>
 	</tr>
 	</tbody>
 	{{/foreach}}
 </table>
 </div>
+
+{{if $geo_available}}
+{{include file='banip/geo.html'}}
+{{/if}}

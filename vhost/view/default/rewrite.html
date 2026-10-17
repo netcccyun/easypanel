@@ -10,7 +10,7 @@
 			</td>
 			<td>
 			    <select name='id' id='dir'>
-				{{foreach from=$paths key=id item=row}}<option value="{{$id}}" {{if $id==$pathid}}selected{{/if}}>{{$row}}</option>{{/foreach}}
+				{{foreach from=$paths key=id item=row}}<option value="{{$id}}" {{if $id==$pathid}}selected{{/if}}>{{$row|escape:'html'}}</option>{{/foreach}}
 			    </select>
 			</td>
 		</tr>
@@ -29,7 +29,7 @@
 			    规则内容
 			</td>
 			<td>
-			    <textarea name='content' id='content' cols='80' rows='15' class="span7" placeholder="">{{$content}}</textarea>
+			    <textarea name='content' id='content' cols='80' rows='15' class="span7" placeholder="">{{$content|escape:'html'}}</textarea>
 				<br/><font color="red">支持<b>Apache</b>的伪静态规则</font>
 			</td>
 		</tr>

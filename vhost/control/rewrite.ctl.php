@@ -134,38 +134,9 @@ class RewriteControl extends Control
 			break;
 
 		case '1':
-			$find_result = $this->access->findChain('BEGIN', '!ssl_rewrite');
-			if($find_result){
-				$this->access->delChainByName('BEGIN', '!ssl_rewrite');
-			}
-			$find_result2 = $this->access->findChain('BEGIN', '!deny_vhost_ip');
-			if($find_result2){
-				$this->access->delChainByName('BEGIN', '!deny_vhost_ip');
-			}
-			$find_result3 = $this->access->findChain('BEGIN', '!deny_url');
-			if($find_result3){
-				$this->access->delChainByName('BEGIN', '!deny_url');
-			}
-
 			$arr = array('action' => ACTION, 'name' => TABLENAME);
-			$this->access->addChain(BEGIN, $arr);
-
-			if($find_result){
-				$arr['action'] = 'continue';
-				$arr['name'] = '!ssl_rewrite';
-				$models = array();
-				$models['mark_url_rewrite'] = array('url' => '^http://(.*)$', 'dst' => 'https://$1', 'nc' => '1', 'code' => '301');
-				$this->access->addChain('BEGIN', $arr, $models);
-			}
-			if($find_result2){
-				$arr['action'] = 'table:!deny_vhost_ip';
-				$arr['name'] = '!deny_vhost_ip';
-				$this->access->addChain('BEGIN', $arr);
-			}
-			if($find_result3){
-				$arr['action'] = 'table:!deny_url';
-				$arr['name'] = '!deny_url';
-				$this->access->addChain('BEGIN', $arr);
+			if (!$this->access->editChain(BEGIN, $arr)) {
+				exit('开启失败');
 			}
 			break;
 

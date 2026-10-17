@@ -1,6 +1,9 @@
+<script src="{{$PSTATIC}}/style/layer/layer.js"></script>
+<link rel="stylesheet" href="{{$PSTATIC}}/style/shell.css?v=2">
+<script src="{{$PSTATIC}}/style/shell.js?v=4"></script>
 <div class="main">
     <div class="public_pa">数据备份</div>
-<form name='bakupweb' action="?c=shell&a=bakupweb" method="post" target='_blank'>
+<form name='bakupweb' action="?c=shell&a=bakupweb" method="post" data-shell-command="1">
 	<table class="table" cellpadding="0" cellspacing="1">
 	<thead>
 		<tr>
@@ -16,7 +19,7 @@
 </form>
 
 {{if $user.db_quota>0 && $user.db_type!='sqlsrv'}}
-<form name='mysqlout' action="?c=shell&a=mysqldumpout" method="post" target='_blank'>
+<form name='mysqlout' action="?c=shell&a=mysqldumpout" method="post" data-shell-command="1">
 	<table class="table" cellpadding="0" cellspacing="1">
 	<thead>
 		<tr>
@@ -31,7 +34,7 @@
 	</table>
 </form>
 
-<form name='remotemysqldumpin' action="?c=shell&a=remotemysqldumpin" method="post" target='_blank'>
+<form name='remotemysqldumpin' action="?c=shell&a=remotemysqldumpin" method="post" data-shell-command="1">
 	<table class="table" cellpadding="0" cellspacing="1">
 	<thead>
 		<tr>

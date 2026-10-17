@@ -7,21 +7,22 @@
 		</b>
 	</div>
 
+{{include file='sslCertificateInfo.html'}}
 <form action='?c=ssl&a=domainSsl' method='post'>
 	<table class="table" cellpadding="0" cellspacing="1">
 		<tr>
-			<th colspan="2">此处是域名<font color="red">{{$domain}}</font>的SSL证书设置<input type="hidden" name="domain" id="domain" value="{{$domain}}"></td>
+			<th colspan="2">此处是域名 <font color="red">{{$domain|escape:'html'}}</font> 的SSL证书设置，如需对所有域名设置同一SSL证书，请进入<a href="?c=ssl&a=sslForm">账号SSL证书设置</a><input type="hidden" name="domain" id="domain" value="{{$domain|escape:'html'}}"></th>
 		</tr>
 		<tr>
 			<td>ssl证书内容:</td>
-			<td><textarea name='certificate' cols=80 rows=8 class="span7">{{$certificate}}</textarea></td>
+			<td><textarea name='certificate' cols=80 rows=8 class="span7">{{$certificate|escape:'html'}}</textarea></td>
 		</tr>
 		<tr>
 			<td>ssl证书密钥内容:</td>
-			<td><textarea name='certificate_key' cols=80 rows=8 class="span7">{{$certificate_key}}</textarea></td>
+			<td><textarea name='certificate_key' cols=80 rows=8 class="span7">{{$certificate_key|escape:'html'}}</textarea></td>
 		</tr>
 		<tr>
-			<td colspan="2" style="padding-left:400px;"><input type='submit' value='提交' class="btn btn-primary"></td>
+			<td colspan="2" style="padding-left:400px;"><input type='submit' value='提交' class="btn btn-primary">{{if $ssl_configured}}&nbsp;&nbsp;<button type="button" class="btn btn-danger" onclick="return ssl_disable(this.form, 'domain');">关闭SSL</button>{{/if}}</td>
 		</tr>
 		{{if $ssl==1||$ssl_rewrite==1}}
 		<tr>
@@ -32,6 +33,19 @@
 				{{else}}
 				<a href="javascript:ssl_checkon(2)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
 				{{/if}}
+			</td>
+		</tr>
+		{{/if}}
+		{{if $ssl_rewrite==1||$hsts==1}}
+		<tr>
+			<td>HSTS:</td>
+			<td>
+				{{if $hsts==0}}
+				<a href="javascript:hsts_checkon(1)" title='开启'><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+				{{else}}
+				<a href="javascript:hsts_checkon(0)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+				{{/if}}
+				<span style="margin-left:8px;color:#777;">强制浏览器后续访问时使用HTTPS，开启前请确保HTTPS可正常访问</span>
 			</td>
 		</tr>
 		{{/if}}
@@ -47,7 +61,7 @@
 			</td>
 		</tr>
 		{{/if}}
-		{{if $ssl==1||$http3==1}}
+		{{if $support_http3&&($ssl==1||$http3==1)}}
 		<tr>
 			<td>HTTP3(QUIC):</td>
 			<td>
@@ -62,6 +76,7 @@
 	</table>
 </form>
 </div>
+<script src="{{$STATIC}}js/ssl.js?v=2"></script>
 <script>
 function ssl_checkon(val)
 {

@@ -16,6 +16,14 @@ class VhostControl extends Control
 			$list['product_name'] = is_array($product_info) && isset($product_info['name']) ? $product_info['name'] : '';
 			$this->_tpl->assign('row', $list);
 			$list = daocall('vhostinfo', 'getDomain', array($list['name']));
+			load_lib('pub:ssl');
+			$directories = array();
+			foreach (ep_iter($list) as $domain) {
+				$binding = EpSsl::splitBinding($domain['value']);
+				$domain['value'] = $binding['dir'];
+				$directories[] = $domain;
+			}
+			$list = $directories;
 			$this->_tpl->assign('list', $list);
 			return true;
 		}

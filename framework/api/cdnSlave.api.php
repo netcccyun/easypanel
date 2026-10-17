@@ -90,10 +90,15 @@ class CdnSlaveAPI extends API
 		daocall('vhost', 'insertVhost', array($arr));
 		daocall('vhostinfo', 'delAllInfo', array($vh_name));
 
+		load_lib('pub:ssl');
 		foreach (ep_iter($infos) as $info) {
 			$infovalue = $info['value'];
 			if ($info['type'] == 0 && strncasecmp($infovalue, 'http://', 7) != 0 && strncasecmp($infovalue, 'https://', 8) != 0 && strncasecmp($infovalue, 'server://', 9) != 0) {
+				$binding = EpSsl::splitBinding($infovalue);
 				$infovalue = 'http://' . $ip . ':0/';
+				if ($binding['ssl']) {
+					$infovalue .= ';' . $binding['certificate'] . '|' . $binding['key'];
+				}
 			}
 
 			daocall('vhostinfo', 'addInfo', array($vh_name, $info['name'], $info['type'], $infovalue, true, $info['id']));

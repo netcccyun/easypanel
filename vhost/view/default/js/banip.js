@@ -21,10 +21,10 @@ function banip_add()
 }
 function banurl_add()
 {
-	var url = $("#url").val();
+	var url = $.trim($("#url").val());
 	var meth = $("#meth").val();
-	if (url == ""){
-		return alert("URL不能为空");
+	if (url === "" && meth === ""){
+		return alert("URL和请求方法不能同时为空");
 	}
 	$.ajax({
 		type:'post',

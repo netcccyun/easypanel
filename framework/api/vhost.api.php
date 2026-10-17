@@ -588,6 +588,9 @@ class VhostAPI extends API
 
 	public function copyIndexForUser($name, $dir)
 	{
+		load_lib('pub:ssl');
+		$binding = EpSsl::splitBinding($dir);
+		$dir = $binding['dir'];
 		$product = apicall('product', 'newProduct', array('vhost'));
 		$docroot = $product->getDocRoot($name);
 		$file = $GLOBALS['safe_dir'] . '/index.html';

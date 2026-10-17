@@ -46,7 +46,7 @@ class WebftpControl extends Control
 			exit(json_encode($json));
 		}
 
-		$content = @fread($fp, filesize($file));
+		$content = filesize($file) > 0 ? fread($fp, filesize($file)) : '';
 		fclose($fp);
 		$charset = 'UTF-8';
 
@@ -68,10 +68,10 @@ class WebftpControl extends Control
 	public function editsave()
 	{
 		$json['code'] = 400;
-		$content = $_POST['content'];
-		$charset = $_POST['charset'];
-		$filename = $_POST['filename'];
-		if (!$content || !$charset || !$filename) {
+		$content = isset($_POST['content']) ? ep_str($_POST['content']) : '';
+		$charset = ep_request('charset');
+		$filename = ep_request('filename');
+		if (!isset($_POST['content']) || $charset === '' || $filename === '') {
 			if($_POST['json'] == 1) {
 				$json['msg'] = '参数不存在';
 				exit(json_encode($json));
@@ -79,7 +79,9 @@ class WebftpControl extends Control
 			exit('参数不存在');
 		}
 
-		$content = unescape($content);
+		// The AJAX editor sends plain text through jQuery's form encoding.
+		// Only the legacy editor uses the older entity/%u escaping convention.
+		if (ep_request('json') !== '1') { $content = unescape($content); }
 
 		if (strcasecmp($charset, 'UTF-8') != 0) {
 			$content = mb_convert_encoding($content, $charset, 'UTF-8');
@@ -96,8 +98,9 @@ class WebftpControl extends Control
 			exit('不能打开文件:' . $file);
 		}
 
-		if (fwrite($fp, $content)) {
+		if (fwrite($fp, $content) === strlen($content)) {
 			fclose($fp);
+			clearstatcache(true, $file);
 			if($_POST['json'] == 1) {
 				$json['code'] = 200;
 				$json['msg'] = '保存成功';
@@ -117,11 +120,7 @@ class WebftpControl extends Control
 
 	private function is_utf8($liehuo_net)
 	{
-		if (preg_match('/^([' . chr(228) . '-' . chr(233) . ']{1}[' . chr(128) . '-' . chr(191) . ']{1}[' . chr(128) . '-' . chr(191) . ']{1}){1}/', $liehuo_net) == true || preg_match('/([' . chr(228) . '-' . chr(233) . ']{1}[' . chr(128) . '-' . chr(191) . ']{1}[' . chr(128) . '-' . chr(191) . (']' . '{1}){1}$/'), $liehuo_net) == true || preg_match('/([' . chr(228) . '-' . chr(233) . ']{1}[' . chr(128) . '-' . chr(191) . ']{1}[' . chr(128) . '-' . chr(191) . ']{1}){2,}/', $liehuo_net) == true) {
-			return true;
-		}
-
-		return false;
+		return preg_match('//u', $liehuo_net) === 1;
 	}
 
 	public function enter()
@@ -297,7 +296,8 @@ class WebftpControl extends Control
 		$f_size = intval($_POST['f_size']);
 		$f_start = intval($_POST['f_start']);
 		$tmp_name = $_FILES['file']['tmp_name'];
-		if(empty($f_name) || empty($f_path) || $f_size <= 0) {
+		if($f_name === '' || $f_path === '' || $f_size < 0 || $f_start < 0
+			|| !isset($_FILES['file']) || $_FILES['file']['error'] != UPLOAD_ERR_OK) {
 			exit('{"status":false,"msg":"参数错误"}');
 		}
 		$file_path = $this->getphyfile($f_name, $f_path);
@@ -648,6 +648,9 @@ class WebftpControl extends Control
 	{
 		$fa = new FileAccess();
 		$fa->sync();
+		if (is_ajax_request()) {
+			exit(json_encode(array('code' => 200, 'msg' => '重建属性成功')));
+		}
 		return $this->index();
 	}
 }

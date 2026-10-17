@@ -1,0 +1,22 @@
+<script type="text/javascript" src="{{$STATIC}}js/realip.js?v=2"></script>
+<div class="main" style="padding-bottom:10px">
+    <div class="public_pa">CDN真实IP获取</div>
+    <form id="realip-form" action="?c=realip&a=save" method="post" onsubmit="return realip_save(this);">
+        <table class="table" cellpadding="0" cellspacing="1">
+            <tr>
+                <td style="text-align:center;width:140px;">真实IP Header</td>
+                <td><select name="header">
+                    <option value="" {{if !$realip.enabled}}selected="selected"{{/if}}>不开启</option>
+                    {{foreach from=$realip_headers item=header}}
+                    <option value="{{$header|escape:'html'}}" {{if $realip.enabled&&$realip.header==$header}}selected="selected"{{/if}}>{{$header|escape:'html'}}</option>
+                    {{/foreach}}
+                </select></td>
+            </tr>
+            <tr><td colspan="2" style="padding-left:150px;"><input type="submit" value="保存设置" class="btn btn-primary"></td></tr>
+        </table>
+    </form>
+    <div style="padding:10px 15px;line-height:1.8;">
+        <p>站点使用CDN或反向代理时，可开启此功能，并选择CDN传递真实访客IP的Header，黑白名单/防CC等按IP的功能即按真实IP匹配。</p>
+        <p>请确保CDN会覆盖所选Header，避免访客伪造IP；被使用的header会从请求中移除，PHP端将无法读取该header。选「不开启」并保存即关闭。</p>
+    </div>
+</div>

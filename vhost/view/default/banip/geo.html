@@ -1,0 +1,28 @@
+<script src="{{$PSTATIC}}/style/layer/layer.js"></script>
+<script src="{{$PSTATIC}}/style/geo-regions.js?v=1"></script>
+<script src="{{$PSTATIC}}/style/bangeo.js?v=3"></script>
+<style>.layui-layer .layui-layer-btn { box-sizing: border-box; } #bangeo-panel label { display: inline-block; margin-right: 12px; } #bangeo-panel select { min-width: 130px; margin-left: 4px; } #bangeo-data-status { margin: 10px 0; color: #777; }</style>
+<div class="main" id="bangeo-panel" style="padding-bottom:10px">
+    <div class="public_pa">地区黑名单</div>
+    <div style="padding:12px">
+        {{if $bangeo}}
+        <a href="javascript:;" id="bangeo-toggle" data-geo-status="0" title="禁用功能"><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
+        {{else}}
+        <a href="javascript:;" id="bangeo-toggle" data-geo-status="1" title="开启功能"><img src="{{$STATIC}}style/start_on.png" border="0" /></a>
+        {{/if}}
+        <form id="bangeo-form" style="margin-top:12px">
+            <label>大洲<select id="bangeo-continent" disabled><option value="">请选择大洲</option></select></label>
+            <label>国家<select id="bangeo-country" disabled><option value="">缺省</option></select></label>
+            <label>省份<select id="bangeo-province" disabled><option value="">缺省</option></select></label>
+            <button type="submit" id="bangeo-add" class="btn btn-warning" disabled>增加</button>
+        </form>
+    </div>
+    <table class="table table-bordered" cellpadding="0" cellspacing="1">
+        <thead><tr><th>操作 [<a href="javascript:;" id="bangeo-clear">清空</a>]</th><th>禁止地区</th></tr></thead>
+        <tbody>
+        {{foreach from=$regions item=row}}
+            <tr><td><a href="javascript:;" data-geo-delete="{{$row.id}}">删除</a></td><td>{{$row.region|escape:'html'}}</td></tr>
+        {{/foreach}}
+        </tbody>
+    </table>
+</div>

@@ -32,9 +32,13 @@ class MigrateControl extends control
 		}
 
 		$domain_str = '';
+		load_lib('pub:ssl');
 
 		foreach ($domain as $d) {
-			$domain_str .= $d['name'] . '=>' . $d['value'] . ';';
+			// This legacy directory-only format uses ';' between records.
+			// Full SSL bindings are carried by the structured WHM migration API.
+			$binding = EpSsl::splitBinding($d['value']);
+			$domain_str .= $d['name'] . '=>' . $binding['dir'] . ';';
 		}
 
 		exit($domain_str);

@@ -1,0 +1,5 @@
+.ep-shell-dialog .layui-layer-content { overflow: hidden; }
+.ep-shell-dialog .ep-shell-panel { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.ep-shell-dialog .ep-shell-output { box-sizing: border-box; flex: 1; min-height: 0; width: 100%; margin: 0; padding: 14px; overflow: auto; border: 0; border-radius: 0; background: #202124; color: #e8eaed; font: 13px/1.6 Consolas, "Microsoft YaHei", monospace; text-align: left; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ep-shell-dialog .ep-shell-status { box-sizing: border-box; flex-shrink: 0; padding: 10px 14px; border-top: 1px solid #ddd; background: #f6f8f8; color: #444; font: 13px/1.5 Arial, "Microsoft YaHei", sans-serif; }
+.ep-shell-dialog .ep-shell-loading { width: 16px; height: 16px; margin-right: 8px; vertical-align: middle; }

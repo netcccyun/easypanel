@@ -20,11 +20,11 @@ class ShellControl extends Control
 		$arr['url'] = filterParam($_REQUEST['url'], 'url');
 
 		if ($arr['url'] == '') {
-			exit('请输入下载地址');
+			return $this->shellError('请输入下载地址');
 		}
 
 		if ($_REQUEST['filename'] == '') {
-			exit('请输入存放文件名');
+			return $this->shellError('请输入存放文件名');
 		}
 
 		$arr['file'] = filterParam($_REQUEST['dir'], 'dir') . '/' . filterParam($_REQUEST['filename']);
@@ -46,7 +46,7 @@ class ShellControl extends Control
 		$attr['passwd'] = filterParam($_REQUEST['passwd']);
 
 		if ($attr['passwd'] == '') {
-			return false;
+			return $this->shellError('请输入数据库密码');
 		}
 
 		$attr['file'] = '/backup/' . getRole('vhost') . '_' . date('YmdHis', time()) . '.sql.7z';
@@ -65,7 +65,7 @@ class ShellControl extends Control
 		$arr['redate'] = filterParam($_REQUEST['redate']);
 		$arr['passwd'] = filterParam($_REQUEST['passwd']);
 		if ($arr['rehost'] == '' || $arr['reuser'] == '' || $arr['repasswd'] == '' || $arr['redate'] == '' || $arr['passwd'] == '') {
-			return false;
+			return $this->shellError('请填写完整的远程数据库和本地数据库信息');
 		}
 
 		$arr['host'] = 'localhost';
@@ -81,7 +81,7 @@ class ShellControl extends Control
 		$attr['passwd'] = filterParam($_REQUEST['passwd']);
 		$attr['file'] = filterParam($_REQUEST['file']);
 		if ($attr['passwd'] == '' || $attr['file'] == '') {
-			return false;
+			return $this->shellError('请输入数据库密码并选择导入文件');
 		}
 
 		$attr['host'] = 'localhost';
@@ -120,7 +120,7 @@ class ShellControl extends Control
 		$attr['file'] = filterParam($_REQUEST['file'], 'dir');
 
 		if ($attr['file'] == '') {
-			return false;
+			return $this->shellError('请选择要恢复的备份文件');
 		}
 
 		if ($_REQUEST['password']) {
@@ -160,20 +160,35 @@ class ShellControl extends Control
 	{
 		$vh = getRole('vhost');
 		$session = filterParam($_REQUEST['session']);
+		if ($session == '') {
+			return $this->shellError('缺少任务编号');
+		}
 		$result = apicall('shell', 'query', array($session, $vh));
-		$ret = array();
+		$this->shellJson($this->shellResult($result));
+	}
 
+	private function shellJson($data)
+	{
+		header('Content-Type: application/json; charset=utf-8');
+		header('Cache-Control: no-store');
+		exit(json_encode($data));
+	}
+
+	private function shellError($message)
+	{
+		if (is_ajax_request()) {
+			$this->shellJson(array('code' => 400, 'msg' => $message, 'out' => ''));
+		}
+		exit($message);
+	}
+
+	private function shellResult($result)
+	{
 		if ($result === false) {
-			$ret['code'] = '500';
-			$ret['out'] = null;
+			return array('code' => 500, 'msg' => '调用命令执行接口失败', 'out' => '');
 		}
-		else {
-			$ret['code'] = $result->getCode();
-			$ret['out'] = (string) $result->get('out');
-		}
-
-		echo json_encode($ret);
-		exit();
+		return array('code' => $result->getCode(), 'session' => (string) $result->get('session'),
+			'out' => (string) $result->get('out'), 'errno' => (string) $result->get('errno'));
 	}
 
 	/**
@@ -183,6 +198,9 @@ class ShellControl extends Control
 	private function whmshell($call, $attr)
 	{
 		$result = apicall('shell', 'whmshell', array($call, getRole('vhost'), $attr));
+		if (is_ajax_request()) {
+			$this->shellJson($this->shellResult($result));
+		}
 
 		if ($result === false) {
 			trigger_error('调用shell失败');

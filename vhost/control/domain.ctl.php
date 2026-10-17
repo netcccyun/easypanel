@@ -5,6 +5,7 @@ class DomainControl extends Control
 	public function __construct()
 	{
 		parent::__construct();
+		load_lib('pub:ssl');
 	}
 
 	public function __destruct()
@@ -27,13 +28,22 @@ class DomainControl extends Control
 
 		$this->_tpl->assign('domain_note', $domain_note);
 		$list = daocall('vhostinfo', 'getDomain', array($vhost));
+		$bindings = array();
+		foreach (ep_iter($list) as $domain) {
+			$binding = EpSsl::splitBinding($domain['value']);
+			$domain['value'] = $binding['dir'];
+			$domain['ssl'] = $binding['ssl'] ? 1 : 0;
+			$domain['proto'] = null;
+			$bindings[] = $domain;
+		}
+		$list = $bindings;
 
 		if ($user['cdn']) {
 			$domains = array();
 			$id = 0;
 
 			foreach (ep_iter($list) as $domain) {
-				$isSsl = 0;
+				$isSsl = $domain['ssl'];
 				$proto = null;
 				if(substr($domain['value'], 0, 9) == 'server://'){
 					$start = strpos($domain['value'],'nodes=')+6;
@@ -50,9 +60,6 @@ class DomainControl extends Control
 						$proto = 'https';
 					}elseif(strpos($domain['value'], '|') !== false && strpos($domain['value'], ':443s:') !== false){
 						$proto = 'follow';
-					}
-					if(strpos($domain['value'],';') !== false && strpos($domain['value'],'.crt') !== false && strpos($domain['value'],'.key') !== false){
-						$isSsl = 1;
 					}
 				}else{
 					$dir = substr($domain['value'], 7, strlen($domain['value']));
@@ -137,7 +144,8 @@ class DomainControl extends Control
 		if (is_array($ret) && !empty($ret[0])) {
 			$result = array();
 			$result['code'] = 0;
-			$value = $ret[0]['value'];
+			$binding = EpSsl::splitBinding($ret[0]['value']);
+			$value = $binding['dir'];
 			if ($user['cdn']) {
 				$result['cdn'] = 1;
 				$proto = 'http';
@@ -180,7 +188,8 @@ class DomainControl extends Control
 	public function add()
 	{
 		$domain = strtolower(trim(ep_request('domain')));
-		$subdir = trim(ep_request('subdir'));
+		$submitted = EpSsl::splitBinding(trim(ep_request('subdir')));
+		$subdir = $submitted['dir'];
 		$proto = trim(ep_request('proto'));
 		$vhost = getRole('vhost');
 		$replace = intval($_REQUEST['replace']);
@@ -300,14 +309,6 @@ class DomainControl extends Control
 			}else{
 				$subdir = 'server://nodes=' . $subdir . ':' . $port . ':0:1';
 			}
-			if($isreplace){
-				$ret = daocall('vhostinfo', 'getInfo', array($vhost, 0, $domain));
-				if(is_array($ret) && !empty($ret[0])){
-					if (strncasecmp($ret[0]['value'], 'server://', 9) == 0 && strpos($ret[0]['value'], ';' . $domain . '.crt|' . $domain . '.key')!==false){
-						$subdir .= ';' . $domain . '.crt|' . $domain . '.key';
-					}
-				}
-			}
 		}
 
 		if ($user['domain'] == 0) {
@@ -335,12 +336,26 @@ class DomainControl extends Control
 			$subdir = $user['subdir'];
 		}
 
+		$bindingValue = $subdir;
+		if ($isreplace && strpos($subdir, 'proto=tcp') === false) {
+			// Directory/upstream editing must not discard an existing domain certificate.
+			$oldDomains = daocall('vhostinfo', 'getDomain', array($vhost));
+			foreach (ep_iter($oldDomains) as $oldDomain) {
+				if ($oldDomain['name'] === $domain) {
+					$oldBinding = EpSsl::splitBinding($oldDomain['value']);
+					if ($oldBinding['ssl']) {
+						$bindingValue .= ';' . $oldBinding['certificate'] . '|' . $oldBinding['key'];
+					}
+					break;
+				}
+			}
+		}
 		if (!$isreplace) {
-			$ret = apicall('vhost', 'addInfo', array($vhost, $domain, 0, $subdir));
+			$ret = apicall('vhost', 'addInfo', array($vhost, $domain, 0, $bindingValue));
 		}
 		else {
 			$arr = array();
-			$arr['value'] = $subdir;
+			$arr['value'] = $bindingValue;
 			$ret = apicall('vhost', 'updateInfo', array($vhost, $domain, $arr));
 		}
 
@@ -387,7 +402,8 @@ class DomainControl extends Control
 
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
-		if (is_array($user) && !empty($user['cdn']) && !empty($user['doc_root'])){
+		if (is_array($user) && !empty($user['doc_root'])){
+			change_to_user($user['uid'], $user['gid']);
 			$file = $user['doc_root'] . '/' . $domain . '.crt';
 			$keyfile = $user['doc_root'] . '/' . $domain . '.key';
 			if(file_exists($file)){
@@ -396,6 +412,7 @@ class DomainControl extends Control
 			if(file_exists($keyfile)){
 				unlink($keyfile);
 			}
+			change_to_super();
 		}
 
 		notice_cdn_changed();

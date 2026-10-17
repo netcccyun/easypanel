@@ -1,0 +1,29 @@
+{{if $certificate_info}}
+<table class="table table-bordered" style="margin:16px 0;table-layout:fixed;">
+	{{if $certificate_info.error}}
+	<tr><td style="color:#b94a48;">{{$certificate_info.error|escape:'html'}}</td></tr>
+	{{else}}
+	<tr>
+		<th style="width:120px;">证书品牌</th>
+		<td style="word-wrap:break-word;">{{$certificate_info.brand|escape:'html'}}</td>
+	</tr>
+	<tr>
+		<th>证书域名</th>
+		<td style="word-wrap:break-word;">{{$certificate_info.domains|escape:'html'}}{{if $certificate_info.domain_mismatch}}<span class="label label-important" style="display:inline-block;margin-left:8px;padding:2px 7px;border-radius:3px;background:#b94a48;color:#fff;font-weight:bold;">不匹配</span>{{/if}}</td>
+	</tr>
+	<tr>
+		<th>到期时间</th>
+		<td>
+			<span{{if $certificate_info.expired}} style="color:#b94a48;font-weight:bold;"{{/if}}>{{$certificate_info.expires|escape:'html'}}</span>
+			{{if $certificate_info.expired}}
+			<span class="label label-important" style="display:inline-block;margin-left:8px;padding:2px 7px;border-radius:3px;background:#b94a48;color:#fff;font-weight:bold;">已到期</span>
+			{{elseif $certificate_info.not_yet_valid}}
+			<span class="label label-warning" style="display:inline-block;margin-left:8px;padding:2px 7px;border-radius:3px;background:#a56700;color:#fff;">尚未生效</span>
+			{{else}}
+			<span class="label label-success" style="display:inline-block;margin-left:8px;padding:2px 7px;border-radius:3px;background:#468847;color:#fff;">有效期内</span>
+			{{/if}}
+		</td>
+	</tr>
+	{{/if}}
+</table>
+{{/if}}

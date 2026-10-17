@@ -1,15 +1,22 @@
-<script language='javascript' src='{{$PSTATIC}}/style/common.js'></script>
+<link rel="stylesheet" href="{{$PSTATIC}}/style/shell.css?v=2">
+<script src="{{$PSTATIC}}/style/shell.js?v=4"></script>
+<link rel="stylesheet" href="{{$STATIC}}webftp/style.css?v=3">
+<script src="{{$PSTATIC}}/style/layer/layer.js"></script>
+<script src="https://lib.baomitu.com/ace/1.43.3/ace.js"></script>
+<script src="https://lib.baomitu.com/ace/1.43.3/ext-language_tools.js"></script>
+<script src="{{$STATIC}}webftp/editor.js?v=2"></script>
+<script src="{{$STATIC}}webftp/upload-drog.js?v=3"></script>
 <script type='text/javascript'>
-var cwd = '{{$cwd}}';
+var cwd = '{{$cwd|escape:'javascript'}}';
 var dflog = null;
 var left = null;
 </script>
-<script language='javascript' src='{{$STATIC}}/webftp/utils.js?v=331141112a1'></script>
+<script src='{{$STATIC}}webftp/utils.js?v=shell1'></script>
 <script language='javascript'>
 	function setbgcolor(id, color) {
 		document.getElementById(id).style.backgroundColor = color;
 	}
-	var jq = jQuery.noConflict();
+	var jq = jQuery;
 	var msg = '{{$msg}}';
 	var defaulttop = '252px';
 	jq(document).ready(function(){
@@ -51,11 +58,11 @@ var left = null;
 	<div>[<a href='javascript:rmall()'>删除</a>]</div><br>
 	<div>[<a href='javascript:cutall()'>剪切</a>]</div><br>
 	<div>[<a href='javascript:copyall()'>复制</a>]</div><br>
-	<div>[<a href='?c=webftp&a=parse'>粘贴</a>]</div><br>
+	<div>[<a href='javascript:parseall()'>粘贴</a>]</div><br>
 	<div>[<a href='javascript:compress("{{basename($cwd)}}")'>压缩</a>]</div><br>
 	<div>[<a href='javascript:readonly(1)'>只读</a>]</div><br>
 	<div>[<a href='javascript:readonly(0)'>可写</a>]</div><br>
-	<div>[<a href='?c=webftp&a=syncaccess'>重建属性</a>]</div>
+	<div>[<a href='javascript:syncaccess()'>重建属性</a>]</div>
 </div>
 
 <div class="main webftp">
@@ -81,7 +88,7 @@ var left = null;
 				[<a href='javascript:rmall()'>删除</a>]
 				[<a href='javascript:cutall()'>剪切</a>]
 				[<a href='javascript:copyall()'>复制</a>]
-				[<a href='?c=webftp&a=parse'>粘贴</a>]
+				[<a href='javascript:parseall()'>粘贴</a>]
 				[<a href='javascript:compress("{{basename($cwd)}}")'>压缩</a>]
 				[<a	href='javascript:readonly(1)'>只读</a>]
 				[<a	href='javascript:readonly(0)'>可写</a>]
@@ -176,3 +183,5 @@ var left = null;
 	//xxkf_JSFX_FloatTopDiv($("panel"), -5, 40);
 	//$('panel').style.display = '';
 </script>
+
+{{include file='webftp/editor.html'}}

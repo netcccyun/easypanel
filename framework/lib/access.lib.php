@@ -1,6 +1,7 @@
 <?php
 class Access
 {
+	const REAL_IP_CHAIN = '!real_ip';
 	private $vh;
 	private $access;
 	private $whm;
@@ -155,6 +156,118 @@ class Access
 	}
 
 	private function replaceChain($callName, $table, $arr, $models = null)
+	{
+		if ($table === 'BEGIN' && $this->access === 'request') {
+			$chains = $this->listChain('BEGIN');
+			if ($chains === false) { return false; }
+			$insert = $callName === 'add_chain';
+			if (!$insert && !isset($arr['id']) && !empty($arr['name'])) {
+				$insert = true;
+				foreach ($chains->children() as $chain) {
+					if ((string) $chain['name'] === $arr['name']) { $insert = false; break; }
+				}
+			}
+			if ($insert) {
+				$new = new SimpleXMLElement('<chain/>');
+				$new->addAttribute('name', isset($arr['name']) ? $arr['name'] : '');
+				$new->addAttribute('action', isset($arr['action']) ? $arr['action'] : 'continue');
+				foreach ($models ? $models : array() as $name => $parameters) {
+					$new->addChild(explode('#', $name)[0]);
+				}
+				$priority = $this->beginPriority($new);
+				$index = 0;
+				foreach ($chains->children() as $chain) {
+					if ($this->beginPriority($chain) <= $priority) { $index++; }
+				}
+				// Already-sorted tables need only the insertion itself. Append
+				// within a priority group instead of disturbing its other rules.
+				$arr['id'] = $index;
+				$callName = 'add_chain';
+			}
+		}
+		if (!$this->writeChain($callName, $table, $arr, $models)) {
+			return false;
+		}
+		return $table !== 'BEGIN' || $this->access !== 'request' || $this->sortBeginChains();
+	}
+
+	/**
+	 * All request BEGIN inserts and edits share this stable priority order.
+	 * Rewrite existing positions through WHM instead of deleting/recreating
+	 * other features' rules. Response tables retain their existing order.
+	 */
+	public function sortBeginChains()
+	{
+		if ($this->access !== 'request') { return true; }
+		$result = $this->call('list_chain', array('table_name' => 'BEGIN', 'detail' => 1));
+		if (!$result || $result->getCode() != 200 || !$result->get('table_info')) { return false; }
+		$table = $result->get('table_info')->children();
+		$original = array();
+		foreach ($table->children() as $chain) {
+			$attributes = array();
+			foreach ($chain->attributes() as $key => $value) { $attributes[$key] = (string) $value; }
+			$models = array();
+			$editable = true;
+			foreach ($chain->children() as $model) {
+				// The legacy WHM editor accepts flat module attributes. Never
+				// discard an extension's nested configuration while reordering.
+				if (count($model->children()) || !preg_match('/^(acl|mark)_/', $model->getName())) { $editable = false; }
+				$parameters = array();
+				foreach ($model->attributes() as $key => $value) { $parameters[$key] = (string) $value; }
+				$models[$model->getName() . '#' . count($models)] = $parameters;
+			}
+			$original[] = array('attributes' => $attributes, 'models' => $models,
+				'position' => count($original), 'priority' => $this->beginPriority($chain), 'editable' => $editable);
+		}
+		$sorted = $original;
+		usort($sorted, function ($left, $right) {
+			if ($left['priority'] !== $right['priority']) {
+				return $left['priority'] < $right['priority'] ? -1 : 1;
+			}
+			if ($left['position'] === $right['position']) { return 0; }
+			return $left['position'] < $right['position'] ? -1 : 1;
+		});
+		foreach ($sorted as $index => $chain) {
+			if ($chain['position'] !== $index && !$chain['editable']) { return false; }
+		}
+		$changed = array();
+		foreach ($sorted as $index => $chain) {
+			if ($chain['position'] === $index) { continue; }
+			$changed[] = $index;
+			$attributes = $chain['attributes'];
+			$attributes['id'] = $index;
+			if (!$this->writeChain('edit_chain', 'BEGIN', $attributes, $chain['models'])) {
+				// Restore overwritten positions if any individual WHM edit fails.
+				foreach ($changed as $restoreIndex) {
+					$restore = $original[$restoreIndex];
+					$restore['attributes']['id'] = $restoreIndex;
+					$this->writeChain('edit_chain', 'BEGIN', $restore['attributes'], $restore['models']);
+				}
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private function beginPriority($chain)
+	{
+		$name = (string) $chain['name'];
+		$action = (string) $chain['action'];
+		$target = strpos($action, 'table:') === 0 ? substr($action, 6) : '';
+		if ($name === self::REAL_IP_CHAIN || isset($chain->mark_replace_ip)) { return 0; }
+		if ($name === '!ssl_rewrite' || strpos($name, '!ssl_rewrite_') === 0) { return 10; }
+		if ($name === '!ssl_hsts' || strpos($name, '!ssl_hsts_') === 0) { return 20; }
+		$blacklists = array('!deny_vhost_ip', '!deny_url', '!deny_ip_table', '!deny_geo');
+		if (in_array($name, $blacklists, true) || in_array($target, $blacklists, true)) { return 30; }
+		if ($action === 'deny' && (isset($chain->acl_src) || isset($chain->acl_srcs) || isset($chain->acl_url))) { return 30; }
+		$security = array('!deny_referer', '!anti_sql', '!anti_up_inject', '!anticc', '!safeline_waf', '!deny_filter');
+		if (in_array($name, $security, true) || in_array($target, $security, true)) { return 50; }
+		// Domain redirects, speed limits and unrecognized custom rules remain
+		// in the basic group; same-group rules keep their relative order.
+		return 40;
+	}
+
+	private function writeChain($callName, $table, $arr, $models = null)
 	{
 		$arr['table_name'] = $table;
 		$whmCall = new WhmCall('core.whm', $callName);

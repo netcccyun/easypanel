@@ -80,7 +80,7 @@
 		 {{foreach from=$list item=row}}
       <tr>
         <td class="td_bgc right_2 tb_wid">{{$row.name}}</td>
-        <td class="td_bgc right_2">{{$row.value}}</td></tr>
+        <td class="td_bgc right_2">{{$row.value|escape:'html'}}</td></tr>
 		  {{/foreach}}
           {{/if}}
    </table>

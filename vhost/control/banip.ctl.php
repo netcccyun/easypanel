@@ -2,12 +2,14 @@
 needRole('vhost');
 define('DENY_BANIP_TABLE', '!deny_vhost_ip');
 define('DENY_BANURL_TABLE', '!deny_url');
+define('DENY_BANGEO_TABLE', '!deny_geo');
 define('ACTION', 'table:!deny_vhost_ip');
 define('ACTION2', 'table:!deny_url');
 define('BEGIN', 'BEGIN');
 class BanipControl extends Control
 {
 	private $access;
+	private $geoAvailable;
 
 	public function __construct()
 	{
@@ -53,22 +55,131 @@ class BanipControl extends Control
 
 		foreach ($result2 ? $result2->children() : array() as $chain) {
 			$meth = '全部';
-			$url = null;
+			$url = '';
+			$hasMethod = false;
 			foreach ($chain->children() as $name=>$ch) {
 				if($name == 'acl_url'){
-					$url = $ch;
+					$url = (string) $ch['url'];
+					if ($url === '') { $url = (string) $ch; }
 				}elseif($name == 'acl_meth'){
-					$meth = $ch[0];
+					$meth = (string) $ch['meth'];
+					if ($meth === '') { $meth = (string) $ch; }
+					$hasMethod = $meth !== '';
 					if((string)$ch['revers'] == '1')$meth = '!'.$meth;
 				}
 			}
-			if($url){
-				$urls[] = array('url' => $url, 'meth' => $meth, 'id' => $id++);
+			if ($url !== '' || $hasMethod) {
+				$urls[] = array('url' => $url, 'meth' => $meth, 'id' => $id);
 			}
+			$id++;
 		}
 
 		$this->assign('urls', $urls);
+		$this->assign('geo_available', $this->geoAvailable());
+		if ($this->geoAvailable()) {
+			$this->assign('bangeo', (bool) $this->access->findChain(BEGIN, DENY_BANGEO_TABLE));
+			$this->assign('regions', $this->geoRules());
+		}
 		return $this->_tpl->fetch('banip/addFrom.html');
+	}
+
+	private function geoAvailable()
+	{
+		if ($this->geoAvailable === null) {
+			load_lib('pub:geo');
+			$this->geoAvailable = EpGeo::available();
+		}
+		return $this->geoAvailable;
+	}
+
+	private function geoJson($code, $message, $extra = array())
+	{
+		header('Content-Type: application/json; charset=utf-8');
+		header('Cache-Control: no-store');
+		exit(json_encode(array_merge(array('code' => $code, 'msg' => $message), $extra)));
+	}
+
+	private function requireGeo()
+	{
+		$permission = apicall('access', 'checkAccess', array());
+		if ($permission !== true) { $this->geoJson(403, $permission); }
+		if (!$this->geoAvailable()) { $this->geoJson(403, '全局请求控制规则未配置geo标记模块'); }
+	}
+
+	private function geoRules()
+	{
+		$rows = array();
+		$chains = $this->access->listChain(DENY_BANGEO_TABLE, 1);
+		$id = 0;
+		foreach ($chains ? $chains->children() : array() as $chain) {
+			$rows[] = array('id' => $id++, 'region' => (string) $chain['name']);
+		}
+		return $rows;
+	}
+
+	private function ensureGeoTable($name)
+	{
+		$tables = $this->access->listTable();
+		return $tables !== false && (in_array($name, $tables, true) || $this->access->addTable($name));
+	}
+
+	public function switchGeo()
+	{
+		$this->requireGeo();
+		$status = ep_request('status');
+		if ($status !== '1' && $status !== '0') { $this->geoJson(400, '参数错误'); }
+		$exists = $this->access->findChain(BEGIN, DENY_BANGEO_TABLE);
+		if ($status === '1') {
+			$ok = $this->ensureGeoTable(DENY_BANGEO_TABLE) && $this->ensureGeoTable(BEGIN);
+			if ($ok && !$exists) {
+				$ok = $this->access->addChain(BEGIN, array('name' => DENY_BANGEO_TABLE, 'action' => 'table:' . DENY_BANGEO_TABLE));
+			}
+		} else {
+			$ok = !$exists || $this->access->delChainByName(BEGIN, DENY_BANGEO_TABLE);
+		}
+		if (!$ok) { $this->geoJson(500, '保存地区黑名单开关失败'); }
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+		$this->geoJson(200, '成功');
+	}
+
+	public function addBangeo()
+	{
+		$this->requireGeo();
+		$tree = EpGeo::regions();
+		if (!$tree) { $this->geoJson(500, '无法读取静态地区数据，请先运行地区数据提取脚本'); }
+		$path = EpGeo::selection($tree, ep_request('continent'), ep_request('country'), ep_request('province'));
+		if ($path === false) { $this->geoJson(400, '请选择有效的大洲、国家和省份'); }
+		$name = implode(' / ', $path);
+		foreach ($this->geoRules() as $rule) {
+			if ($rule['region'] === $name) { $this->geoJson(400, '该地区已在黑名单中'); }
+		}
+		// Header matching uses regular expressions; match one complete geo label.
+		$models = array('acl_header' => array('header' => '_geo', 'val' => '^' . preg_quote(end($path), '/') . '$', 'nc' => 0));
+		if (!$this->ensureGeoTable(DENY_BANGEO_TABLE) ||
+			!$this->access->addChain(DENY_BANGEO_TABLE, array('action' => 'deny', 'name' => $name), $models)) {
+			$this->geoJson(500, '增加地区黑名单失败');
+		}
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+		$this->geoJson(200, '成功');
+	}
+
+	public function delBangeo()
+	{
+		$this->requireGeo();
+		$id = ep_request('id');
+		$rules = $this->geoRules();
+		if ($id === '' || !ctype_digit($id) || !isset($rules[intval($id)])) { $this->geoJson(400, '地区规则不存在'); }
+		if (!$this->access->delChain(DENY_BANGEO_TABLE, intval($id))) { $this->geoJson(500, '删除失败'); }
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+		$this->geoJson(200, '成功');
+	}
+
+	public function delBangeoAll()
+	{
+		$this->requireGeo();
+		if (!$this->access->emptyTable(DENY_BANGEO_TABLE)) { $this->geoJson(500, '清空失败'); }
+		apicall('vhost', 'updateVhostSyncseq', array(getRole('vhost')));
+		$this->geoJson(200, '成功');
 	}
 
 	private function addTable($tablename)
@@ -208,10 +319,14 @@ class BanipControl extends Control
 		$url = trim(ep_str(isset($_REQUEST['url']) ? $_REQUEST['url'] : ''));
 		$meth = trim(ep_str(isset($_REQUEST['meth']) ? $_REQUEST['meth'] : ''));
 
-		if (!$url) {
-			exit('URL不能为空');
+		if ($url === '' && $meth === '') {
+			exit('URL和请求方法不能同时为空');
 		}
-		
+		$methodName = substr($meth, 0, 1) === '!' ? substr($meth, 1) : $meth;
+		if ($meth !== '' && !in_array($methodName, array('GET', 'POST', 'PUT', 'DELETE'), true)) {
+			exit('请求方法错误');
+		}
+		$models = array();
 		if(!empty($meth)){
 			if(substr($meth,0,1)=='!'){
 				$meth = substr($meth,1);
@@ -220,7 +335,9 @@ class BanipControl extends Control
 				$models['acl_meth'] = array('meth' => $meth);
 			}
 		}
-		$models['acl_url'] = array('url' => $url, 'nc' => 1);
+		if ($url !== '') {
+			$models['acl_url'] = array('url' => $url, 'nc' => 1);
+		}
 		$arr['action'] = 'deny';
 
 		if (!$this->access->addChain(DENY_BANURL_TABLE, $arr, $models)) {
