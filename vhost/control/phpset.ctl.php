@@ -5,25 +5,6 @@ class PhpsetControl extends Control
 	private $ini_dir = '/vhs/kangle/phpini';
 	private $php_name;
 
-	private $php_extension_dir = [
-		'5.2' => '/lib/php/extensions/no-debug-non-zts-20060613',
-		'5.3' => '/lib/php/extensions/no-debug-non-zts-20090626',
-		'5.4' => '/lib/php/extensions/no-debug-non-zts-20100525',
-		'5.5' => '/lib/php/extensions/no-debug-non-zts-20121212',
-		'5.6' => '/lib/php/extensions/no-debug-non-zts-20131226',
-		'7.0' => '/lib/php/extensions/no-debug-non-zts-20151012',
-		'7.1' => '/lib/php/extensions/no-debug-non-zts-20160303',
-		'7.2' => '/lib/php/extensions/no-debug-non-zts-20170718',
-		'7.3' => '/lib/php/extensions/no-debug-non-zts-20180731',
-		'7.4' => '/lib/php/extensions/no-debug-non-zts-20190902',
-		'8.0' => '/lib/php/extensions/no-debug-non-zts-20200930',
-		'8.1' => '/lib/php/extensions/no-debug-non-zts-20210902',
-		'8.2' => '/lib/php/extensions/no-debug-non-zts-20220829',
-		'8.3' => '/lib/php/extensions/no-debug-non-zts-20230831',
-		'8.4' => '/lib/php/extensions/no-debug-non-zts-20240924',
-		'8.5' => '/lib/php/extensions/no-debug-non-zts-20250925',
-	];
-
 	private $php_extensions = [
 		'opcache' => [
 			'name' => 'Opcache',
@@ -206,8 +187,12 @@ class PhpsetControl extends Control
 	private function getCurrentExtensions($ini_data)
 	{
 		$phpver = substr($this->php_name,-2,1).'.'.substr($this->php_name,-1,1);
-		if (!isset($this->php_extension_dir[$phpver])) return [];
-		$extension_dir = '/vhs/kangle/ext/'.$this->php_name.$this->php_extension_dir[$phpver];
+		// 扩展目录名由 PHP 模块 API 号决定，运行时直接探测，新增 PHP 版本无需维护对照表
+		$dirs = glob('/vhs/kangle/ext/'.$this->php_name.'/lib/php/extensions/no-debug-non-zts-*', GLOB_ONLYDIR);
+		if (empty($dirs)) return [];
+		// ponytail: 同一版本残留多个 API 目录时取 API 号最大者（仅目录重编译升级时出现，重启后即稳定）
+		rsort($dirs);
+		$extension_dir = $dirs[0];
 		if(!is_dir($extension_dir)) return [];
 
 		$file_list = [];
