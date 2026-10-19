@@ -189,24 +189,27 @@ class PhpsetControl extends Control
 		$phpver = substr($this->php_name,-2,1).'.'.substr($this->php_name,-1,1);
 		// 扩展目录名由 PHP 模块 API 号决定，运行时直接探测，新增 PHP 版本无需维护对照表
 		$dirs = glob('/vhs/kangle/ext/'.$this->php_name.'/lib/php/extensions/no-debug-non-zts-*', GLOB_ONLYDIR);
-		if (empty($dirs)) return [];
-		// ponytail: 同一版本残留多个 API 目录时取 API 号最大者（仅目录重编译升级时出现，重启后即稳定）
-		rsort($dirs);
-		$extension_dir = $dirs[0];
-		if(!is_dir($extension_dir)) return [];
+		// ponytail: 8.5 起扩展全静态编译时可能无扩展目录，内置扩展(如opcache)不依赖目录，目录缺失不能提前返回
+		$extension_dir = '';
+		if (!empty($dirs)) {
+			rsort($dirs);
+			$extension_dir = $dirs[0];
+		}
 
 		$file_list = [];
-		$files = scandir($extension_dir);
-		foreach(ep_iter($files) as $file){
-            if($file == '.' || $file == '..') continue;
-			$file_list[] = $file;
+		if ($extension_dir !== '' && is_dir($extension_dir)) {
+			$files = scandir($extension_dir);
+			foreach(ep_iter($files) as $file){
+	            if($file == '.' || $file == '..') continue;
+				$file_list[] = $file;
+			}
 		}
 
 		$list = [];
 		foreach($this->php_extensions as $name=>$row){
 			if($row['admin'] && !getRole('admin')) continue;
-			// PHP 8.5 默认内置并开启 opcache，无 opcache.so，关闭时只写 opcache.enable=0
-			if($name === 'opcache' && $phpver === '8.5'){
+			// PHP 8.5 起默认内置并开启 opcache，无 opcache.so，关闭时只写 opcache.enable=0
+			if($name === 'opcache' && version_compare($phpver, '8.5', '>=')){
 				$row['data'] = 'opcache.enable=0';
 				$row['builtin'] = true;
 				$row['value'] = strpos($ini_data, 'opcache.enable=0')!==false ? 0 : 1;
