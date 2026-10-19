@@ -170,6 +170,49 @@ class WebftpControl extends Control
 		return $this->fetch('webftp/ls.html');
 	}
 
+	public function directorySize()
+	{
+		header('Content-Type: application/json; charset=utf-8');
+		header('Cache-Control: no-store');
+		$file = ep_request('file');
+		if ($file === '' || strpos($file, "\0") !== false) {
+			exit(json_encode(array('code' => 400, 'msg' => '请选择需要计算的文件夹')));
+		}
+		$root = realpath($_SESSION['webftp_docroot']);
+		// AJAX already sends a decoded UTF-8 path; do not apply legacy unescape().
+		$path = $file[0] === '/' ? $file : $this->getcwd() . '/' . $file;
+		$directory = $root === false ? false : realpath(rtrim($root, '/\\') . '/' . ltrim(tolocal($path, $this->file_encoding), '/'));
+		$prefix = $root === false ? '' : rtrim($root, '/\\') . DIRECTORY_SEPARATOR;
+		if ($root === false || $directory === false || !is_dir($directory)
+			|| ($directory !== $root && strncmp($directory, $prefix, strlen($prefix)) !== 0)) {
+			exit(json_encode(array('code' => 400, 'msg' => '文件夹不存在或不允许访问')));
+		}
+		// A large directory scan should not block other requests in this session.
+		session_write_close();
+		clearstatcache();
+		$bytes = 0;
+		try {
+			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
+			foreach ($iterator as $entry) {
+				// Do not follow links outside the site, or recurse into link cycles.
+				if (!$entry->isLink() && $entry->isFile()) {
+					$bytes += $entry->getSize();
+				}
+			}
+		} catch (Exception $e) {
+			exit(json_encode(array('code' => 400, 'msg' => '计算失败，部分目录或文件无法读取，请检查权限后重试')));
+		}
+		$units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+		$size = $bytes;
+		$unit = 0;
+		while ($size >= 1024 && $unit < count($units) - 1) {
+			$size /= 1024;
+			$unit++;
+		}
+		$formatted = ($unit === 0 ? (string) $bytes : number_format($size, 2, '.', '')) . ' ' . $units[$unit];
+		exit(json_encode(array('code' => 200, 'bytes' => $bytes, 'formatted' => $formatted)));
+	}
+
 	private function getcwd()
 	{
 		return $_SESSION['webftp_cwd'];

@@ -11,7 +11,7 @@ var cwd = '{{$cwd|escape:'javascript'}}';
 var dflog = null;
 var left = null;
 </script>
-<script src='{{$STATIC}}webftp/utils.js?v=shell1'></script>
+<script src='{{$STATIC}}webftp/utils.js?v=dirsize1'></script>
 <script language='javascript'>
 	function setbgcolor(id, color) {
 		document.getElementById(id).style.backgroundColor = color;
@@ -151,7 +151,7 @@ var left = null;
 			</td>
 			<td >
 			{{if $file.dir}}
-			 	&lt;DIR&gt; 
+				<a href="#" class="webftp-directory-size" data-file="{{$cwd|escape:'html'}}/{{$file.filenamehtml}}" onclick="return calculate_directory_size(this);" title="递归统计文件大小，不跟随符号链接；点击可重新计算">[计算]</a>
 			{{else}} 
 				{{if $file.info[7]>1048576}}
 					{{number_format($file.info[7]/1048576, 2,'.', '')}}MB

@@ -13,7 +13,7 @@ class RealipControl extends Control
 
 	private function headers()
 	{
-		return array('X-Forwarded-For', 'X-Real-Ip', 'CF-Connecting-IP', 'True-Client-IP', 'Cdn-Src-Ip', 'Ali-CDN-Real-IP');
+		return array('X-Forwarded-For', 'X-Real-Ip', 'CF-Connecting-IP', 'True-Client-IP', 'Cdn-Src-Ip', 'Ali-CDN-Real-IP', 'EO-Connecting-IP');
 	}
 
 	public function show()

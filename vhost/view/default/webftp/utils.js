@@ -1,3 +1,30 @@
+function calculate_directory_size(element)
+{
+	var link = jQuery(element);
+	if (link.data('calculating')) { return false; }
+	link.data('calculating', true).attr('aria-disabled', 'true');
+	var loading = layer.load(2, {shade: [0.1, '#fff']});
+	jQuery.ajax({
+		type: 'POST',
+		url: '?c=webftp&a=directorySize',
+		data: {file: link.attr('data-file')},
+		dataType: 'json',
+		success: function (result) {
+			if (result && result.code === 200) {
+				link.text(result.formatted).attr('title', result.bytes + ' 字节，点击重新计算');
+			} else {
+				layer.alert(result && result.msg ? result.msg : '计算失败，请重试', {icon: 2});
+			}
+		},
+		error: function () { layer.alert('计算失败，请检查网络后重试', {icon: 2}); },
+		complete: function () {
+			layer.close(loading);
+			link.data('calculating', false).removeAttr('aria-disabled');
+		}
+	});
+	return false;
+}
+
 var xmlhttp;
 function webftp_request(action, data, refreshAfter)
 {
