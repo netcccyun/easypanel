@@ -113,6 +113,20 @@ class PhpsetControl extends Control
 			'sort' => 2,
 			'admin' => true
 		],
+		'imagick' => [
+			'name' => 'ImageMagick',
+			'description' => '图像处理扩展, 用于图片缩放/水印/格式转换',
+			'file' => 'imagick.so',
+			'data' => "extension={file}",
+			'sort' => 2
+		],
+		'apcu' => [
+			'name' => 'APCu',
+			'description' => '用户数据内存缓存, 可加速WordPress/Drupal等程序',
+			'file' => 'apcu.so',
+			'data' => "extension={file}",
+			'sort' => 2
+		],
 	];
 
 	private $php_configs = [
