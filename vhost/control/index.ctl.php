@@ -234,6 +234,16 @@ class IndexControl extends Control
 		$_SESSION['webftp_docroot'] = $user['doc_root'];
 		$_SESSION['webftp_user'] = $user['uid'];
 		$_SESSION['webftp_group'] = $user['gid'];
+		$dir = trim(ep_request('dir'));
+
+		if ($dir !== '') {
+			load_lib('pub:webftp');
+			$_SESSION['webftp_cwd'] = trimdir('/' . ltrim(str_replace('\\', '/', $dir), '/'));
+			ob_clean();
+			header('Location: ?c=webftp&a=index');
+			return;
+		}
+
 		ob_clean();
 		header('Location: ?c=webftp&a=enter');
 	}
