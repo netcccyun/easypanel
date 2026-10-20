@@ -239,7 +239,10 @@ class PhpsetControl extends Control
 			}
 			if($file_name){
 				$row['file'] = $file_name;
-				$row['data'] = str_replace('{file}', $file_name, $row['data']);
+				// PHP 5.4 及更早不会按 extension_dir 解析 zend_extension 的裸文件名, 统一写绝对路径
+				$file_path = ($extension_dir !== '' && in_array($name, array('ioncube', 'sourceguardian', 'zend', 'xloader')))
+					? rtrim($extension_dir, '/') . '/' . $file_name : $file_name;
+				$row['data'] = str_replace('{file}', $file_path, $row['data']);
 				$row['value'] = strpos($ini_data, $row['file'])!==false ? 1 : 0;
 				$list[$name] = $row;
 			}
