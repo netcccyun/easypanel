@@ -190,7 +190,7 @@ abstract class Smarty_Internal_Data
      *
      * @return mixed variable value or or array of variables
      */
-    public function getTemplateVars($varName = null, Smarty_Internal_Data $_ptr = null, $searchParents = true)
+    public function getTemplateVars($varName = null, $_ptr = null, $searchParents = true)
     {
         return $this->ext->getTemplateVars->getTemplateVars($this, $varName, $_ptr, $searchParents);
     }
@@ -208,7 +208,7 @@ abstract class Smarty_Internal_Data
      */
     public function getVariable(
         $variable = null,
-        Smarty_Internal_Data $_ptr = null,
+        $_ptr = null,
         $searchParents = true,
         $error_enable = true
     ) {
@@ -220,7 +220,7 @@ abstract class Smarty_Internal_Data
      *
      * @param \Smarty_Internal_Data|null $data
      */
-    public function _mergeVars(Smarty_Internal_Data $data = null)
+    public function _mergeVars($data = null)
     {
         if (isset($data)) {
             if (!empty($this->tpl_vars)) {

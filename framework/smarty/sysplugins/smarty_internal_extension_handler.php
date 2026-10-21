@@ -36,6 +36,7 @@
  * @property   Smarty_Internal_Method_RegisterPlugin     $registerPlugin
  * @property   mixed|\Smarty_Template_Cached             configLoad
  */
+#[AllowDynamicProperties] // PHP 8.2 动态属性；PHP 5.6 视为注释
 class Smarty_Internal_Extension_Handler
 {
     public $objType = null;

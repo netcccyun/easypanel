@@ -597,7 +597,7 @@ class CdnAPI extends API
 			'http' => array('timeout' => 120, 'header' => "Connection: close\r\n")
 			);
 		$url .= '?c=cdn&a=list_vh';
-		srand((double) microtime() * 1000000);
+		srand((float) microtime() * 1000000);
 		$skey = daocall('setting', 'get', array('skey'));
 		$r = time() . rand();
 		$s = md5('list_vh' . $skey . $r);

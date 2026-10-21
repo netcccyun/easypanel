@@ -105,7 +105,6 @@ class SessionControl extends Control
 
 			Header('Content-type: image/png');
 			ImagePng($aimg);
-			ImageDestroy($aimg);
 		}
 	}
 

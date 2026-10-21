@@ -13,7 +13,7 @@ class ProcessApi extends API
 	 * @param $stdin 输入数据，此参数设置了，将以合并执行模式。
 	 * @param $worker 保留,工作队列，格式(队列名称:最大工作者)
 	 */
-	public function daemon($shell_call, array $args = null, $stdin = null, $worker = null)
+	public function daemon($shell_call, $args = null, $stdin = null, $worker = null)
 	{
 		$this->check_whm_file();
 		$whm = apicall('nodes', 'makeWhm');
