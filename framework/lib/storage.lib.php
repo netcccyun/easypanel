@@ -10,11 +10,21 @@ abstract class RemoteStorage
 	protected $setting = array();
 	protected $root = '';
 	protected $error = '';
+	protected $timeout = 3600;
 	private static $create_error = '';
 
 	public function __construct($setting)
 	{
 		$this->setting = is_array($setting) ? $setting : array();
+	}
+
+	/**
+	 * 读取指定键的传输超时（秒），非法值回退 3600
+	 */
+	protected function resolveTimeout($key)
+	{
+		$timeout = isset($this->setting[$key]) ? intval($this->setting[$key]) : 0;
+		return ($timeout >= 60 && $timeout <= 86400) ? $timeout : 3600;
 	}
 
 	/**
@@ -687,6 +697,7 @@ class WebdavStorage extends RemoteStorage
 	public function __construct($setting)
 	{
 		parent::__construct($setting);
+		$this->timeout = $this->resolveTimeout('webdav_timeout');
 		$this->root = isset($setting['webdav_dir']) ? $setting['webdav_dir'] : '';
 		$this->url = isset($setting['webdav_url']) ? trim($setting['webdav_url']) : '';
 		$this->user = isset($setting['webdav_user']) ? trim($setting['webdav_user']) : '';
@@ -883,7 +894,7 @@ class WebdavStorage extends RemoteStorage
 
 	public function putFile($local, $remote)
 	{
-		$ret = $this->request('PUT', $this->urlFor($remote), 3600, $local);
+		$ret = $this->request('PUT', $this->urlFor($remote), $this->timeout, $local);
 
 		if ($ret['error'] !== '') {
 			$this->error = $ret['error'];
@@ -899,7 +910,7 @@ class WebdavStorage extends RemoteStorage
 
 	public function getFile($remote, $local)
 	{
-		$ret = $this->request('GET', $this->urlFor($remote), 3600, null, $local);
+		$ret = $this->request('GET', $this->urlFor($remote), $this->timeout, null, $local);
 
 		if ($ret['error'] !== '') {
 			$this->error = $ret['error'];
@@ -1176,6 +1187,7 @@ class S3Storage extends RemoteStorage
 	public function __construct($setting)
 	{
 		parent::__construct($setting);
+		$this->timeout = $this->resolveTimeout('s3_timeout');
 		$this->root = isset($setting['s3_dir']) ? $setting['s3_dir'] : '';
 		$this->endpoint = isset($setting['s3_endpoint']) ? trim($setting['s3_endpoint']) : '';
 		$this->region = isset($setting['s3_region']) ? trim($setting['s3_region']) : '';
@@ -1473,7 +1485,7 @@ class S3Storage extends RemoteStorage
 			return false;
 		}
 
-		$ret = $this->request('PUT', $this->keyUri($key), array(), $hash, 3600, $local);
+		$ret = $this->request('PUT', $this->keyUri($key), array(), $hash, $this->timeout, $local);
 
 		if ($ret['error'] !== '') {
 			$this->error = $ret['error'];
@@ -1490,7 +1502,7 @@ class S3Storage extends RemoteStorage
 	public function getFile($remote, $local)
 	{
 		$key = $this->fullPath($remote);
-		$ret = $this->request('GET', $this->keyUri($key), array(), hash('sha256', ''), 3600, null, $local);
+		$ret = $this->request('GET', $this->keyUri($key), array(), hash('sha256', ''), $this->timeout, null, $local);
 
 		if ($ret['error'] !== '') {
 			$this->error = $ret['error'];

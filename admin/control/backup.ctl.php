@@ -217,6 +217,17 @@ class BackupControl extends control
 		$s3_access_key = trim(ep_request('s3_access_key'));
 		$s3_secret_key = trim(ep_request('s3_secret_key'));
 		$s3_dir = $this->cleanDir('s3_dir');
+		$webdav_timeout = intval(ep_request('webdav_timeout'));
+
+		if ($webdav_timeout < 60 || $webdav_timeout > 86400) {
+			$webdav_timeout = 3600;
+		}
+
+		$s3_timeout = intval(ep_request('s3_timeout'));
+
+		if ($s3_timeout < 60 || $s3_timeout > 86400) {
+			$s3_timeout = 3600;
+		}
 
 		if ($save_place != 'l') {
 			if ($type == 'ftp') {
@@ -275,6 +286,8 @@ class BackupControl extends control
 		daocall('setting', 'add', array('s3_access_key', $s3_access_key));
 		daocall('setting', 'add', array('s3_secret_key', $s3_secret_key));
 		daocall('setting', 'add', array('s3_dir', $s3_dir));
+		daocall('setting', 'add', array('webdav_timeout', $webdav_timeout));
+		daocall('setting', 'add', array('s3_timeout', $s3_timeout));
 		daocall('setting', 'add', array('backup_mysql', intval($_REQUEST['backup_mysql'])));
 		daocall('setting', 'add', array('backup_passwd', trim(ep_request('backup_passwd'))));
 		daocall('setting', 'add', array('backup_save_day', trim(ep_request('backup_save_day'))));

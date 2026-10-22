@@ -183,6 +183,9 @@ function hidediv()
 						<input name="webdav_passwd" id='webdav_passwd'  size='10' value="{{if $setting.webdav_passwd}}{{$setting.webdav_passwd}}{{/if}}">
 						目录(可空):
 						<input name="webdav_dir" id='webdav_dir'  size='14' value="{{if $setting.webdav_dir}}{{$setting.webdav_dir}}{{/if}}">
+						<br>传输超时(秒):
+						<input name="webdav_timeout" size='6' value="{{if $setting.webdav_timeout}}{{$setting.webdav_timeout}}{{else}}3600{{/if}}">
+						<span style="color:#888;">60–86400，0 或空用默认 3600</span>
 						<input type='button' onclick="test_remote('webdav');" value="测试连接">
 					</div>
 					
@@ -199,6 +202,9 @@ function hidediv()
 						<input name="s3_secret_key" id='s3_secret_key'  size='20' value="{{if $setting.s3_secret_key}}{{$setting.s3_secret_key}}{{/if}}">
 						目录(Key前缀，可空):
 						<input name="s3_dir" id='s3_dir'  size='14' value="{{if $setting.s3_dir}}{{$setting.s3_dir}}{{/if}}">
+						<br>传输超时(秒):
+						<input name="s3_timeout" size='6' value="{{if $setting.s3_timeout}}{{$setting.s3_timeout}}{{else}}3600{{/if}}">
+						<span style="color:#888;">60–86400，0 或空用默认 3600</span>
 						<input type='button' onclick="test_remote('s3');" value="测试连接">
 						<div style="color:#888;margin-top:4px;">Endpoint 需包含 http(s)://；Cloudflare R2 区域填 auto；兼容 AWS S3、MinIO</div>
 					</div>
