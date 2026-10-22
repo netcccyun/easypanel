@@ -37,7 +37,7 @@ class Process
 	 * @param $stdout 输出内容
 	 * @return 返回code
 	 */
-	public function result($rs, &$pipes, $stdin = null, $stdout = "-", $stderr = "-", &$err)
+	public function result($rs, &$pipes, $stdin = null, $stdout = "-", $stderr = "-", &$err = null)
 	{
 		if (is_resource($rs)) {
 			if ($stdin && is_resource($pipes[0])) {

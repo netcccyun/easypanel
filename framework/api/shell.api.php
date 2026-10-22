@@ -260,7 +260,7 @@ class ShellAPI extends API
 	array('synctime' => time(), 'syncstatus' => 0)
 	));
 		$url = 'http://' . $node['host'] . ':'.$node['port'].'/api/?c=cdn&a=getflow';
-		srand((double) microtime() * 1000000);
+		srand((float) microtime() * 1000000);
 		$setting = daocall('setting', 'getAll', array());
 		$skey = $node['skey'];
 

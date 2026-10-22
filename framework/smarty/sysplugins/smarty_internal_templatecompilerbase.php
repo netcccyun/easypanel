@@ -393,7 +393,7 @@ abstract class Smarty_Internal_TemplateCompilerBase
     public function compileTemplate(
         Smarty_Internal_Template $template,
         $nocache = null,
-        Smarty_Internal_TemplateCompilerBase $parent_compiler = null
+        $parent_compiler = null
     ) {
         // get code frame of compiled template
         $_compiled_code = $template->smarty->ext->_codeFrame->create(
@@ -424,7 +424,7 @@ abstract class Smarty_Internal_TemplateCompilerBase
     public function compileTemplateSource(
         Smarty_Internal_Template $template,
         $nocache = null,
-        Smarty_Internal_TemplateCompilerBase $parent_compiler = null
+        $parent_compiler = null
     ) {
         try {
             // save template object in compiler class

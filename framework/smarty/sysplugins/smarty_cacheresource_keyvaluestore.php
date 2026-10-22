@@ -96,7 +96,7 @@ abstract class Smarty_CacheResource_KeyValueStore extends Smarty_CacheResource
      */
     public function process(
         Smarty_Internal_Template $_smarty_tpl,
-        Smarty_Template_Cached $cached = null,
+        $cached = null,
         $update = false
     ) {
         if (!$cached) {

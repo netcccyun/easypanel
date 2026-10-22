@@ -13,7 +13,7 @@ class ProcessApi extends API
 	 * @param $stdin 输入数据，此参数设置了，将以合并执行模式。
 	 * @param $worker 保留,工作队列，格式(队列名称:最大工作者)
 	 */
-	public function daemon($shell_call, array $args = null, $stdin = null, $worker = null)
+	public function daemon($shell_call, $args = null, $stdin = null, $worker = null)
 	{
 		$this->check_whm_file();
 		$whm = apicall('nodes', 'makeWhm');
@@ -56,7 +56,13 @@ class ProcessApi extends API
 	 */
 	public function get_easypanel_shell()
 	{
-		$cmd = '"' . $GLOBALS['safe_dir'] . '../ext/php56/';
+		$ext = $GLOBALS['safe_dir'] . '../ext/php' . PHP_MAJOR_VERSION . PHP_MINOR_VERSION . '/';
+
+		if (!is_file($ext . (is_win() ? 'php.exe' : 'bin/php'))) {
+			$ext = $GLOBALS['safe_dir'] . '../ext/php56/';
+		}
+
+		$cmd = '"' . $ext;
 
 		if (is_win()) {
 			$cmd .= 'php.exe';
@@ -68,10 +74,10 @@ class ProcessApi extends API
 		$cmd .= '"';
 
 		if (is_win()) {
-			$cmd .= ' -c "' . $GLOBALS['safe_dir'] . '../ext/php56/phpnode.ini"';
+			$cmd .= ' -c "' . $ext . 'phpnode.ini"';
 		}
 		else {
-			$cmd .= ' -c "' . $GLOBALS['safe_dir'] . '../ext/php56/etc/php-node.ini"';
+			$cmd .= ' -c "' . $ext . 'etc/php-node.ini"';
 		}
 
 		$cmd .= ' -f "';

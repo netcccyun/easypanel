@@ -52,7 +52,7 @@ abstract class Smarty_CacheResource
      */
     abstract public function process(
         Smarty_Internal_Template $_template,
-        Smarty_Template_Cached $cached = null,
+        $cached = null,
         $update = false
     );
 

@@ -166,14 +166,14 @@ class NodesAPI extends API
 		}
 
 		$whmCall = new WhmCall('core.whm', 'info');
-		return $whm->call($whmCall, 'info');
+		return $whm->call($whmCall, 10);
 	}
 
 	public function getWhmInfo($user, $passwd)
 	{
 		$whm = $this->makeLocalWhm($user, $passwd);
 		$whmCall = new WhmCall('core.whm', 'info');
-		return $whm->call($whmCall, 'info');
+		return $whm->call($whmCall, 10);
 	}
 
 	public function supportsHttp3($node = 'localhost')

@@ -427,7 +427,7 @@ function modcall($module, $function, $args = array())
 	load_mod($module);
 
 	if (function_exists($function)) {
-		return call_user_func_array($function, $args);
+		return call_user_func_array($function, array_values($args));
 	}
 
 	return false;
@@ -491,7 +491,7 @@ function BaseCall($module, $className, $method, $args, $mul_mod = false, $is_sta
 			return false;
 		}
 
-		$result = call_user_func_array(array($object, $method), $args == null ? array() : $args);
+		$result = call_user_func_array(array($object, $method), $args == null ? array() : array_values($args));
 		return $result;
 	}
 
@@ -572,7 +572,7 @@ function getTitle()
 function getRandPasswd($len = 8)
 {
 	$base_passwd = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789';
-	srand((double) microtime() * 1000000);
+	srand((float) microtime() * 1000000);
 	$base_len = strlen($base_passwd);
 
 	if ($len < 8) {
@@ -604,7 +604,7 @@ function needRole($role)
 function microtime_float()
 {
 	list($usec, $sec) = explode(' ', microtime());
-	return (double) $usec + (double) $sec;
+	return (float) $usec + (float) $sec;
 }
 
 function startFramework()

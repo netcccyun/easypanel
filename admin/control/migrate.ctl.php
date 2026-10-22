@@ -209,7 +209,7 @@ class MigrateControl extends Control
 		}
 
 		load_lib('pub:whm');
-		srand((double) microtime() * 1000000);
+		srand((float) microtime() * 1000000);
 		$call = new WhmCall('api/', 'migrate_down');
 		$url = 'http://' . $this->migrate_host . ':'.$this->migrate_port.'/' . $call->buildEpanelUrl($this->migrate_skey);
 		$url .= '&f=' . $vh . $file_ext;
