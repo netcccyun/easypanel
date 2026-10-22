@@ -86,6 +86,10 @@ class SessionControl extends Control
 
 			Header('Content-type: image/png');
 			ImagePng($aimg);
+
+			if (PHP_VERSION_ID < 80000) {
+				ImageDestroy($aimg);
+			}
 		}
 	}
 

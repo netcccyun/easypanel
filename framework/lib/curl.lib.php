@@ -57,6 +57,10 @@ class Curl
 		$this->result = curl_exec($this->obj);
 		$this->error = curl_error($this->obj);
 
+		if (PHP_VERSION_ID < 80000) {
+			curl_close($this->obj);
+		}
+
 		if ($this->result === false) {
 			return false;
 		}
