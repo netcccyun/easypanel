@@ -228,33 +228,63 @@ class UtilsAPI extends API
 		}
 
 		if ($db_user != '') {
+			// PHP 8.1+ mysqli 默认抛异常；此处沿用旧版行为，单条语句失败不中断后续流程
+			$report = PHP_VERSION_ID >= 80100 ? MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT : MYSQLI_REPORT_OFF;
+			mysqli_report(MYSQLI_REPORT_OFF);
 			$connect = mysqli_connect($db_host, $db_user, $db_passwd);
 
 			if (!$connect) {
 				$connect = mysqli_connect($db_host, $db_user, $old_passwd);
 
 				if (!$connect) {
+					mysqli_report($report);
 					return false;
 				}
 			}
 
-			mysqli_query($connect, 'delete from `mysql`.`user` where `user`=\'' . $db_user . '\' and host!=\'%\' and host!=\'localhost\'');
+			$user = mysqli_real_escape_string($connect, $db_user);
+			mysqli_query($connect, 'delete from `mysql`.`user` where `user`=\'' . $user . '\' and host!=\'%\' and host!=\'localhost\'');
 			mysqli_query($connect, 'DELETE FROM `mysql`.`user` where `user`=\'\'');
-			mysqli_query($connect, 'SET PASSWORD FOR \'' . $db_user . '\'@\'localhost\' = PASSWORD( \'' . $db_passwd . '\' )');
-			mysqli_query($connect, 'SET PASSWORD FOR \'' . $db_user . '\'@\'%\' = PASSWORD( \'' . $db_passwd . '\' )');
+			$this->changeDbPassword($connect, $db_user, 'localhost', $db_passwd);
+			$this->changeDbPassword($connect, $db_user, '%', $db_passwd);
 			$roots = array('Create_tablespace_priv', 'Trigger_priv', 'Event_priv', 'Create_user_priv', 'Alter_routine_priv');
 			$i = 0;
 
 			while ($i < count($roots)) {
-				mysqli_query($connect, 'update mysql.`user` set ' . $roots[$i] . '=\'Y\' where  `user`=\'' . $db_user . '\'');
+				mysqli_query($connect, 'update mysql.`user` set ' . $roots[$i] . '=\'Y\' where  `user`=\'' . $user . '\'');
 				++$i;
 			}
 
 			mysqli_query($connect, 'flush privileges');
 			mysqli_close($connect);
+			mysqli_report($report);
 		}
 
 		return true;
+	}
+
+	/**
+	 * 只修改 mysql.user 中实际存在的账号；如仅有 root@localhost、没有 root@'%' 时直接跳过
+	 * ponytail: host 存在性以 mysql.user 为准；MySQL 8 已移除 PASSWORD()，故优先 ALTER USER
+	 */
+	private function changeDbPassword($connect, $db_user, $db_host, $db_passwd)
+	{
+		$user = mysqli_real_escape_string($connect, $db_user);
+		$host = mysqli_real_escape_string($connect, $db_host);
+		$result = mysqli_query($connect, 'select 1 from `mysql`.`user` where `user`=\'' . $user . '\' and `host`=\'' . $host . '\'');
+
+		if (!$result || !mysqli_num_rows($result)) {
+			return false;
+		}
+
+		$passwd = mysqli_real_escape_string($connect, $db_passwd);
+		$account = '\'' . $user . '\'@\'' . $host . '\'';
+
+		if (mysqli_query($connect, 'ALTER USER ' . $account . ' IDENTIFIED BY \'' . $passwd . '\'')) {
+			return true;
+		}
+
+		return mysqli_query($connect, 'SET PASSWORD FOR ' . $account . ' = PASSWORD( \'' . $passwd . '\' )');
 	}
 
 	public function mergeKeyword($keyword)
