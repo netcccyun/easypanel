@@ -1,15 +1,52 @@
 {{include file='common/head.html'}}
 <script language='javascript'>
-function test_ftp()
+function view_remote(val)
 {
-	var h = $("#host").val();
-	var u = $("#user").val();
-	var p = $("#passwd").val();
-	var po = $("#port").val();
-	var url = "?c=backup&a=testFtp&host=" + h + "&user=" + u + "&passwd=" + p + "&port=" + po;
-	$.get(url,function(msg){
-		if (msg=="success") {alert("连接可用");} else { alert("连接不可用");}
-	});
+	if (val == 'l') {
+		$("#remote").css("display", "none");
+	} else {
+		$("#remote").css("display", "");
+	}
+}
+function view_remote_type(type)
+{
+	var types = ['ftp', 'sftp', 'webdav', 's3'];
+	for (var i = 0; i < types.length; i++) {
+		$("#remote-" + types[i]).css("display", types[i] == type ? "block" : "none");
+	}
+}
+function test_remote(type)
+{
+	var data = {type: type};
+	if (type == 'ftp') {
+		data.host = $("#ftp_host").val();
+		data.port = $("#ftp_port").val();
+		data.user = $("#ftp_user").val();
+		data.passwd = $("#ftp_passwd").val();
+		data.dir = $("#ftp_dir").val();
+	} else if (type == 'sftp') {
+		data.host = $("#sftp_host").val();
+		data.port = $("#sftp_port").val();
+		data.user = $("#sftp_user").val();
+		data.passwd = $("#sftp_passwd").val();
+		data.key = $("#sftp_key").val();
+		data.key_pub = $("#sftp_key_pub").val();
+		data.key_pass = $("#sftp_key_pass").val();
+		data.dir = $("#sftp_dir").val();
+	} else if (type == 'webdav') {
+		data.url = $("#webdav_url").val();
+		data.user = $("#webdav_user").val();
+		data.passwd = $("#webdav_passwd").val();
+		data.dir = $("#webdav_dir").val();
+	} else if (type == 's3') {
+		data.endpoint = $("#s3_endpoint").val();
+		data.region = $("#s3_region").val();
+		data.bucket = $("#s3_bucket").val();
+		data.access_key = $("#s3_access_key").val();
+		data.secret_key = $("#s3_secret_key").val();
+		data.dir = $("#s3_dir").val();
+	}
+	$.post('?c=backup&a=testRemote', data, function(msg){alert(msg);});
 }
 function checked_mysql()
 {
@@ -56,15 +93,6 @@ function hidediv()
 		$("#hid").html('隐藏');
 	}
 }
-function view_ftp(val)
-{
-	if(val !='l')
-	{
-		$("#ftp").css("display","block");
-	}else{
-		$("#ftp").css("display","none");
-	}
-}
 </script>
 <div align="center">
 	<div class="wid_main mar_main" align="left">
@@ -98,22 +126,83 @@ function view_ftp(val)
 			
 			<tr><td>备份文件保存位置:
 					{{foreach from=$backup_save_place item=row}}
-					<input name="backup_save_place" type="radio" onclick="view_ftp(this.value);" value="{{$row[0]}}" {{if $setting.backup_save_place==$row[0]}}checked{{/if}} >
+					<input name="backup_save_place" type="radio" onclick="view_remote(this.value);" value="{{$row[0]}}" {{if $setting.backup_save_place==$row[0]}}checked{{/if}} >
 					{{$row[1]}}
 					{{/foreach}}</td></tr>
 			
-			<tr id='ftp' style="display:{{if $setting.backup_save_place =='l'}}none{{/if}}"><td>
+			<tr id='remote' {{if $setting.backup_save_place == 'l'}}style="display:none"{{/if}}><td>
+					远程存储方式:
+					<select name="backup_remote_type" id="backup_remote_type" onchange="view_remote_type(this.value);">
+						<option value="ftp" {{if $remote_type=='ftp'}}selected{{/if}}>FTP</option>
+						<option value="sftp" {{if $remote_type=='sftp'}}selected{{/if}}>SFTP</option>
+						<option value="webdav" {{if $remote_type=='webdav'}}selected{{/if}}>WebDAV</option>
+						<option value="s3" {{if $remote_type=='s3'}}selected{{/if}}>S3（含 R2 / MinIO）</option>
+					</select>
+					
+					<div id="remote-ftp" style="display:{{if $remote_type=='ftp'}}block{{else}}none{{/if}};margin-top:8px;">
 						FTP主机地址:
-						<input name="ftp_host" id='host'  size='14' value="{{if $setting.ftp_host}}{{$setting.ftp_host}}{{/if}}">
+						<input name="ftp_host" id='ftp_host'  size='14' value="{{if $setting.ftp_host}}{{$setting.ftp_host}}{{/if}}">
 						FTP端口:
-						<input name="ftp_port" id='port'  size='4' value="{{if $setting.ftp_port}}{{$setting.ftp_port}}{{else}}21{{/if}}">
+						<input name="ftp_port" id='ftp_port'  size='4' value="{{if $setting.ftp_port}}{{$setting.ftp_port}}{{else}}21{{/if}}">
 						FTP账号:
-						<input name="ftp_user" id='user'  size='10' value="{{if $setting.ftp_user}}{{$setting.ftp_user}}{{/if}}">
+						<input name="ftp_user" id='ftp_user'  size='10' value="{{if $setting.ftp_user}}{{$setting.ftp_user}}{{/if}}">
 						FTP密码:
-						<input name="ftp_passwd" id='passwd'  size='10' value="{{if $setting.ftp_passwd}}{{$setting.ftp_passwd}}{{/if}}">
+						<input name="ftp_passwd" id='ftp_passwd'  size='10' value="{{if $setting.ftp_passwd}}{{$setting.ftp_passwd}}{{/if}}">
 						FTP目录:
-						<input name="ftp_dir" id='dir'  size='10' value="{{if $setting.ftp_dir}}{{$setting.ftp_dir}}{{/if}}">
-						<input type='button' onclick="test_ftp();" value="测试连接"></td>	</tr>
+						<input name="ftp_dir" id='ftp_dir'  size='10' value="{{if $setting.ftp_dir}}{{$setting.ftp_dir}}{{/if}}">
+						<input type='button' onclick="test_remote('ftp');" value="测试连接">
+					</div>
+					
+					<div id="remote-sftp" style="display:{{if $remote_type=='sftp'}}block{{else}}none{{/if}};margin-top:8px;">
+						SFTP主机地址:
+						<input name="sftp_host" id='sftp_host'  size='14' value="{{if $setting.sftp_host}}{{$setting.sftp_host}}{{/if}}">
+						SFTP端口:
+						<input name="sftp_port" id='sftp_port'  size='4' value="{{if $setting.sftp_port}}{{$setting.sftp_port}}{{else}}22{{/if}}">
+						SFTP账号:
+						<input name="sftp_user" id='sftp_user'  size='10' value="{{if $setting.sftp_user}}{{$setting.sftp_user}}{{/if}}">
+						SFTP密码:
+						<input name="sftp_passwd" id='sftp_passwd'  size='10' value="{{if $setting.sftp_passwd}}{{$setting.sftp_passwd}}{{/if}}">
+						<br>私钥路径:
+						<input name="sftp_key" id='sftp_key'  size='30' value="{{if $setting.sftp_key}}{{$setting.sftp_key}}{{/if}}">
+						公钥路径(可选):
+						<input name="sftp_key_pub" id='sftp_key_pub'  size='30' value="{{if $setting.sftp_key_pub}}{{$setting.sftp_key_pub}}{{/if}}">
+						私钥口令(可选):
+						<input name="sftp_key_pass" id='sftp_key_pass'  size='10' value="{{if $setting.sftp_key_pass}}{{$setting.sftp_key_pass}}{{/if}}">
+						<br>SFTP目录:
+						<input name="sftp_dir" id='sftp_dir'  size='14' value="{{if $setting.sftp_dir}}{{$setting.sftp_dir}}{{/if}}">
+						<input type='button' onclick="test_remote('sftp');" value="测试连接">
+						{{if !$ssh2_loaded}}<div style="color:red;margin-top:4px;">未启用 ssh2 扩展：请先安装 ssh2；若已安装，请在 {{$ssh2_ini}} 中添加 extension={{$ssh2_ext}} 后重启 kangle</div>{{/if}}
+					</div>
+					
+					<div id="remote-webdav" style="display:{{if $remote_type=='webdav'}}block{{else}}none{{/if}};margin-top:8px;">
+						WebDAV地址:
+						<input name="webdav_url" id='webdav_url'  size='40' value="{{if $setting.webdav_url}}{{$setting.webdav_url}}{{/if}}">
+						<br>账号:
+						<input name="webdav_user" id='webdav_user'  size='10' value="{{if $setting.webdav_user}}{{$setting.webdav_user}}{{/if}}">
+						密码:
+						<input name="webdav_passwd" id='webdav_passwd'  size='10' value="{{if $setting.webdav_passwd}}{{$setting.webdav_passwd}}{{/if}}">
+						目录(可空):
+						<input name="webdav_dir" id='webdav_dir'  size='14' value="{{if $setting.webdav_dir}}{{$setting.webdav_dir}}{{/if}}">
+						<input type='button' onclick="test_remote('webdav');" value="测试连接">
+					</div>
+					
+					<div id="remote-s3" style="display:{{if $remote_type=='s3'}}block{{else}}none{{/if}};margin-top:8px;">
+						Endpoint:
+						<input name="s3_endpoint" id='s3_endpoint'  size='40' value="{{if $setting.s3_endpoint}}{{$setting.s3_endpoint}}{{/if}}">
+						区域:
+						<input name="s3_region" id='s3_region'  size='8' value="{{if $setting.s3_region}}{{$setting.s3_region}}{{else}}auto{{/if}}">
+						<br>Bucket:
+						<input name="s3_bucket" id='s3_bucket'  size='16' value="{{if $setting.s3_bucket}}{{$setting.s3_bucket}}{{/if}}">
+						AccessKey:
+						<input name="s3_access_key" id='s3_access_key'  size='20' value="{{if $setting.s3_access_key}}{{$setting.s3_access_key}}{{/if}}">
+						SecretKey:
+						<input name="s3_secret_key" id='s3_secret_key'  size='20' value="{{if $setting.s3_secret_key}}{{$setting.s3_secret_key}}{{/if}}">
+						目录(Key前缀，可空):
+						<input name="s3_dir" id='s3_dir'  size='14' value="{{if $setting.s3_dir}}{{$setting.s3_dir}}{{/if}}">
+						<input type='button' onclick="test_remote('s3');" value="测试连接">
+						<div style="color:#888;margin-top:4px;">Endpoint 需包含 http(s)://；Cloudflare R2 区域填 auto；兼容 AWS S3、MinIO</div>
+					</div>
+				</td></tr>
 			
 			<tr><td>备份文件分卷大小:
 					{{foreach from=$volumn_size item=row}}

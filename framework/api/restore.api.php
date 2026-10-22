@@ -23,7 +23,7 @@ class RestoreAPI extends API
 	private $kangle_etc_dir;
 	private $fopen;
 	private $databases;
-	private $ftpconnect = null;
+	private $storage = null;
 	private $vh;
 	private $vhinfo;
 	private $pdo;
@@ -59,6 +59,7 @@ class RestoreAPI extends API
 		$this->backup_dir = $this->setting['backup_dir'];
 		$this->z7outtmpdir = $this->backup_dir . $this->z7outtmpdirname . '/';
 		load_lib('pub:process');
+		load_lib('pub:storage');
 	}
 
 	public function restore($dir, $vhname = null)
@@ -92,7 +93,7 @@ class RestoreAPI extends API
 		}
 
 		echo 'now restore dir=' . $dir . "\n";
-		$ftp_dirs = $this->listFtpDirFile($this->setting['ftp_dir']);
+		$ftp_dirs = $this->listRemoteDirFile('');
 		$count = count($ftp_dirs);
 
 		if ($count <= 0) {
@@ -274,7 +275,7 @@ class RestoreAPI extends API
 			$this->delLocalFile($this->backup_dir . MYSQL_LIST_FILE);
 		}
 
-		$wget_file = $this->wgetFtpfile($filename, $dir);
+		$wget_file = $this->fetchRemoteFile($filename, $dir);
 
 		if (!$wget_file) {
 			$this->showMsg('restore: get file ' . $filename . " failed\n");
@@ -723,7 +724,7 @@ class RestoreAPI extends API
 	private function restoreEtc()
 	{
 		close_all_db();
-		$wget_file = $this->wgetFtpfile('etc.7z.001', $this->dir);
+		$wget_file = $this->fetchRemoteFile('etc.7z.001', $this->dir);
 
 		if (!$wget_file) {
 			$this->showMsg('wget file etc.7z.001 to ' . $this->dir . " failed\n");
@@ -816,6 +817,21 @@ class RestoreAPI extends API
 			$this->showMsg('restore dir ' . $d . " ...\n");
 			$file = $this->backup_dir . $d . '/' . $vh['name'] . '.web.7z.001';
 
+			if (!file_exists($file) && $this->setting['backup_save_place'] == 'r') {
+				$local_dir = $this->backup_dir . $d . '/';
+
+				if (!is_dir($local_dir)) {
+					@mkdir($local_dir, 448);
+				}
+
+				$get_file = $this->fetchRemoteFile($vh['name'] . '.web.7z.001', $d, $local_dir);
+
+				if (!$get_file) {
+					$this->showMsg($file . " not found\n");
+					continue;
+				}
+			}
+
 			if (!file_exists($file)) {
 				$this->showMsg($file . " not found\n");
 				continue;
@@ -888,61 +904,59 @@ class RestoreAPI extends API
 	}
 
 	/**
-	 * 需要设置下载文件临时存放目录
-	 * Enter description here ...
-	 * @param  $vh
-	 * @param  $dir ftp下载目录
+	 * 下载指定备份目录下的分卷文件到本地
+	 * @param string $file 文件名（含 .001 分卷后缀）
+	 * @param string $dir 备份目录名
+	 * @param string $targetDir 本地目标目录，默认备份根目录
+	 * @return string|false 本地 .001 文件路径
 	 */
-	private function wgetFtpfile($file, $dir)
+	private function fetchRemoteFile($file, $dir, $targetDir = null)
 	{
-		if ($this->setting['backup_save_place'] != 'r') {
-			copy($this->setting['backup_dir'] . $dir . '/' . $file, $this->setting['backup_dir'] . '/' . $file);
-			return $this->setting['backup_dir'] . '/' . $file;
-		}
-
-		$suffix_file = substr($file, 0 - 4);
+		$target = $targetDir === null ? $this->setting['backup_dir'] . '/' : rtrim($targetDir, '/') . '/';
 		$base_file = substr($file, 0, strlen($file) - 4);
-		$this->delLocalFile($this->setting['backup_dir'] . $file);
+		$this->delLocalFile($target . $file);
 		$i = 1;
 
 		while ($i < 1000) {
 			$new_file = $base_file . sprintf('.%03d', $i);
+			$local = $target . $new_file;
 
-			if ($this->setting['backup_save_place'] == 'r') {
-				$ftpcon = $this->getFtpCon();
+			if ($this->setting['backup_save_place'] != 'r') {
+				$source = $this->setting['backup_dir'] . $dir . '/' . $new_file;
 
-				if (!$ftpcon) {
-					$this->showMsg("cann't connect ftp server for wgetftpfile\n");
+				if (!file_exists($source)) {
+					break;
+				}
+
+				if ($source !== $local && !copy($source, $local)) {
+					return false;
+				}
+			}
+			else {
+				$storage = $this->getStorage();
+
+				if (!$storage) {
 					return false;
 				}
 
-				ftp_chdir($ftpcon, '/' . $this->setting['ftp_dir'] . '/' . $dir);
-				$get_result = ftp_get($ftpcon, $this->setting['backup_dir'] . $new_file, $new_file, FTP_BINARY);
-				ftp_close($ftpcon);
+				if (file_exists($local)) {
+					$this->delLocalFile($local);
+				}
 
-				if (!$get_result) {
+				if (!$storage->getFile($dir . '/' . $new_file, $local)) {
 					if ($i == 1) {
-						$this->showMsg('cann\'t get file ' . $new_file . " for wgetftpfile\n");
+						$this->showMsg($storage->getError() . "\n");
 						return false;
 					}
 
 					break;
 				}
 			}
-			else {
-				if (!file_exists($this->setting['backup_dir'] . $dir . '/' . $new_file)) {
-					break;
-				}
-
-				if (!copy($this->setting['backup_dir'] . $dir . '/' . $new_file, $this->setting['backup_dir'] . $new_file)) {
-					return false;
-				}
-			}
 
 			++$i;
 		}
 
-		return $this->setting['backup_dir'] . $file;
+		return $target . $file;
 	}
 
 	private function getRestorDir($ftp_dirs)
@@ -988,24 +1002,48 @@ class RestoreAPI extends API
 	 * @param unknown_type $ftp_dir
 	 * @return Ambigous <boolean, multitype:string >|boolean|multitype:
 	 */
-	public function listFtpDirFile($ftp_dir)
+	public function listRemoteDirFile($dir = '')
 	{
 		if ($this->setting['backup_save_place'] != 'r') {
 			return $this->listLocalDirFile($this->setting['backup_dir']);
 		}
 
-		if (!($ftpcon = $this->getFtpCon())) {
-			$this->showMsg("not ftpcon\n");
+		$storage = $this->getStorage();
+
+		if (!$storage) {
 			return false;
 		}
 
-		if (!@ftp_chdir($ftpcon, $ftp_dir)) {
+		$list = $storage->listDirs($dir);
+
+		if ($list === false) {
+			$this->showMsg($storage->getError() . "\n");
 			return false;
 		}
 
-		$listfile = ftp_nlist($ftpcon, '.');
-		ftp_close($ftpcon);
-		return $listfile;
+		return $list;
+	}
+
+	/**
+	 * 取得远程存储适配器
+	 * @return RemoteStorage|false
+	 */
+	private function getStorage()
+	{
+		if ($this->storage !== null) {
+			return $this->storage === false ? false : $this->storage;
+		}
+
+		$storage = RemoteStorage::create($this->setting);
+
+		if (!$storage) {
+			$this->showMsg(RemoteStorage::getLastError() . "\n");
+			$this->storage = false;
+			return false;
+		}
+
+		$this->storage = $storage;
+		return $storage;
 	}
 
 	public function listLocalDirFile($dir)
@@ -1029,31 +1067,6 @@ class RestoreAPI extends API
 		}
 
 		return $result;
-	}
-
-	private function getFtpCon()
-	{
-		if ($this->ftpconnect !== false && $this->ftpconnect != null) {
-			return $this->ftpconnect;
-		}
-
-		$ftpcon = ftp_connect($this->setting['ftp_host'], $this->setting['ftp_port']);
-
-		if (!$ftpcon) {
-			$this->showMsg('can\'t connect this ftp host ' . $this->setting['ftp_host'] . " for getftpcon\n");
-			return false;
-		}
-
-		$ftplogin = ftp_login($ftpcon, $this->setting['ftp_user'], $this->setting['ftp_passwd']);
-
-		if (!$ftplogin) {
-			$this->showMsg('can\'t login this ftp ' . $this->setting['ftp_host'] . " for getftpcon\n");
-			return false;
-		}
-
-		$this->ftpconnect = $ftpcon;
-		ftp_pasv($ftpcon, true);
-		return $ftpcon;
 	}
 
 	private function showMsg($msg)

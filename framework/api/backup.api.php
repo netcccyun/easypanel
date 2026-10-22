@@ -22,7 +22,7 @@ class BackupAPI extends API
 	private $kangle_etc_dir;
 	private $fopen;
 	private $databases;
-	private $ftpconnect = null;
+	private $storage = null;
 	private $ignoredatabase;
 	private $isbackup_web;
 	private $isbackup_mysql;
@@ -57,6 +57,7 @@ class BackupAPI extends API
 		$this->isbackup_web = $this->setting['backup_web'];
 		$this->isbackup_mysql = $this->setting['backup_mysql'];
 		load_lib('pub:process');
+		load_lib('pub:storage');
 	}
 
 	public function backup($argv = null)
@@ -81,8 +82,7 @@ class BackupAPI extends API
 			}
 		}
 
-		if ($this->setting['backup_save_place'] != 'l' && !$this->setting['ftp_dir']) {
-			$this->showMsg("ftp dir not set\n");
+		if ($this->setting['backup_save_place'] != 'l' && !$this->getStorage()) {
 			return false;
 		}
 
@@ -162,7 +162,7 @@ class BackupAPI extends API
 					continue;
 				}
 
-				$this->ftpPush($savefilename);
+				$this->remotePush($savefilename);
 				$this->showMsg("done\n");
 			}
 		}
@@ -175,14 +175,20 @@ class BackupAPI extends API
 		$this->showMsg("done\n");
 
 		if ($this->setting['backup_save_place'] != 'l') {
+			$this->showMsg("clean remote backup....\n");
 			$this->delBackupFile();
+			$this->showMsg("done\n");
 		}
 
 		if ($this->setting['backup_save_place'] != 'r') {
+			$this->showMsg("clean local backup....\n");
 			$this->delLocalDir($this->setting['backup_dir'] . $this->savedir);
+			$this->showMsg("done\n");
 		}
 
+		$this->showMsg("clean expired backup....\n");
 		$this->delLocalExDir();
+		$this->showMsg("done\n");
 		$this->showMsg('success');
 		//echo 'backup out please view ' . $this->kangle_dir . '/tmp/' . $this->time . ".backup.out.txt\n";
 	}
@@ -388,7 +394,7 @@ class BackupAPI extends API
 			$file = $this->backupMysqlFull($pdo);
 		}
 
-		$this->ftpPush($file);
+		$this->remotePush($file);
 	}
 
 	private function backupMysqlSingleInc($pdo)
@@ -463,7 +469,7 @@ class BackupAPI extends API
 				continue;
 			}
 
-			$this->ftpPush($savefile);
+			$this->remotePush($savefile);
 		}
 
 		$this->purgeMysqlLogs($pdo, $last_log_file);
@@ -679,22 +685,26 @@ class BackupAPI extends API
 	}
 
 	/**
-	 * ftp上传，同步模式
+	 * 远程上传，同步模式（FTP / SFTP / WebDAV / S3）
 	 * @param  $file
 	 */
-	private function ftpPush($file)
+	private function remotePush($file)
 	{
 		if ($this->setting['backup_save_place'] == 'l') {
 			return true;
 		}
 
-		if ($this->ftpconnect === false) {
+		$storage = $this->getStorage();
+
+		if (!$storage) {
 			return false;
 		}
 
-		$ftp_backup_dir = '/' . $this->setting['ftp_dir'] . '/';
-		$ftpdir = $ftp_backup_dir . $this->savedir;
-		$this->ftpconnect = $this->getFtpCon();
+		if (!$storage->mkDir($this->savedir)) {
+			$this->showMsg($storage->getError() . "\n");
+			return false;
+		}
+
 		$i = 1;
 
 		while ($i < 1000) {
@@ -704,32 +714,11 @@ class BackupAPI extends API
 				break;
 			}
 
-			if ($this->ftpconnect === false) {
+			if (!$storage->putFile($new_file, $this->savedir . '/' . basename($new_file))) {
+				$this->showMsg($storage->getError() . "\n");
 				return false;
 			}
 
-			$ret = ftp_pasv($this->ftpconnect, true);
-
-			if ($i == 1) {
-				@ftp_mkdir($this->ftpconnect, $ftp_backup_dir);
-				@ftp_mkdir($this->ftpconnect, $ftpdir);
-			}
-
-			if (!ftp_chdir($this->ftpconnect, $ftpdir)) {
-				return false;
-			}
-
-			$len = strrpos($new_file, '/') ? strrpos($new_file, '/') : strrpos($new_file, '\\');
-			$filename = substr($new_file, $len + 1);
-
-			if (!ftp_put($this->ftpconnect, $filename, $new_file, FTP_BINARY)) {
-				$msg = $new_file . " ftpput failed\n";
-				$this->showMsg($msg);
-				ftp_close($this->ftpconnect);
-				return false;
-			}
-
-			ftp_close($this->ftpconnect);
 			$this->delLocalfile($new_file);
 			++$i;
 		}
@@ -737,32 +726,26 @@ class BackupAPI extends API
 		return true;
 	}
 
-	private function getFtpCon()
+	/**
+	 * 取得远程存储适配器
+	 * @return RemoteStorage|false
+	 */
+	private function getStorage()
 	{
-		if (!$this->setting['ftp_host'] || !$this->setting['ftp_user'] || !$this->setting['ftp_passwd']) {
-			$this->showMsg("put: not ftp connect parameter\n");
-			$this->ftpconnect = false;
+		if ($this->storage !== null) {
+			return $this->storage === false ? false : $this->storage;
+		}
+
+		$storage = RemoteStorage::create($this->setting);
+
+		if (!$storage) {
+			$this->showMsg(RemoteStorage::getLastError() . "\n");
+			$this->storage = false;
 			return false;
 		}
 
-		$ftpcon = ftp_connect($this->setting['ftp_host'], $this->setting['ftp_port']);
-
-		if (!$ftpcon) {
-			$this->ftpconnect = false;
-			$this->showMsg("put: ftp not connect\n");
-			return false;
-		}
-
-		$ftplogin = ftp_login($ftpcon, $this->setting['ftp_user'], $this->setting['ftp_passwd']);
-
-		if (!$ftplogin) {
-			$this->ftpconnect = false;
-			$this->showMsg("put: ftp not login\n");
-			return false;
-		}
-
-		$this->ftpconnect = $ftpcon;
-		return $ftpcon;
+		$this->storage = $storage;
+		return $storage;
 	}
 
 	public function check_ent()
@@ -800,7 +783,7 @@ class BackupAPI extends API
 			return false;
 		}
 
-		$this->ftpPush($this->filesavedir . $filename);
+		$this->remotePush($this->filesavedir . $filename);
 	}
 
 	private function getBinlogCmd()
@@ -970,41 +953,42 @@ class BackupAPI extends API
 
 	private function delBackupFile()
 	{
+		if ($this->setting['backup_save_place'] == 'l') {
+			return false;
+		}
+
 		if (intval($this->setting['backup_save_day']) <= 0) {
 			return false;
 		}
 
-		$del_time = $this->setting['backup_last_time'] - $this->setting['backup_save_day'] * 86400;
-		$ftpcon = $this->getFtpCon();
-		$ret = ftp_pasv($ftpcon, true);
-		ftp_chdir($ftpcon, $this->setting['ftp_dir']);
-		$dirlist = ftp_nlist($ftpcon, '.');
+		$storage = $this->getStorage();
 
-		if (count($dirlist) <= 0) {
+		if (!$storage) {
 			return false;
 		}
 
+		$this->showMsg("list remote dirs....\n");
+		$dirlist = $storage->listDirs('');
+
+		if ($dirlist === false) {
+			$this->showMsg($storage->getError() . "\n");
+			return false;
+		}
+
+		$this->showMsg('remote dirs=' . count($dirlist) . "\n");
+		$del_time = $this->setting['backup_last_time'] - $this->setting['backup_save_day'] * 86400;
 		$ddate = date('Ymd', $del_time);
 
 		foreach ($dirlist as $d) {
-			if (intval($d) <= 0) {
+			if (!preg_match('/^\d{8}f\d{0,2}$/', $d)) {
 				continue;
 			}
 
 			if (substr($d, 0, 8) < $ddate) {
-				ftp_chdir($ftpcon, $d);
-				$dellist = ftp_nlist($ftpcon, '.');
-
-				foreach ($dellist as $df) {
-					ftp_delete($ftpcon, $df);
-				}
-
-				ftp_chdir($ftpcon, $this->setting['ftp_dir']);
-				ftp_rmdir($ftpcon, $d);
+				$this->showMsg('delete remote ' . $d . "....\n");
+				$storage->deleteDir($d);
 			}
 		}
-
-		ftp_close($ftpcon);
 	}
 
 	/**
@@ -1220,7 +1204,7 @@ class BackupAPI extends API
 				print_r($msg);
 			}
 
-			$this->ftpPush($this->filesavedir . '/' . $filename);
+			$this->remotePush($this->filesavedir . '/' . $filename);
 		}
 	}
 }

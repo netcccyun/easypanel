@@ -51,16 +51,27 @@ class ProcessApi extends API
 	}
 
 	/**
-	 * 得到easypanel的shell命令
+	 * 得到easypanel实际使用的PHP目录（带结尾斜杠）
 	 * @return string
 	 */
-	public function get_easypanel_shell()
+	public function get_easypanel_php_dir()
 	{
 		$ext = $GLOBALS['safe_dir'] . '../ext/php' . PHP_MAJOR_VERSION . PHP_MINOR_VERSION . '/';
 
 		if (!is_file($ext . (is_win() ? 'php.exe' : 'bin/php'))) {
 			$ext = $GLOBALS['safe_dir'] . '../ext/php56/';
 		}
+
+		return $ext;
+	}
+
+	/**
+	 * 得到easypanel的shell命令
+	 * @return string
+	 */
+	public function get_easypanel_shell()
+	{
+		$ext = $this->get_easypanel_php_dir();
 
 		$cmd = '"' . $ext;
 
