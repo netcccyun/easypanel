@@ -1,0 +1,15 @@
+{{if $ssl_switch}}
+<tr>
+	<td>证书设置:</td>
+	<td>
+		<select id="ssl_switch" class="span4">
+			<option value=""{{if !$ssl_current}} selected="selected"{{/if}}>账号SSL证书（所有域名）</option>
+			{{foreach from=$ssl_switch item=row}}
+			<option value="{{$row.name|escape:'html'}}"{{if $row.current}} selected="selected"{{/if}}>{{$row.name|escape:'html'}}{{if $row.ssl}}（已单独配置证书）{{/if}}</option>
+			{{/foreach}}
+		</select>
+		<button type="button" class="btn" onclick="ssl_switch_go();">切换</button>
+		<span style="margin-left:8px;color:#777;">选择域名可单独设置该域名的SSL证书</span>
+	</td>
+</tr>
+{{/if}}

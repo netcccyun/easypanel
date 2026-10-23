@@ -13,6 +13,7 @@
 		<tr>
 			<th colspan="2">此处设置当前账号的默认SSL证书。已单独配置证书的域名优先使用自己的证书，其余域名使用账号证书。</th>
 		</tr>
+		{{include file='sslSwitch.html'}}
 		<tr>
 			<td>ssl证书内容:</td>
 			<td><textarea name='certificate' cols=80 rows=8 class="span7">{{$certificate|escape:'html'}}</textarea></td>
@@ -76,7 +77,7 @@
 	</table>
 </form>
 </div>
-<script src="{{$STATIC}}js/ssl.js?v=2"></script>
+<script src="{{$STATIC}}js/ssl.js?v=3"></script>
 <script>
 function ssl_checkon(val)
 {
