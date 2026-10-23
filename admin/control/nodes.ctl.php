@@ -202,11 +202,13 @@ class NodesControl extends Control
 		$GLOBALS['node_cfg'][$name]['port'] = $_REQUEST['port'] ? trim(ep_request('port')) : '3311';
 		$GLOBALS['node_cfg'][$name]['db_port'] = $_REQUEST['db_port'] ? trim(ep_request('db_port')) : '3306';
 		$GLOBALS['node_cfg'][$name]['db_host'] = $_REQUEST['db_host'] ? trim(ep_request('db_host')) : 'localhost';
-		$db_result = apicall('utils', 'fixPriv', array($_REQUEST['db_host'], trim(ep_request('db_user')), $GLOBALS['node_cfg'][$name]['db_passwd'], $_REQUEST['db_passwd']));
+		$db_result = apicall('utils', 'fixPriv', array($GLOBALS['node_cfg'][$name]['db_host'], $GLOBALS['node_cfg'][$name]['db_user'], isset($GLOBALS['node_cfg'][$name]['db_passwd']) ? $GLOBALS['node_cfg'][$name]['db_passwd'] : '', ep_request('db_passwd'), $GLOBALS['node_cfg'][$name]['db_port']));
 
-		if ($db_result) {
-			$GLOBALS['node_cfg'][$name]['db_passwd'] = $_REQUEST['db_passwd'];
+		if (!$db_result) {
+			header('Location:?c=nodes&a=editForm&e=mysql&name=' . $name);
+			exit();
 		}
+		$GLOBALS['node_cfg'][$name]['db_passwd'] = ep_request('db_passwd');
 
 		if ($_REQUEST['db_user'] && $_REQUEST['db_passwd'] && $_REQUEST['del_test_database']) {
 			apicall('nodes', 'delMysqlTestDatabase', array('localhost'));
@@ -215,20 +217,21 @@ class NodesControl extends Control
 		$GLOBALS['node_cfg'][$name]['sqlsrv_user'] = trim(ep_request('sqlsrv_user'));
 		$GLOBALS['node_cfg'][$name]['sqlsrv_passwd'] = $_REQUEST['sqlsrv_passwd'];
 		$GLOBALS['node_cfg'][$name]['sqlsrv_port'] = $_REQUEST['sqlsrv_port'] ? trim(ep_request('sqlsrv_port')) : '1433';
-		$result = apicall('utils', 'writeConfig', array($GLOBALS['node_cfg'], 'name', 'node', $GLOBALS['safe_dir']));
-
-		if (!$result) {
-			header('Location:?c=nodes&a=editForm&e=flushconfig&name=' . $name);
-			exit();
-		}
-
 		if ($GLOBALS['node_cfg'][$name]['db_user'] != '') {
-			$db = apicall('nodes', 'makeDbProduct', array('localhost'));
+			$db = apicall('nodes', 'makeDbProduct', array($name));
 
 			if (!$db) {
 				header('Location:?c=nodes&a=editForm&e=mysql&name=' . $name);
 				exit();
 			}
+		}
+
+		// 数据库密码设置及连接校验全部成功后，再保存节点配置。
+		$result = apicall('utils', 'writeConfig', array($GLOBALS['node_cfg'], 'name', 'node', $GLOBALS['safe_dir']));
+
+		if (!$result) {
+			header('Location:?c=nodes&a=editForm&e=flushconfig&name=' . $name);
+			exit();
 		}
 
 		$tpl = tpl::template_config(dirname(dirname(__FILE__)) . '/template_config/');

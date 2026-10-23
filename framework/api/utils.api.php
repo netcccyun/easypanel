@@ -221,62 +221,94 @@ class UtilsAPI extends API
 		}
 	}
 
-	public function fixPriv($db_host, $db_user, $old_passwd, $db_passwd)
+	public function fixPriv($db_host, $db_user, $old_passwd, $db_passwd, $db_port = 3306)
 	{
 		if (!$db_host) {
 			$db_host = 'localhost';
 		}
 
-		if ($db_user != '') {
-			// PHP 8.1+ mysqli 默认抛异常；此处沿用旧版行为，单条语句失败不中断后续流程
-			$report = PHP_VERSION_ID >= 80100 ? MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT : MYSQLI_REPORT_OFF;
-			mysqli_report(MYSQLI_REPORT_OFF);
-			$connect = mysqli_connect($db_host, $db_user, $db_passwd);
+		if ($db_user == '') {
+			return true;
+		}
 
+		$db_port = (int) $db_port;
+		if ($db_port < 1 || $db_port > 65535) {
+			$GLOBALS['last_error'] = '数据库端口无效';
+			return false;
+		}
+		$db_passwd = (string) $db_passwd;
+		$driver = new mysqli_driver();
+		$report = $driver->report_mode;
+		$connect = false;
+		$verify = false;
+		mysqli_report(MYSQLI_REPORT_OFF);
+
+		try {
+			// 保留 old_passwd 参数供现有调用使用，但普通保存只校验填写的密码。
+			$passwords = array($db_passwd);
+			// 只有本地账号仍能用空密码认证时，才允许首次设置密码。
+			if (in_array(strtolower($db_host), array('localhost', '127.0.0.1', '::1'), true)) {
+				$passwords[] = '';
+			}
+			foreach (array_unique($passwords) as $password) {
+				$connect = @mysqli_connect($db_host, $db_user, $password, null, $db_port);
+				if ($connect) {
+					$connected_password = $password;
+					break;
+				}
+			}
 			if (!$connect) {
-				$connect = mysqli_connect($db_host, $db_user, $old_passwd);
+				$GLOBALS['last_error'] = '数据库连接失败（错误码 ' . mysqli_connect_errno() . '），请检查账号密码';
+				return false;
+			}
 
-				if (!$connect) {
-					mysqli_report($report);
+			if ($connected_password === '' && $db_passwd !== '') {
+				$result = mysqli_query($connect, 'SELECT CURRENT_USER() AS account_name');
+				if (!$result) {
+					$GLOBALS['last_error'] = '无法读取当前数据库账号';
+					return false;
+				}
+				$row = mysqli_fetch_assoc($result);
+				mysqli_free_result($result);
+				$separator = isset($row['account_name']) ? strrpos($row['account_name'], '@') : false;
+				if ($separator === false) {
+					$GLOBALS['last_error'] = '当前数据库账号格式无效';
+					return false;
+				}
+				// 修改实际认证的账号，不创建 root@%，不删除 host，不直接更新权限表。
+				$user = substr($row['account_name'], 0, $separator);
+				$host = substr($row['account_name'], $separator + 1);
+				if (!$this->changeDbPassword($connect, $user, $host, $db_passwd)) {
 					return false;
 				}
 			}
 
-			$user = mysqli_real_escape_string($connect, $db_user);
-			mysqli_query($connect, 'delete from `mysql`.`user` where `user`=\'' . $user . '\' and host!=\'%\' and host!=\'localhost\'');
-			mysqli_query($connect, 'DELETE FROM `mysql`.`user` where `user`=\'\'');
-			$this->changeDbPassword($connect, $db_user, 'localhost', $db_passwd);
-			$this->changeDbPassword($connect, $db_user, '%', $db_passwd);
-			$roots = array('Create_tablespace_priv', 'Trigger_priv', 'Event_priv', 'Create_user_priv', 'Alter_routine_priv');
-			$i = 0;
-
-			while ($i < count($roots)) {
-				mysqli_query($connect, 'update mysql.`user` set ' . $roots[$i] . '=\'Y\' where  `user`=\'' . $user . '\'');
-				++$i;
+			// 必须用填写的密码重新连接成功，调用方才可以保存 EP 的数据库配置。
+			$verify = @mysqli_connect($db_host, $db_user, $db_passwd, null, $db_port);
+			if (!$verify) {
+				$GLOBALS['last_error'] = '数据库密码校验失败（错误码 ' . mysqli_connect_errno() . '）';
+				return false;
 			}
-
-			mysqli_query($connect, 'flush privileges');
-			mysqli_close($connect);
+			return true;
+		}
+		finally {
+			if ($verify) {
+				mysqli_close($verify);
+			}
+			if ($connect) {
+				mysqli_close($connect);
+			}
 			mysqli_report($report);
 		}
-
-		return true;
 	}
 
 	/**
-	 * 只修改 mysql.user 中实际存在的账号；如仅有 root@localhost、没有 root@'%' 时直接跳过
-	 * ponytail: host 存在性以 mysql.user 为准；MySQL 8 已移除 PASSWORD()，故优先 ALTER USER
+	 * 修改当前连接实际认证的账号密码；旧服务器不支持 ALTER USER 时才回退 SET PASSWORD。
 	 */
 	private function changeDbPassword($connect, $db_user, $db_host, $db_passwd)
 	{
 		$user = mysqli_real_escape_string($connect, $db_user);
 		$host = mysqli_real_escape_string($connect, $db_host);
-		$result = mysqli_query($connect, 'select 1 from `mysql`.`user` where `user`=\'' . $user . '\' and `host`=\'' . $host . '\'');
-
-		if (!$result || !mysqli_num_rows($result)) {
-			return false;
-		}
-
 		$passwd = mysqli_real_escape_string($connect, $db_passwd);
 		$account = '\'' . $user . '\'@\'' . $host . '\'';
 
@@ -284,7 +316,15 @@ class UtilsAPI extends API
 			return true;
 		}
 
-		return mysqli_query($connect, 'SET PASSWORD FOR ' . $account . ' = PASSWORD( \'' . $passwd . '\' )');
+		$error = mysqli_errno($connect);
+		if (in_array($error, array(1064, 1235), true)) {
+			if (mysqli_query($connect, 'SET PASSWORD FOR ' . $account . ' = PASSWORD( \'' . $passwd . '\' )')) {
+				return true;
+			}
+			$error = mysqli_errno($connect);
+		}
+		$GLOBALS['last_error'] = '数据库密码设置失败（错误码 ' . $error . '），请检查账号权限及密码策略';
+		return false;
 	}
 
 	public function mergeKeyword($keyword)
