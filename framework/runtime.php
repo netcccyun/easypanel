@@ -208,6 +208,36 @@ function is_win()
 	return false;
 }
 
+/**
+ * 面板自身使用的 PHP 目录（带结尾 /）。
+ * 优先用当前运行版本对应的 ext/phpXY，缺少可执行文件或 node 专用 ini 时回退到 php56
+ * @param $ext_root ext 目录（带结尾 /），默认 kangle 的 ext 目录
+ */
+function get_panel_php_dir($ext_root = null)
+{
+	if ($ext_root === null) {
+		$ext_root = $GLOBALS['safe_dir'] . '../ext/';
+	}
+
+	$dir = $ext_root . 'php' . PHP_MAJOR_VERSION . PHP_MINOR_VERSION . '/';
+
+	if (is_file(get_panel_php_bin($dir)) && is_file(get_panel_php_ini($dir))) {
+		return $dir;
+	}
+
+	return $ext_root . 'php56/';
+}
+
+function get_panel_php_bin($dir)
+{
+	return $dir . (is_win() ? 'php.exe' : 'bin/php');
+}
+
+function get_panel_php_ini($dir)
+{
+	return $dir . (is_win() ? 'phpnode.ini' : 'etc/php-node.ini');
+}
+
 function setLastError($errormsg)
 {
 	$GLOBALS['last_error'] = $errormsg;

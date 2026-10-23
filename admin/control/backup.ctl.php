@@ -35,29 +35,14 @@ class BackupControl extends control
 				$cmd .= '"';
 			}
 
-			$php_dir = apicall('process', 'get_easypanel_php_dir');
-			$real_dir = realpath($php_dir);
-
-			if ($real_dir) {
-				$php_dir = rtrim($real_dir, '/\\') . '/';
-			}
-
-			$cmd .= $php_dir;
+			$ext = get_panel_php_dir();
+			$cmd .= get_panel_php_bin($ext);
 
 			if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
-				$cmd .= 'php.exe';
 				$cmd .= '"';
 			}
-			else {
-				$cmd .= 'bin/php';
-			}
 
-			if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
-				$cmd .= ' -c "' . $php_dir . 'phpnode.ini" ';
-			}
-			else {
-				$cmd .= ' -c "' . $php_dir . 'etc/php-node.ini" ';
-			}
+			$cmd .= ' -c "' . get_panel_php_ini($ext) . '" ';
 
 			$cmd .= ' -f "';
 			$cmd .= dirname(dirname(dirname(__FILE__))) . '/framework/shell.php"' . ' restore ' . $dir;

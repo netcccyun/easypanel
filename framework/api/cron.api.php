@@ -228,14 +228,8 @@ class CronAPI extends API
 		$msg .= "PATH=/sbin:/bin:/usr/sbin:/usr/bin\n";
 		$msg .= "HOME=/\n";
 		$msg .= "MAILTO=\"\"\n";
-		$php_dir = apicall('process', 'get_easypanel_php_dir');
-		$real_dir = realpath($php_dir);
-
-		if ($real_dir) {
-			$php_dir = rtrim($real_dir, '/\\') . '/';
-		}
-
-		$msg .= '*/' . $cron['step'] . ' * * * * root ' . $php_dir . 'bin/php -c ' . $php_dir . 'etc/php-node.ini ' . $cron['cmd'];
+		$ext = get_panel_php_dir('/vhs/kangle/ext/');
+		$msg .= '*/' . $cron['step'] . ' * * * * root ' . get_panel_php_bin($ext) . ' -c ' . get_panel_php_ini($ext) . ' ' . $cron['cmd'];
 		$msg .= "\n";
 		fwrite($fp, $msg);
 		fclose($fp);
