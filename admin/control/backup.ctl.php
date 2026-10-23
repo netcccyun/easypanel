@@ -36,22 +36,14 @@ class BackupControl extends control
 				$cmd .= '"';
 			}
 
-			$cmd .= $GLOBALS['safe_dir'] . '../ext/php56/';
+			$ext = get_panel_php_dir();
+			$cmd .= get_panel_php_bin($ext);
 
 			if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
-				$cmd .= 'php.exe';
 				$cmd .= '"';
 			}
-			else {
-				$cmd .= 'bin/php';
-			}
 
-			if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
-				$cmd .= ' -c "' . $GLOBALS['safe_dir'] . '../ext/php56/phpnode.ini" ';
-			}
-			else {
-				$cmd .= ' -c "' . $GLOBALS['safe_dir'] . '../ext/php56/etc/php-node.ini" ';
-			}
+			$cmd .= ' -c "' . get_panel_php_ini($ext) . '" ';
 
 			$cmd .= ' -f "';
 			$cmd .= dirname(dirname(dirname(__FILE__))) . '/framework/shell.php"' . ' restore ' . $dir;

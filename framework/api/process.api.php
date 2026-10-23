@@ -56,30 +56,9 @@ class ProcessApi extends API
 	 */
 	public function get_easypanel_shell()
 	{
-		$ext = $GLOBALS['safe_dir'] . '../ext/php' . PHP_MAJOR_VERSION . PHP_MINOR_VERSION . '/';
-
-		if (!is_file($ext . (is_win() ? 'php.exe' : 'bin/php'))) {
-			$ext = $GLOBALS['safe_dir'] . '../ext/php56/';
-		}
-
-		$cmd = '"' . $ext;
-
-		if (is_win()) {
-			$cmd .= 'php.exe';
-		}
-		else {
-			$cmd .= 'bin/php';
-		}
-
-		$cmd .= '"';
-
-		if (is_win()) {
-			$cmd .= ' -c "' . $ext . 'phpnode.ini"';
-		}
-		else {
-			$cmd .= ' -c "' . $ext . 'etc/php-node.ini"';
-		}
-
+		$ext = get_panel_php_dir();
+		$cmd = '"' . get_panel_php_bin($ext) . '"';
+		$cmd .= ' -c "' . get_panel_php_ini($ext) . '"';
 		$cmd .= ' -f "';
 		$cmd .= dirname(dirname(dirname(__FILE__))) . '/framework/shell.php"';
 		return $cmd;
