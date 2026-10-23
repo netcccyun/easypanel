@@ -262,25 +262,23 @@ class UtilsAPI extends API
 				return false;
 			}
 
+			// 当前连接实际认证的账号 array(user, host)，读取失败为 false
+			$current = $this->getCurrentDbAccount($connect);
+
 			if ($connected_password === '' && $db_passwd !== '') {
-				$result = mysqli_query($connect, 'SELECT CURRENT_USER() AS account_name');
-				if (!$result) {
+				if (!$current) {
 					$GLOBALS['last_error'] = '无法读取当前数据库账号';
 					return false;
 				}
-				$row = mysqli_fetch_assoc($result);
-				mysqli_free_result($result);
-				$separator = isset($row['account_name']) ? strrpos($row['account_name'], '@') : false;
-				if ($separator === false) {
-					$GLOBALS['last_error'] = '当前数据库账号格式无效';
+				// 修改实际认证的账号，不创建 root@%，不直接更新权限表。
+				if (!$this->changeDbPassword($connect, $current[0], $current[1], $db_passwd)) {
 					return false;
 				}
-				// 修改实际认证的账号，不创建 root@%，不删除 host，不直接更新权限表。
-				$user = substr($row['account_name'], 0, $separator);
-				$host = substr($row['account_name'], $separator + 1);
-				if (!$this->changeDbPassword($connect, $user, $host, $db_passwd)) {
-					return false;
-				}
+			}
+
+			// 读不到当前账号时跳过清理，避免误删正在使用的账号
+			if ($current) {
+				$this->cleanDbAccounts($connect, $db_user, $current);
 			}
 
 			// 必须用填写的密码重新连接成功，调用方才可以保存 EP 的数据库配置。
@@ -299,6 +297,74 @@ class UtilsAPI extends API
 				mysqli_close($connect);
 			}
 			mysqli_report($report);
+		}
+	}
+
+	/**
+	 * 读取当前连接实际认证的账号
+	 * @return array|false array(user, host)
+	 */
+	private function getCurrentDbAccount($connect)
+	{
+		$result = mysqli_query($connect, 'SELECT CURRENT_USER() AS account_name');
+
+		if (!$result) {
+			return false;
+		}
+
+		$row = mysqli_fetch_assoc($result);
+		mysqli_free_result($result);
+		$separator = isset($row['account_name']) ? strrpos($row['account_name'], '@') : false;
+
+		if ($separator === false) {
+			return false;
+		}
+
+		return array(substr($row['account_name'], 0, $separator), substr($row['account_name'], $separator + 1));
+	}
+
+	/**
+	 * 删除匿名用户，以及 $db_user 中 host 不是 localhost 或 % 的账号，以及空密码的 root@127.0.0.1、root@::1、root@主机名。
+	 * 当前连接正在使用的账号不删。
+	 */
+	private function cleanDbAccounts($connect, $db_user, $current)
+	{
+		$user = mysqli_real_escape_string($connect, $db_user);
+		$result = mysqli_query($connect, 'SELECT `User` AS u, `Host` AS h FROM `mysql`.`user` WHERE `User`=\'\' OR (`User`=\'' . $user . '\' AND `Host`!=\'%\' AND `Host`!=\'localhost\')');
+
+		if (!$result) {
+			return;
+		}
+
+		$accounts = array();
+
+		while ($row = mysqli_fetch_assoc($result)) {
+			if ($row['u'] === $current[0] && strtolower($row['h']) === strtolower($current[1])) {
+				continue;
+			}
+
+			$accounts[] = $row;
+		}
+
+		mysqli_free_result($result);
+		$need_flush = false;
+
+		foreach ($accounts as $row) {
+			$u = mysqli_real_escape_string($connect, $row['u']);
+			$h = mysqli_real_escape_string($connect, $row['h']);
+
+			if (mysqli_query($connect, 'DROP USER \'' . $u . '\'@\'' . $h . '\'')) {
+				continue;
+			}
+
+			// DROP USER 不可用时退回旧做法：直接删 mysql.user 行，最后 flush
+			if (mysqli_query($connect, 'DELETE FROM `mysql`.`user` WHERE `User`=\'' . $u . '\' AND `Host`=\'' . $h . '\'')) {
+				$need_flush = true;
+			}
+		}
+
+		if ($need_flush) {
+			mysqli_query($connect, 'FLUSH PRIVILEGES');
 		}
 	}
 

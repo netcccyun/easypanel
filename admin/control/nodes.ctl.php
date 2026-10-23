@@ -217,6 +217,14 @@ class NodesControl extends Control
 		$GLOBALS['node_cfg'][$name]['sqlsrv_user'] = trim(ep_request('sqlsrv_user'));
 		$GLOBALS['node_cfg'][$name]['sqlsrv_passwd'] = $_REQUEST['sqlsrv_passwd'];
 		$GLOBALS['node_cfg'][$name]['sqlsrv_port'] = $_REQUEST['sqlsrv_port'] ? trim(ep_request('sqlsrv_port')) : '1433';
+
+		$result = apicall('utils', 'writeConfig', array($GLOBALS['node_cfg'], 'name', 'node', $GLOBALS['safe_dir']));
+
+		if (!$result) {
+			header('Location:?c=nodes&a=editForm&e=flushconfig&name=' . $name);
+			exit();
+		}
+
 		if ($GLOBALS['node_cfg'][$name]['db_user'] != '') {
 			$db = apicall('nodes', 'makeDbProduct', array($name));
 
@@ -224,14 +232,6 @@ class NodesControl extends Control
 				header('Location:?c=nodes&a=editForm&e=mysql&name=' . $name);
 				exit();
 			}
-		}
-
-		// 数据库密码设置及连接校验全部成功后，再保存节点配置。
-		$result = apicall('utils', 'writeConfig', array($GLOBALS['node_cfg'], 'name', 'node', $GLOBALS['safe_dir']));
-
-		if (!$result) {
-			header('Location:?c=nodes&a=editForm&e=flushconfig&name=' . $name);
-			exit();
 		}
 
 		$tpl = tpl::template_config(dirname(dirname(__FILE__)) . '/template_config/');

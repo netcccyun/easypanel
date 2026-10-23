@@ -44,7 +44,11 @@ class MysqlDbProduct extends DbProduct
 
 	public function delTestDatabase()
 	{
-		$sqls = array('DROP DATABASE `test`');
+		$sqls = array(
+			'DROP DATABASE IF EXISTS `test`',
+			'DELETE FROM `mysql`.`db` WHERE `User`=\'\' AND (`Db`=\'test\' OR `Db`=CONCAT(\'test\', CHAR(92), \'_%\'))',
+			'FLUSH PRIVILEGES'
+		);
 		return $this->query($sqls);
 	}
 
