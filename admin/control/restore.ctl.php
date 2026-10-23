@@ -11,8 +11,7 @@ class RestoreControl extends Control
 			$this->_tpl->assign('cmd', $str);
 		}
 
-		$ftp_dir = daocall('setting', 'get', array('ftp_dir'));
-		$listdir = apicall('restore', 'listFtpDirFile', array($ftp_dir));
+		$listdir = apicall('restore', 'listRemoteDirFile', array(''));
 		$this->_tpl->assign('listdir', $listdir);
 		return $this->_tpl->fetch('restore/index.html');
 	}
