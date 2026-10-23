@@ -56,7 +56,7 @@ class VhostAPI extends API
 	 */
 	public function addVhost($params)
 	{
-		$arr = '';
+		$arr = array();
 
 		if ($params['cdn'] == 1) {
 			$params['subdir_flag'] = 1;
