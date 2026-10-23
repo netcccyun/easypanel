@@ -12,6 +12,15 @@ function ssl_disable(form, scope)
 	return false;
 }
 
+function ssl_switch_go()
+{
+	var select = document.getElementById('ssl_switch');
+	var domain = select ? select.value : '';
+	location.href = domain
+		? '?c=ssl&a=domainSslForm&domain=' + encodeURIComponent(domain)
+		: '?c=ssl&a=sslForm';
+}
+
 function hsts_checkon(val)
 {
 	var data = 'status=' + val;

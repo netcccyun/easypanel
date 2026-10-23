@@ -32,6 +32,8 @@ class SslControl extends Control
 		if($ssl){
 			$this->_tpl->assign('http2', $user['http2']);
 		}
+		$this->_tpl->assign('ssl_switch', $this->domainList($vhost, $user['cdn']));
+		$this->_tpl->assign('ssl_current', '');
 
 		$find_result = $this->access->findChain('BEGIN', '!ssl_rewrite');
 		if ($find_result) {
@@ -164,6 +166,25 @@ class SslControl extends Control
 		}
 	}
 
+	private function domainList($vhost, $cdn, $current = '')
+	{
+		$list = daocall('vhostinfo', 'getDomain', array($vhost));
+		$domains = array();
+		foreach (ep_iter($list) as $row) {
+			$binding = EpSsl::splitBinding($row['value']);
+			// 与 domainContext 保持一致：TCP回源的域名不支持单独设置证书。
+			if (!empty($cdn) && strpos($binding['dir'], 'proto=tcp') !== false) {
+				continue;
+			}
+			$domains[] = array(
+				'name' => $row['name'],
+				'ssl' => $binding['ssl'] ? 1 : 0,
+				'current' => $row['name'] === $current
+			);
+		}
+		return $domains;
+	}
+
 	private function domainContext()
 	{
 		$domain = strtolower(trim(ep_request('domain')));
@@ -228,6 +249,8 @@ class SslControl extends Control
 		$this->_tpl->assign('ssl_rewrite', $this->access->findChain('BEGIN', $table_name) ? 1 : 0);
 		$this->_tpl->assign('hsts', $this->hstsEnabled($domain) ? 1 : 0);
 		$this->_tpl->assign('support_http3', apicall('nodes', 'supportsHttp3', array('localhost')));
+		$this->_tpl->assign('ssl_switch', $this->domainList($vhost, $user['cdn'], $domain));
+		$this->_tpl->assign('ssl_current', $domain);
 		return $this->_tpl->fetch('domainSsl.html');
 	}
 
