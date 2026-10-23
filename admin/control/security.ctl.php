@@ -37,6 +37,7 @@ class SecurityControl extends Control
 
 	public function sslForm()
 	{
+		load_lib('pub:ssl');
 		$crtfile = $GLOBALS['safe_dir'] . 'server.crt';
 		$keyfile = $GLOBALS['safe_dir'] . 'server.key';
 		$crt = file_exists($crtfile) ? file_get_contents($crtfile) : '';
@@ -49,6 +50,7 @@ class SecurityControl extends Control
 		$this->_tpl->assign('ssl', $ssl);
 		$this->_tpl->assign('crt', $crt);
 		$this->_tpl->assign('key', $key);
+		$this->_tpl->assign('certificate_info', EpSsl::certificateInfo($crt));
 
 		return $this->_tpl->fetch('security/ssl.html');
 	}
