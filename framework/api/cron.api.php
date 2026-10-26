@@ -98,6 +98,9 @@ class CronAPI extends API
 		if (is_win()) {
 			$wget .= '.exe -O -';
 		}
+		else {
+			$wget .= ' -O /dev/null --tries=1 --timeout=30 --max-redirect=1';
+		}
 
 		foreach ($crons as $cron) {
 			switch ($cron['cmd_type']) {
