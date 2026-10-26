@@ -1,0 +1,38 @@
+{{include file='common/head.html'}}
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top">当前位置：计划任务 --> 执行日志（{{$task.name|escape:'html'}}）</div>
+		{{if $msg != ''}}<div style="color:#c00;margin:8px 0;">{{$msg|escape:'html'}}</div>{{/if}}
+		<div style="margin:12px 0;">
+			<a class="btn" href="?c=admincron&a=index">返回任务列表</a>
+			<a class="btn" href="?c=admincron&a=run&id={{$task.id}}&from=log" onclick="return confirm('确定立即执行该任务？');">立即执行</a>
+			<a class="btn" href="#" onclick="refreshLog();return false;">刷新日志</a>
+			<a class="btn" href="?c=admincron&a=download&id={{$task.id}}">下载日志</a>
+			<a class="btn" href="?c=admincron&a=clear&id={{$task.id}}" onclick="return confirm('确定清空该任务的全部执行日志？');">清空日志</a>
+			<a class="btn" href="?c=admincron&a=sync">重建系统任务</a>
+		</div>
+		<pre id="logbox" style="background:#f7f7f9;border:1px solid #ddd;padding:12px;max-height:600px;overflow:auto;white-space:pre-wrap;word-break:break-all;">{{$log}}</pre>
+	</div>
+</div>
+<script type='text/javascript'>
+function refreshLog() {
+	var box = document.getElementById('logbox');
+	var atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+	jQuery.ajax({
+		url : '?c=admincron&a=logdata&id={{$task.id}}&_=' + new Date().getTime(),
+		dataType : 'text',
+		cache : false,
+		success : function(data) {
+			jQuery('#logbox').text(data);
+			if (atBottom) {
+				box.scrollTop = box.scrollHeight;
+			}
+		}
+	});
+}
+jQuery(document).ready(function() {
+	refreshLog();
+	setInterval(refreshLog, 5000);
+});
+</script>
+{{dispatch c='index' a='foot'}}
