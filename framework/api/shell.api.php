@@ -408,6 +408,17 @@ class ShellAPI extends API
 		return apicall('cron', 'install_system_cron', array());
 	}
 
+	public function admin_cron_run($argv)
+	{
+		$id = 0;
+		if (is_array($argv) && isset($argv[0])) {
+			$id = intval($argv[0]);
+		} else if (!is_array($argv)) {
+			$id = intval($argv);
+		}
+		return apicall('adminCron', 'run', array($id));
+	}
+
 	/**
 	 * whm shell调用
 	 * @param $call

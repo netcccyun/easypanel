@@ -1,0 +1,410 @@
+{{include file='common/head.html'}}
+<script type='text/javascript'>
+function pEl(id) {
+	return document.getElementById(id);
+}
+function initCronOptions() {
+	var weekday = pEl('p_weekday');
+	if (weekday && weekday.options.length == 0) {
+		for (var i = 0; i <= 6; i++) {
+			weekday.options[i] = new Option('星期' + '日一二三四五六'.charAt(i), i);
+		}
+	}
+	var month = pEl('p_month');
+	if (month && month.options.length == 0) {
+		for (var j = 1; j <= 12; j++) {
+			month.options[j - 1] = new Option(j + ' 月', j);
+		}
+	}
+}
+function updateVisibility() {
+	var t = pEl('period_type').value;
+	var map = {
+		'every-n-minutes': ['w_n_minutes'],
+		'every-n-hours': ['w_minute', 'w_n_hours'],
+		'every-n-days': ['w_minute', 'w_hour', 'w_n_days'],
+		'hourly': ['w_minute'],
+		'daily': ['w_minute', 'w_hour'],
+		'weekly': ['w_minute', 'w_hour', 'w_weekday'],
+		'monthly': ['w_minute', 'w_hour', 'w_day'],
+		'yearly': ['w_minute', 'w_hour', 'w_day', 'w_month'],
+		'custom': ['w_custom']
+	};
+	var groups = ['w_n_minutes', 'w_minute', 'w_n_hours', 'w_hour', 'w_n_days', 'w_day', 'w_weekday', 'w_month', 'w_custom'];
+	var show = map[t] || [];
+	for (var i = 0; i < groups.length; i++) {
+		pEl(groups[i]).style.display = show.indexOf(groups[i]) >= 0 ? '' : 'none';
+	}
+}
+function pVal(id, def, min, max) {
+	var v = parseInt(pEl(id).value, 10);
+	if (isNaN(v) || v < min || v > max) {
+		v = def;
+	}
+	return v;
+}
+function buildCron() {
+	var t = pEl('period_type').value;
+	var nMinutes = pVal('p_n_minutes', 5, 1, 59);
+	var nHours = pVal('p_n_hours', 2, 1, 23);
+	var nDays = pVal('p_n_days', 1, 1, 31);
+	var minute = pVal('p_minute', 0, 0, 59);
+	var hour = pVal('p_hour', 0, 0, 23);
+	var day = pVal('p_day', 1, 1, 31);
+	var month = pVal('p_month', 1, 1, 12);
+	var weekday = pEl('p_weekday').value || '0';
+	var cron = '* * * * *';
+	var desc = '每分钟执行';
+	if (t === 'every-n-minutes') {
+		cron = '*/' + nMinutes + ' * * * *';
+		desc = '每 ' + nMinutes + ' 分钟执行';
+	} else if (t === 'every-n-hours') {
+		cron = minute + ' */' + nHours + ' * * *';
+		desc = '每 ' + nHours + ' 小时的第 ' + minute + ' 分钟执行';
+	} else if (t === 'every-n-days') {
+		cron = minute + ' ' + hour + ' */' + nDays + ' * *';
+		desc = '每 ' + nDays + ' 天的 ' + hour + ':' + (minute < 10 ? '0' : '') + minute + ' 执行';
+	} else if (t === 'hourly') {
+		cron = minute + ' * * * *';
+		desc = '每小时的第 ' + minute + ' 分钟执行';
+	} else if (t === 'daily') {
+		cron = minute + ' ' + hour + ' * * *';
+		desc = '每天 ' + hour + ':' + (minute < 10 ? '0' : '') + minute + ' 执行';
+	} else if (t === 'weekly') {
+		cron = minute + ' ' + hour + ' * * ' + weekday;
+		desc = '每周' + '日一二三四五六'.charAt(parseInt(weekday, 10)) + ' ' + hour + ':' + (minute < 10 ? '0' : '') + minute + ' 执行';
+	} else if (t === 'monthly') {
+		cron = minute + ' ' + hour + ' ' + day + ' * *';
+		desc = '每月 ' + day + ' 日 ' + hour + ':' + (minute < 10 ? '0' : '') + minute + ' 执行';
+	} else if (t === 'yearly') {
+		cron = minute + ' ' + hour + ' ' + day + ' ' + month + ' *';
+		desc = '每年 ' + month + ' 月 ' + day + ' 日 ' + hour + ':' + (minute < 10 ? '0' : '') + minute + ' 执行';
+	} else if (t === 'custom') {
+		cron = pEl('p_custom').value.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ');
+		desc = '自定义表达式';
+	}
+	pEl('cron').value = cron;
+	pEl('cron_preview').innerHTML = cron;
+	pEl('cron_desc').innerHTML = desc;
+}
+function parseCron(cron) {
+	if (!cron) {
+		return;
+	}
+	var p = cron.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ').split(' ');
+	if (p.length !== 5) {
+		pEl('period_type').value = 'custom';
+		pEl('p_custom').value = cron;
+		return;
+	}
+	var m = p[0], h = p[1], d = p[2], mo = p[3], w = p[4];
+	var type = 'custom';
+	if (m === '*' && h === '*' && d === '*' && mo === '*' && w === '*') {
+		type = 'every-minute';
+	} else if (/^\*\/\d+$/.test(m) && h === '*' && d === '*' && mo === '*' && w === '*') {
+		type = 'every-n-minutes';
+		pEl('p_n_minutes').value = parseInt(m.slice(2), 10) || 5;
+	} else if (/^\*\/\d+$/.test(h) && /^\d+$/.test(m) && d === '*' && mo === '*' && w === '*') {
+		type = 'every-n-hours';
+		pEl('p_minute').value = parseInt(m, 10) || 0;
+		pEl('p_n_hours').value = parseInt(h.slice(2), 10) || 2;
+	} else if (/^\*\/\d+$/.test(d) && /^\d+$/.test(m) && /^\d+$/.test(h) && mo === '*' && w === '*') {
+		type = 'every-n-days';
+		pEl('p_minute').value = parseInt(m, 10) || 0;
+		pEl('p_hour').value = parseInt(h, 10) || 0;
+		pEl('p_n_days').value = parseInt(d.slice(2), 10) || 1;
+	} else if (h === '*' && d === '*' && mo === '*' && w === '*' && /^\d+$/.test(m)) {
+		type = 'hourly';
+		pEl('p_minute').value = parseInt(m, 10);
+	} else if (d === '*' && mo === '*' && w === '*' && /^\d+$/.test(m) && /^\d+$/.test(h)) {
+		type = 'daily';
+		pEl('p_minute').value = parseInt(m, 10);
+		pEl('p_hour').value = parseInt(h, 10);
+	} else if (d === '*' && mo === '*' && /^\d+$/.test(w) && /^\d+$/.test(m) && /^\d+$/.test(h)) {
+		type = 'weekly';
+		pEl('p_minute').value = parseInt(m, 10) || 0;
+		pEl('p_hour').value = parseInt(h, 10) || 0;
+		pEl('p_weekday').value = w === '7' ? '0' : w;
+	} else if (mo === '*' && w === '*' && /^\d+$/.test(m) && /^\d+$/.test(h) && /^\d+$/.test(d)) {
+		type = 'monthly';
+		pEl('p_minute').value = parseInt(m, 10) || 0;
+		pEl('p_hour').value = parseInt(h, 10) || 0;
+		pEl('p_day').value = parseInt(d, 10);
+	} else if (w === '*' && /^\d+$/.test(mo) && /^\d+$/.test(d) && /^\d+$/.test(m) && /^\d+$/.test(h)) {
+		type = 'yearly';
+		pEl('p_minute').value = parseInt(m, 10) || 0;
+		pEl('p_hour').value = parseInt(h, 10) || 0;
+		pEl('p_day').value = parseInt(d, 10);
+		pEl('p_month').value = parseInt(mo, 10);
+	}
+	pEl('period_type').value = type;
+	if (type === 'custom') {
+		pEl('p_custom').value = cron;
+	}
+}
+function switchType() {
+	var type = pEl('type').value;
+	var cmd = pEl('cmd');
+	if (type == 'url') {
+		cmd.placeholder = 'https://example.com/notify';
+		pEl('cmd_tip').innerHTML = '以 root 身份发起 HTTP GET 请求，超时 30 秒，2xx/3xx 视为成功。';
+	} else {
+		cmd.placeholder = '例如：/usr/bin/php /var/www/task.php';
+		pEl('cmd_tip').innerHTML = '以 root 身份通过 /bin/sh 执行，请谨慎填写。';
+	}
+}
+function fillCronForm(task) {
+	initCronOptions();
+	pEl('name').value = task.name || '';
+	pEl('type').value = task.type === 'url' ? 'url' : 'shell';
+	pEl('cmd').value = task.cmd || '';
+	pEl('flock').checked = task.flock == 1;
+	pEl('task_id').value = task.id || '';
+	pEl('f_keyword').value = LIST_KEYWORD;
+	pEl('f_page').value = LIST_PAGE;
+	pEl('cronform').action = task.id ? '?c=admincron&a=save' : '?c=admincron&a=add';
+	pEl('period_type').value = 'every-minute';
+	pEl('p_custom').value = '';
+	parseCron(task.cron || '* * * * *');
+	updateVisibility();
+	buildCron();
+	switchType();
+}
+function openForm(id) {
+	var html = pEl('cron_tpl').innerHTML;
+	art.dialog({
+		title: id ? '编辑计划任务' : '添加计划任务',
+		content: html,
+		width: 740,
+		top: '5%',
+		lock: true,
+		okVal: id ? '保存' : '添加',
+		cancelVal: '取消',
+		ok: function() {
+			if (!pEl('name').value.replace(/^\s+|\s+$/g, '')) {
+				alert('请填写任务名称');
+				pEl('name').focus();
+				return false;
+			}
+			if (!pEl('cmd').value.replace(/^\s+|\s+$/g, '')) {
+				alert('请填写命令或网址');
+				pEl('cmd').focus();
+				return false;
+			}
+			if (!/^\S+( \S+){4}$/.test(pEl('cron').value.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' '))) {
+				alert('周期表达式必须是 5 段，例如 */5 * * * *');
+				return false;
+			}
+			pEl('cronform').submit();
+			return false;
+		}
+	});
+	if (id) {
+		jQuery.getJSON('?c=admincron&a=get&id=' + id, function(task) {
+			fillCronForm(task);
+		});
+	} else {
+		fillCronForm({});
+	}
+}
+function checkedIds() {
+	var ids = [];
+	jQuery('.ck:checked').each(function() {
+		ids.push(this.value);
+	});
+	return ids;
+}
+function selectAllCron(flag) {
+	jQuery('.ck').each(function() {
+		this.checked = flag ? true : !this.checked;
+	});
+}
+function batchCron(op) {
+	var ids = checkedIds();
+	if (!ids.length) {
+		alert('请先选择任务');
+		return;
+	}
+	if (op === 'del' && !confirm('确定删除选中的 ' + ids.length + ' 个任务及其日志？')) {
+		return;
+	}
+	window.location = '?c=admincron&a=batch&op=' + op + '&ids=' + ids.join(',')
+		+ '&keyword=' + encodeURIComponent(LIST_KEYWORD) + '&page=' + LIST_PAGE;
+}
+function setCronPageCount(count) {
+	jQuery.ajax({
+		url: '?c=setting&a=add&name=admin_cron_page_count&value=' + count,
+		success: function() {
+			window.location = '?c=admincron&a=index' + (LIST_KEYWORD ? '&keyword=' + encodeURIComponent(LIST_KEYWORD) : '');
+		}
+	});
+}
+var LIST_KEYWORD = '{{$keyword|escape:'javascript'}}';
+var LIST_PAGE = {{$page}};
+jQuery(document).on('change', '#period_type', function() {
+	updateVisibility();
+	buildCron();
+});
+jQuery(document).on('input change', '.cron-input', function() {
+	buildCron();
+});
+jQuery(document).ready(function() {
+	var msg = '{{$msg|escape:'javascript'}}';
+	if (msg != '') {
+		art.dialog({content : msg, top : '10%', title : "", lock : true});
+	}
+});
+</script>
+<div align="center">
+	<div class="wid_main mar_main" align="left">
+		<div class="block_top">当前位置：服务器管理 --> 计划任务&nbsp;&nbsp;[<a href="?c=admincron&a=sync">重建系统任务</a>]</div>
+		<div style="color:#888;margin:8px 0;">启用中的任务会写入 /etc/cron.d/easypanel_cron，由系统 crond 执行；开启进程锁后，上次执行未结束则本次跳过并记录日志。</div>
+		<div style="margin-top:8px;">
+			<span style="float:left;">
+				<form action="?c=admincron&a=index" method="post" style="margin:0;">
+					名称 / 命令 / 周期:<input name="keyword" value="{{$keyword|escape:'html'}}" style="width:150px;">&nbsp;<input type="submit" value="搜索">
+				</form>
+			</span>
+			<span style="float:left;margin-left:16px;">
+				<input type="button" class="btn btn-primary" value="添加任务" onclick="openForm(0)">
+				<a class="btn" href="javascript:selectAllCron(1)">全选</a>
+				<a class="btn" href="javascript:selectAllCron(0)">反选</a>
+				<a class="btn" href="javascript:batchCron('del')">删除</a>
+				<a class="btn" href="javascript:batchCron('enable')">启用</a>
+				<a class="btn" href="javascript:batchCron('disable')">停用</a>
+			</span>
+			<span style="float:left;margin-left:16px;">
+				选择显示:<select name='pagecount' onchange='setCronPageCount(this.value)'>
+					{{for $i=10;$i <= 60;$i++}}{{if $i%5==0}}
+					<option value='{{$i}}' {{if $page_count==$i}}selected{{/if}}>{{$i}}</option>
+					{{/if}}{{/for}}
+				</select> 行
+			</span>
+			<span style="float:right;">
+				{{if $page > 1}}
+				<a href='?c=admincron&a=index&page=1{{if $keyword}}&keyword={{urlencode($keyword)}}{{/if}}'>首页</a>
+				<a href='?c=admincron&a=index&page={{$page-1}}{{if $keyword}}&keyword={{urlencode($keyword)}}{{/if}}'>上一页</a>
+				{{/if}}
+				{{if $page != $total_page}}
+				<a href='?c=admincron&a=index&page={{$page+1}}{{if $keyword}}&keyword={{urlencode($keyword)}}{{/if}}'>下一页</a>
+				<a href='?c=admincron&a=index&page={{$total_page}}{{if $keyword}}&keyword={{urlencode($keyword)}}{{/if}}'>尾页</a>
+				{{/if}}
+				{{$page}}/{{$total_page}}&nbsp;共计 {{$count}}
+			</span>
+		</div>
+		<div style="clear:both;"></div>
+		<table class="table" style="margin-top:8px;">
+			<thead>
+				<tr>
+					<th style="width:30px;">&nbsp;</th>
+					<th style="width:40px;">ID</th>
+					<th style="width:130px;">名称</th>
+					<th style="width:90px;">类型</th>
+					<th style="width:110px;">执行周期</th>
+					<th style="width:60px;">进程锁</th>
+					<th>命令 / 网址</th>
+					<th style="width:55px;">状态</th>
+					<th style="width:125px;">上次执行</th>
+					<th style="width:200px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{{if $tasks}}
+			{{foreach from=$tasks item=row}}
+				<tr>
+					<td><input type="checkbox" class="ck" value="{{$row.id}}"></td>
+					<td>{{$row.id}}</td>
+					<td>{{$row.name|escape:'html'}}</td>
+					<td>{{if $row.type == 'url'}}URL 访问{{else}}Shell 命令{{/if}}</td>
+					<td>{{$row.cron_desc|escape:'html'}}</td>
+					<td>{{if $row.flock == 1}}<font color='green'>开</font>{{else}}<font color='#999'>关</font>{{/if}}</td>
+					<td><div style="max-width:420px;max-height:80px;overflow:auto;word-break:break-all;">{{$row.cmd|escape:'html'}}</div></td>
+					<td>{{if $row.enabled == 1}}<font color='green'>启用</font>{{else}}<font color='red'>停用</font>{{/if}}</td>
+					<td>
+						{{if $row.last_run > 0}}
+						{{date('Y-m-d H:i:s', $row.last_run)}}<br>
+						{{if $row.last_status == 1}}<font color='green'>成功</font>{{elseif $row.last_status == 2}}<font color='red'>失败</font>{{else}}-{{/if}}
+						{{else}}未执行{{/if}}
+					</td>
+					<td>
+						<a href="?c=admincron&a=run&id={{$row.id}}&page={{$page}}{{if $keyword}}&keyword={{urlencode($keyword)}}{{/if}}" onclick="return confirm('确定立即执行该任务？');">执行</a>
+						| <a href="?c=admincron&a=log&id={{$row.id}}">日志</a>
+						| <a href="javascript:openForm({{$row.id}})">编辑</a>
+						| {{if $row.enabled == 1}}<a href="?c=admincron&a=toggle&id={{$row.id}}&enabled=0&page={{$page}}{{if $keyword}}&keyword={{urlencode($keyword)}}{{/if}}">停用</a>{{else}}<a href="?c=admincron&a=toggle&id={{$row.id}}&enabled=1&page={{$page}}{{if $keyword}}&keyword={{urlencode($keyword)}}{{/if}}">启用</a>{{/if}}
+						| <a href="?c=admincron&a=del&id={{$row.id}}&page={{$page}}{{if $keyword}}&keyword={{urlencode($keyword)}}{{/if}}" onclick="return confirm('确定删除该任务及其日志？');">删除</a>
+					</td>
+				</tr>
+			{{/foreach}}
+			{{else}}
+				<tr><td colspan="10" align="center">{{if $keyword}}没有匹配的任务{{else}}暂无计划任务，点击上方 [添加] 新建{{/if}}</td></tr>
+			{{/if}}
+			</tbody>
+		</table>
+	</div>
+</div>
+<script type="text/template" id="cron_tpl">
+<div style="width:690px;">
+<form id="cronform" action="?c=admincron&a=add" method="post">
+<input type="hidden" name="id" id="task_id" value="">
+<input type="hidden" name="keyword" id="f_keyword" value="">
+<input type="hidden" name="page" id="f_page" value="">
+<table class="table" cellpadding="0" cellspacing="1" style="width:100%;">
+	<tr>
+		<td style="width:110px;">任务名称：</td>
+		<td><input type="text" name="name" id="name" style="width:90%;" maxlength="100"></td>
+	</tr>
+	<tr>
+		<td>任务类型：</td>
+		<td>
+			<select name="type" id="type" onchange="switchType()">
+				<option value="shell">Shell 命令</option>
+				<option value="url">URL 访问</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>命令 / 网址：</td>
+		<td>
+			<textarea name="cmd" id="cmd" rows="5" style="width:90%;font-family:monospace;"></textarea>
+			<div id="cmd_tip" style="color:#888;"></div>
+		</td>
+	</tr>
+	<tr>
+		<td>执行周期：</td>
+		<td>
+			<select id="period_type">
+				<option value="every-minute">每分钟</option>
+				<option value="every-n-minutes">每 N 分钟</option>
+				<option value="every-n-hours">每 N 小时</option>
+				<option value="every-n-days">每 N 天</option>
+				<option value="hourly">每小时</option>
+				<option value="daily">每天</option>
+				<option value="weekly">每周</option>
+				<option value="monthly">每月</option>
+				<option value="yearly">每年</option>
+				<option value="custom">自定义表达式</option>
+			</select>
+			<span id="w_n_minutes" style="display:none;">每 <input type="number" class="cron-input" id="p_n_minutes" min="1" max="59" value="5" style="width:60px;"> 分钟</span>
+			<span id="w_n_hours" style="display:none;"><input type="number" class="cron-input" id="p_n_hours" min="1" max="23" value="2" style="width:60px;"> 小时</span>
+			<span id="w_n_days" style="display:none;">每 <input type="number" class="cron-input" id="p_n_days" min="1" max="31" value="1" style="width:60px;"> 天</span>
+			<span id="w_minute" style="display:none;">第 <input type="number" class="cron-input" id="p_minute" min="0" max="59" value="0" style="width:60px;"> 分</span>
+			<span id="w_hour" style="display:none;"><input type="number" class="cron-input" id="p_hour" min="0" max="23" value="0" style="width:60px;"> 时</span>
+			<span id="w_day" style="display:none;"><input type="number" class="cron-input" id="p_day" min="1" max="31" value="1" style="width:60px;"> 日</span>
+			<span id="w_month" style="display:none;"><select class="cron-input" id="p_month" style="width:80px;"></select></span>
+			<span id="w_weekday" style="display:none;"><select class="cron-input" id="p_weekday" style="width:90px;"></select></span>
+			<span id="w_custom" style="display:none;"><input type="text" class="cron-input" id="p_custom" style="width:220px;" placeholder="分 时 日 月 周"></span>
+			<div style="margin-top:6px;color:#666;">表达式：<code id="cron_preview"></code> <span id="cron_desc" style="color:#888;"></span></div>
+			<input type="hidden" name="cron" id="cron" value="* * * * *">
+		</td>
+	</tr>
+	<tr>
+		<td>进程锁：</td>
+		<td>
+			<label><input type="checkbox" name="flock" id="flock" value="1"> 上次执行未结束时跳过本次（防止重复执行）</label>
+		</td>
+	</tr>
+</table>
+</form>
+</div>
+</script>
+{{dispatch c='index' a='foot'}}
