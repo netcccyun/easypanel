@@ -31,7 +31,7 @@ a:active {
 	text-decoration: none;
 }
 
-/* �����������ʽ */
+/* 定义最外层样式 */
 #container {
 	height: 100%;
 	width: 100%;
@@ -39,7 +39,7 @@ a:active {
 	background: #F6F4F5;
 	padding-top: 10px;
 }
-/* ������ʾ����λ�ò���ʽ */
+/* 定义显示所在位置层样式 */
 .topimg {
 	text-align: left;
 	background: url(xt.jpg) 10px no-repeat;
@@ -394,7 +394,7 @@ hr {
 	text-decoration: underline;
 }
 
-/*�°�css*/ /*�°�css*/
+/*新版css*/ /*新版css*/
 .table_main {
 	background-color: #D5D4D4;
 	width: 100%;
@@ -675,7 +675,7 @@ BORDER-BOTTOM: #9DAFBB 1px solid;
 	background-image: url(table_box.gif);
 }
 
-/*�û�������幦�����ùر�css*/
+/*用户控制面板功能启用关闭css*/
 .start {
 	float: left;
 	padding-left: 10px;
@@ -694,12 +694,12 @@ BORDER-BOTTOM: #9DAFBB 1px solid;
 	padding-left: 10px;
 	padding-bottom: 7px;
 }
-/*�����û�������幦�����ùر�css*/
+/*结束用户控制面板功能启用关闭css*/
 .pa_top_5 {
 	padding-top: 5px;
 }
 
-/*��ʼ������嵱ǰ������Ϣcss*/
+/*开始控制面板当前连接信息css*/
 .con_ip {
 	width: 20%;
 }
@@ -729,9 +729,9 @@ BORDER-BOTTOM: #9DAFBB 1px solid;
 	background-color: #FFA500;
 	font-size: 16;
 }
-/*����������嵱ǰ������Ϣcss*/
+/*结束控制面板当前连接信息css*/
 
-/*Բ��css*/
+/*圆角css*/
 #xsnazzy h1,#xsnazzy h2,#xsnazzy p {
 	margin: 0 10px;
 	letter-spacing: 1px;
@@ -1017,7 +1017,7 @@ BORDER-BOTTOM: #9DAFBB 1px solid;
 	line-height: 30px;
 }
 
-/**** �ұߴ��� ****/
+/**** 右边代码 ****/
 #ep_main3 {
     margin-top: 8px;
 	width: 310px;
@@ -1045,7 +1045,7 @@ BORDER-BOTTOM: #9DAFBB 1px solid;
 	color: #000;
 }
 
-/*****  ����  *****/
+/*****  功能  *****/
 .main {
     margin: 8px 0;
 	background-color: #fefefe;
@@ -1056,7 +1056,7 @@ BORDER-BOTTOM: #9DAFBB 1px solid;
 }
 .webftp {color:#666;}
 
-/*****   ͼ��   *****/
+/*****   图标   *****/
 .index, .ymbd, .zxwj, .ljxx, .xnfx, .off, .xgmm, .dkxz, .hcsz, .qchc, .cwdy, .ymys, .weby, .mime, .mrwj, .ymtz, .cqjc, .sjkgl, .sjbf, .ftp, .ssi, .ssl, .jzip, .fdl, .csgl, .muma, .cc, .llt, .rzfx, .jhrw, .http  {
 	background-image: url(../imgs/vhost.gif);
 	background-repeat: no-repeat;
@@ -1107,4 +1107,47 @@ BORDER-BOTTOM: #9DAFBB 1px solid;
 	padding-right: 22px;
 	color: #59aa15;
 	font-weight: bold;
+}
+
+/* 后台任务徽标：任务执行中显示的入口，点击重新打开进度窗口 */
+.ep-task-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 10px;
+	border-radius: 999px;
+	background: #eef4ff;
+	color: #2563eb;
+	font-size: 12px;
+	font-weight: 500;
+	vertical-align: middle;
+}
+
+.ep-task-chip:hover {
+	color: #1d4ed8;
+}
+
+.ep-task-chip.is-floating {
+	position: fixed;
+	left: 16px;
+	bottom: 16px;
+	z-index: 1200;
+	padding: 6px 14px;
+	background: #fff;
+	box-shadow: 0 8px 24px rgba(16, 24, 40, .18);
+}
+
+.ep-task-chip-spin {
+	width: 12px;
+	height: 12px;
+	border: 2px solid rgba(37, 99, 235, .3);
+	border-top-color: #2563eb;
+	border-radius: 50%;
+	animation: epTaskSpin .7s linear infinite;
+}
+
+@keyframes epTaskSpin {
+	to {
+		transform: rotate(360deg);
+	}
 }

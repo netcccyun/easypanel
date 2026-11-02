@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="{{$PSTATIC}}/style/shell.css?v=2">
-<script src="{{$PSTATIC}}/style/shell.js?v=4"></script>
+<script src="{{$PSTATIC}}/style/shell.js?v=6"></script>
 <link rel="stylesheet" href="{{$STATIC}}webftp/style.css?v=3">
 <script src="{{$PSTATIC}}/style/layer/layer.js"></script>
 <script src="https://lib.baomitu.com/ace/1.43.3/ace.js"></script>
@@ -93,6 +93,7 @@ var left = null;
 				[<a	href='javascript:readonly(1)'>只读</a>]
 				[<a	href='javascript:readonly(0)'>可写</a>]
 				[<a	href='javascript:addwget("{{$wgetdir}}")'>远程下载</a>]
+				<span id="epShellTaskSlot"></span>
 			</td>
 		</tr>
 		<tr>
