@@ -37,7 +37,7 @@
 			</td>
 		</tr>
 		{{/if}}
-		{{if $ssl_rewrite==1||$hsts==1}}
+		{{if $ssl==1||$hsts==1}}
 		<tr>
 			<td>HSTS:</td>
 			<td>
@@ -50,7 +50,7 @@
 			</td>
 		</tr>
 		{{/if}}
-		{{if $ssl==1||$http2==1}}
+		{{if $ssl==1}}
 		<tr>
 			<td>HTTP2:</td>
 			<td>
@@ -62,7 +62,7 @@
 			</td>
 		</tr>
 		{{/if}}
-		{{if $support_http3&&($ssl==1||$http3==1)}}
+		{{if $support_http3&&$ssl==1}}
 		<tr>
 			<td>HTTP3(QUIC):</td>
 			<td>
