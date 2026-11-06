@@ -46,7 +46,7 @@
 					{{foreach from=$subdir_options item=opt}}
 					<option value="{{$opt|escape:'html'}}"></option>
 					{{/foreach}}
-				</datalist></span> / <span class="ep-combo"><input type='text' name='subdir_second' id='subdir_second' value="" size='24' placeholder="二级目录，可选可自定义" /><span class="ep-combo-arrow" aria-hidden="true"></span><datalist id="subdir_second_list"></datalist></span></td>
+				</datalist></span> / <span class="ep-combo"><input type='text' name='subdir_second' id='subdir_second' value="" size='24' placeholder="二级目录，留空则直接使用一级目录" /><span class="ep-combo-arrow" aria-hidden="true"></span><datalist id="subdir_second_list"></datalist></span></td>
 			</tr>
 			{{/if}}
 			{{if $user.cdn}}<tr>
