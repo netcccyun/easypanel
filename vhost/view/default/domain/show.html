@@ -1,4 +1,4 @@
-<script language='javascript' src='{{$STATIC}}js/domain.js?v=3'></script>
+<script language='javascript' src='{{$STATIC}}js/domain.js?v=6'></script>
 
 <div class="main">
 	<div class="public_pa">域名绑定</div>
@@ -33,10 +33,22 @@
 			</tr>
 
 			{{if $subdir_flag}}
+			{{if $user.cdn}}
 			<tr>
-				<td style="width:70px">{{if $user.cdn}}源站IP{{else}}目录{{/if}}</td>
+				<td style="width:70px">源站IP</td>
 				<td><input type='text' name='subdir' id='subdir' value="{{$default_subdir}}" size='40' /></td>
 			</tr>
+			{{else}}
+			<tr>
+				<td style="width:70px">目录</td>
+				<td><span class="ep-combo"><input type='text' name='subdir_base' id='subdir_base' value="{{$subdir_base|escape:'html'}}" placeholder="一级目录，留空为根目录" /><span class="ep-combo-arrow" aria-hidden="true"></span>
+				<datalist id="subdir_base_list">
+					{{foreach from=$subdir_options item=opt}}
+					<option value="{{$opt|escape:'html'}}"></option>
+					{{/foreach}}
+				</datalist></span> / <span class="ep-combo"><input type='text' name='subdir_second' id='subdir_second' value="" size='24' placeholder="二级目录，可选可自定义" /><span class="ep-combo-arrow" aria-hidden="true"></span><datalist id="subdir_second_list"></datalist></span></td>
+			</tr>
+			{{/if}}
 			{{if $user.cdn}}<tr>
 				<td style="width:70px">回源协议</td>
 				<td><select name="proto" id="proto" onchange="if(this.value=='https'||this.value=='follow')alert('选择此项必须先在源站配置好SSL证书')">

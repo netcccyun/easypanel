@@ -1151,3 +1151,11 @@ BORDER-BOTTOM: #9DAFBB 1px solid;
 		transform: rotate(360deg);
 	}
 }
+/* 目录候选下拉（自绘，替代 datalist 原生控件） */
+.ep-combo{position:relative;display:inline-block;vertical-align:middle}
+.ep-combo > input{padding-right:22px}
+.ep-combo-arrow{position:absolute;top:50%;right:6px;width:14px;height:14px;margin-top:-7px;cursor:pointer}
+.ep-combo-arrow::after{content:"";display:block;width:0;height:0;margin:5px 0 0 3px;border:4px solid transparent;border-top-color:#666}
+.ep-combo-list{position:fixed;z-index:1000;display:none;overflow-y:auto;margin:0;padding:4px 0;min-width:120px;max-height:220px;background:#fff;border:1px solid #bbb;border-radius:3px;box-shadow:0 6px 16px rgba(0,0,0,.15);font-size:13px}
+.ep-combo-item{padding:5px 10px;color:#333;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ep-combo-item:hover,.ep-combo-item.is-on{background:#e8f0fe}

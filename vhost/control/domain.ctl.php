@@ -92,6 +92,53 @@ class DomainControl extends Control
 			$list = $li;
 			$this->_tpl->assign('subdir_flag', $user['subdir_flag']);
 			$this->_tpl->assign('default_subdir', $user['subdir']);
+
+			// 一级目录可选项：默认目录 + 站点根目录下实际存在的目录 + 已有绑定用过的一级目录
+			$opts = array();
+			$base = '';
+			$default = trim(str_replace('\\', '/', $user['subdir']), '/');
+
+			if ($default !== '') {
+				$parts = explode('/', $default);
+				$base = $parts[0];
+				$opts[$base] = 1;
+			}
+
+			if (function_exists('posix_geteuid') && posix_geteuid() === 0 && !empty($user['doc_root'])) {
+				change_to_user($user['uid'], $user['gid']);
+				$dh = @opendir($user['doc_root']);
+
+				if ($dh) {
+					while (($f = readdir($dh)) !== false) {
+						// ponytail: 只跳过隐藏目录和日志目录，避免把系统目录当成可选站点目录
+						if ($f === '' || $f[0] === '.' || $f === 'logs') {
+							continue;
+						}
+
+						if (is_dir($user['doc_root'] . '/' . $f)) {
+							$opts[$f] = 1;
+						}
+					}
+
+					closedir($dh);
+				}
+
+				change_to_super();
+			}
+
+			foreach (ep_iter($list) as $domain) {
+				$path = trim(str_replace('\\', '/', $domain['value']), '/');
+
+				if ($path !== '') {
+					$parts = explode('/', $path);
+					$opts[$parts[0]] = 1;
+				}
+			}
+
+			$opts = array_keys($opts);
+			sort($opts);
+			$this->_tpl->assign('subdir_options', $opts);
+			$this->_tpl->assign('subdir_base', $base);
 		}
 
 		if (strpos($user['port'], 's')!==false) {
@@ -186,6 +233,39 @@ class DomainControl extends Control
 		}else{
 			exit(json_encode(array('code'=>-1, 'msg'=>'该域名不存在')));
 		}
+	}
+
+	// 列出目录候选：base 为空列一级目录，否则列 base 下的子目录（二级候选）
+	public function subdirs()
+	{
+		$vhost = getRole('vhost');
+		$user = daocall('vhost', 'getVhost', array($vhost));
+		$base = str_replace('\\', '/', trim(ep_request('base')));
+		// 信任边界：只允许站点根目录内的相对路径，拒绝 .. 与绝对路径
+		if ($base !== '' && (substr($base, 0, 1) === '/' || strpos($base, '..') !== false)) {
+			exit(json_encode(array('code' => -1, 'msg' => '目录不合法')));
+		}
+		$result = array('code' => 0, 'list' => array());
+		if (function_exists('posix_geteuid') && posix_geteuid() === 0 && !empty($user['doc_root'])) {
+			$dir = $user['doc_root'] . ($base !== '' ? '/' . $base : '');
+			change_to_user($user['uid'], $user['gid']);
+			$dh = @opendir($dir);
+			if ($dh) {
+				while (($f = readdir($dh)) !== false) {
+					// ponytail: 跳过隐藏目录与日志目录，与一级候选保持一致
+					if ($f === '' || $f[0] === '.' || $f === 'logs') {
+						continue;
+					}
+					if (is_dir($dir . '/' . $f)) {
+						$result['list'][] = $f;
+					}
+				}
+				closedir($dh);
+			}
+			change_to_super();
+		}
+		sort($result['list']);
+		exit(json_encode($result));
 	}
 
 	public function add()
