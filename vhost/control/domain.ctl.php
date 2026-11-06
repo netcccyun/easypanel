@@ -16,7 +16,10 @@ class DomainControl extends Control
 	public function show()
 	{
 		$vhost = getRole('vhost');
-		$user = $_SESSION['user'][$vhost];
+		// Read vhost from DB so SSL certificate state changes show immediately;
+		// the template's $user is assigned from $_SESSION in index.php before dispatch.
+		$user = daocall('vhost', 'getVhost', array($vhost));
+		$this->assign('user', $user);
 		$cname_host = daocall('setting', 'get', array('cname_host'));
 
 		if ($cname_host) {

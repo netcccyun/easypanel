@@ -37,7 +37,7 @@
 			</td>
 		</tr>
 		{{/if}}
-		{{if $ssl_rewrite==1||$hsts==1}}
+		{{if $ssl==1||$hsts==1}}
 		<tr>
 			<td>HSTS:</td>
 			<td>
@@ -50,7 +50,7 @@
 			</td>
 		</tr>
 		{{/if}}
-		{{if $ssl==1||$http2==1}}
+		{{if $ssl==1}}
 		<tr>
 			<td>HTTP2:</td>
 			<td>
@@ -59,10 +59,11 @@
 				{{else}}
 				<a href="javascript:http2_checkon(0)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
 				{{/if}}
+				<span style="margin-left:8px;color:#777;">所有域名公用</span>
 			</td>
 		</tr>
 		{{/if}}
-		{{if $support_http3&&($ssl==1||$http3==1)}}
+		{{if $support_http3&&$ssl==1}}
 		<tr>
 			<td>HTTP3(QUIC):</td>
 			<td>
@@ -71,13 +72,14 @@
 				{{else}}
 				<a href="javascript:http3_checkon(0)" title='关闭'><img src="{{$STATIC}}style/start_off.png" border="0" /></a>
 				{{/if}}
+				<span style="margin-left:8px;color:#777;">所有域名公用</span>
 			</td>
 		</tr>
 		{{/if}}
 	</table>
 </form>
 </div>
-<script src="{{$STATIC}}js/ssl.js?v=3"></script>
+<script src="{{$STATIC}}js/ssl.js?v=4"></script>
 <script>
 function ssl_checkon(val)
 {
