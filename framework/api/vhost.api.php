@@ -486,6 +486,21 @@ class VhostAPI extends API
 	public function del($node, $name)
 	{
 		$vhost = daocall('vhost', 'getVhost', array($name));
+		$no_del_data = daocall('setting', 'get', array('no_del_data'));
+		$destroyed = false;
+		// Windows cannot unlink files still held open. Keep the panel record
+		// until the host has closed the site and removed its files/account, so
+		// a failed cleanup is reported and can be retried from the panel.
+		if (is_win() && !$no_del_data && !($vhost['cdn']==1 && $vhost['doc_root']=='cdn')) {
+			$whm = apicall('nodes', 'makeWhm', array($node));
+			$whmCall = new WhmCall('vhost.whm', 'destroy_vh');
+			$whmCall->addParam('vh', $name);
+			$whmCall->addParam('name', $name);
+			if (!$whm->call($whmCall)) {
+				return false;
+			}
+			$destroyed = true;
+		}
 		daocall('vhostinfo', 'delAllInfo', array($name));
 		daocall('vhost', 'delVhost', array($name));
 
@@ -504,7 +519,6 @@ class VhostAPI extends API
 		}
 
 		apicall('httpauth', 'delAll', array($name));
-		$no_del_data = daocall('setting', 'get', array('no_del_data'));
 
 		if (!$no_del_data) {
 			if ($vhost['db_quota'] != 0) {
@@ -516,7 +530,7 @@ class VhostAPI extends API
 			}
 
 			$whm = apicall('nodes', 'makeWhm', array($node));
-			if(!($vhost['cdn']==1 && $vhost['doc_root']=='cdn')){
+			if(!$destroyed && !($vhost['cdn']==1 && $vhost['doc_root']=='cdn')){
 				$whmCall = new WhmCall('vhost.whm', 'destroy_vh');
 				$whmCall->addParam('vh', $name);
 				$whmCall->addParam('name', $name);
