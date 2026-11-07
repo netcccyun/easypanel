@@ -76,6 +76,8 @@ class IndexControl extends Control
 			if (!apicall('vhostinfo', 'set2', array($vhost, 'moduleversion', 101, $v))) {
 				exit('修改失败');
 			}
+			// kangle 只会在旧版本 php-cgi 空闲满 idle_time 后才回收，切换后立即结束本站进程
+			apicall('vhost', 'rebootProcess', array($vhost));
 			exit('修改成功');
 		}
 
