@@ -105,7 +105,6 @@ function GetWMI($wmi, $strClass, $strValue = array())
 	$arrWEBMCol = $objWEBM->Instances_();
 
 	foreach ($arrWEBMCol as $objItem) {
-		@reset($arrProp);
 		$arrInstance = array();
 
 		foreach ($arrProp as $propItem) {
