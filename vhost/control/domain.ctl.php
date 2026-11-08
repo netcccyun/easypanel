@@ -303,14 +303,19 @@ class DomainControl extends Control
 			if(!is_numeric($port) || $port <= 0 || $port > 65535){
 				exit('源站端口填写错误');
 			}
+			// Node format is host:port:life_time:weight. HTTP(S) origins keep
+			// idle connections for 60s (kangle's KGL_HTTP_UPSTREAM_LIFE_TIME);
+			// life_time 0 opened a new origin connection for every request.
+			// Raw TCP forwarding cannot reuse connections, so it stays 0.
+			$keep = ':60:1';
 			if($proto == 'tcp'){
 				$subdir = 'server://nodes=' . $subdir . ':' . $port . ':0:1/proto=tcp/error_count=1/error_try_time=30';
 			}elseif($proto == 'https'){
-				$subdir = 'server://proto=https/nodes=' . $subdir . ':' . $port . 's:0:1';
+				$subdir = 'server://proto=https/nodes=' . $subdir . ':' . $port . 's' . $keep;
 			}elseif($proto == 'follow'){
-				$subdir = 'server://nodes=' . $subdir . ':' . $port . ':0:1|/nodes=' . $subdir . ':443s:0:1';
+				$subdir = 'server://nodes=' . $subdir . ':' . $port . $keep . '|/nodes=' . $subdir . ':443s' . $keep;
 			}else{
-				$subdir = 'server://nodes=' . $subdir . ':' . $port . ':0:1';
+				$subdir = 'server://nodes=' . $subdir . ':' . $port . $keep;
 			}
 		}
 
