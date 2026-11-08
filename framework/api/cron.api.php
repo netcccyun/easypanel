@@ -4,45 +4,76 @@ class CronAPI extends API
 	public function add($vhost, $params)
 	{
 		$max_cron = 0 - 1;
+		$user = null;
 
 		if ($vhost) {
 			$user = daocall('vhost', 'getVhost', array($vhost));
 
 			if (!$user) {
-				trigger_error('cannot get vhost');
+				setLastError('网站不存在');
 				return false;
 			}
 
-			$max_cron = $user['cron'];
+			$max_cron = intval($user['cron']);
 		}
 
 		if ($max_cron == 0) {
-			trigger_error('vhost not support cron');
+			setLastError('当前网站未开通计划任务');
 			return false;
 		}
 
+		$fields = array('min', 'hour', 'day', 'month', 'mday');
+
 		if (isset($params['t'])) {
-			$t = preg_split('/\\s+/', $params['t']);
+			$t = preg_split('/\\s+/', trim(ep_str($params['t'])));
 
 			if (count($t) != 5) {
-				trigger_error('time format is error(like crontab)');
+				setLastError('执行周期必须是 5 段 crontab 表达式，例如 */5 * * * *');
 				return false;
 			}
 
-			$params['min'] = $t[0];
-			$params['hour'] = $t[1];
-			$params['day'] = $t[2];
-			$params['month'] = $t[3];
-			$params['mday'] = $t[4];
+			foreach ($fields as $i => $field) {
+				$params[$field] = $t[$i];
+			}
 		}
 
-		if (!isset($params['min']) || !isset($params['hour']) || !isset($params['day']) || !isset($params['month']) || !isset($params['mday'])) {
-			trigger_error('min hour day month mday is missing');
+		$time = array();
+
+		foreach ($fields as $field) {
+			if (!isset($params[$field])) {
+				setLastError('执行周期不完整');
+				return false;
+			}
+
+			$time[$field] = trim(ep_str($params[$field]));
+		}
+
+		// 时间字段原样写入 cron XML 的 time 属性，必须先校验，防止注入
+		if (!apicall('adminCron', 'checkCron', array(implode(' ', $time)))) {
+			setLastError('执行周期格式不正确，请填写 5 段 crontab 表达式，例如 */5 * * * *');
 			return false;
 		}
 
-		if (daocall('cron', 'add', array($vhost, $params, $max_cron))) {
-			return $this->sync($user);
+		// 网址作为 wget 参数执行，不允许空白和引号，避免被拆成额外参数
+		$cmd = trim(ep_str(isset($params['cmd']) ? $params['cmd'] : ''));
+
+		if (strlen($cmd) > 2000 || !preg_match('!^https?://[^\\s\'"<>`]+$!i', $cmd) || !filter_var($cmd, FILTER_VALIDATE_URL)) {
+			setLastError('网址格式不正确，必须以 http:// 或 https:// 开头，且不能包含空格或引号');
+			return false;
+		}
+
+		$time['cmd'] = $cmd;
+		$time['cmd_type'] = 0;
+
+		if (daocall('cron', 'add', array($vhost, $time, $max_cron))) {
+			return $this->sync($user ? $user : $vhost);
+		}
+
+		if (0 < $max_cron && $max_cron <= daocall('cron', 'getCount', array($vhost))) {
+			setLastError('已达到计划任务数量上限（' . $max_cron . ' 条）');
+		}
+		else {
+			setLastError('保存计划任务失败');
 		}
 
 		return false;

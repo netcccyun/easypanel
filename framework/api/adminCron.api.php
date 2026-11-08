@@ -269,6 +269,50 @@ class AdminCronAPI extends API
 		return true;
 	}
 
+	/**
+	 * 把 5 段 crontab 表达式转成中文描述，无法识别时原样返回
+	 */
+	public function describe($cron)
+	{
+		$cron = trim(preg_replace('/\s+/', ' ', ep_str($cron)));
+		$p = explode(' ', $cron);
+		if (count($p) !== 5) {
+			return $cron;
+		}
+		list($mi, $h, $d, $mo, $w) = $p;
+		$time = sprintf('%02d:%02d', intval($h), intval($mi));
+		if (preg_match('/^\d+$/', $mi) && preg_match('/^\d+$/', $h) && $d === '*' && $mo === '*' && $w === '*') {
+			return '每天 ' . $time . ' 执行';
+		}
+		if ($mi === '*' && $h === '*' && $d === '*' && $mo === '*' && $w === '*') {
+			return '每分钟执行';
+		}
+		if (preg_match('#^\*/(\d+)$#', $mi, $m) && $h === '*' && $d === '*' && $mo === '*' && $w === '*') {
+			return '每 ' . intval($m[1]) . ' 分钟执行';
+		}
+		if (preg_match('/^\d+$/', $mi) && preg_match('#^\*/(\d+)$#', $h, $m) && $d === '*' && $mo === '*' && $w === '*') {
+			return '每 ' . intval($m[1]) . ' 小时的第 ' . intval($mi) . ' 分钟执行';
+		}
+		if (preg_match('/^\d+$/', $mi) && preg_match('/^\d+$/', $h) && preg_match('#^\*/(\d+)$#', $d, $m) && $mo === '*' && $w === '*') {
+			return '每 ' . intval($m[1]) . ' 天的 ' . $time . ' 执行';
+		}
+		if (preg_match('/^\d+$/', $mi) && $h === '*' && $d === '*' && $mo === '*' && $w === '*') {
+			return '每小时的第 ' . intval($mi) . ' 分钟执行';
+		}
+		if (preg_match('/^\d+$/', $mi) && preg_match('/^\d+$/', $h) && $d === '*' && $mo === '*' && preg_match('/^[0-7]$/', $w)) {
+			$names = array('日', '一', '二', '三', '四', '五', '六');
+			$idx = $w === '7' ? 0 : intval($w);
+			return '每周' . $names[$idx] . ' ' . $time . ' 执行';
+		}
+		if (preg_match('/^\d+$/', $mi) && preg_match('/^\d+$/', $h) && preg_match('/^\d+$/', $d) && $mo === '*' && $w === '*') {
+			return '每月 ' . intval($d) . ' 日 ' . $time . ' 执行';
+		}
+		if (preg_match('/^\d+$/', $mi) && preg_match('/^\d+$/', $h) && preg_match('/^\d+$/', $d) && preg_match('/^\d+$/', $mo) && $w === '*') {
+			return '每年 ' . intval($mo) . ' 月 ' . intval($d) . ' 日 ' . $time . ' 执行';
+		}
+		return $cron;
+	}
+
 	private function normalize($params)
 	{
 		$name = isset($params['name']) ? trim($params['name']) : '';

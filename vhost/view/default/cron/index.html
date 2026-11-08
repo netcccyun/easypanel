@@ -1,37 +1,279 @@
-<div id="main">
-	<div class="public_pa">
-		<div class="start">
-			<strong>计划任务设置</strong>&nbsp;&nbsp;<a href='?c=cron&a=sync'><strong>[重建计划任务]</strong></a>
-		</div>
+<style type="text/css">
+.cron-page { padding-bottom: 12px; }
+.cron-bar { padding: 10px 12px; overflow: hidden; background: #f6f8fb; border-bottom: 1px solid #e1e6ee; line-height: 28px; }
+.cron-bar .cron-quota { float: left; color: #555; }
+.cron-bar .cron-quota b { color: #2a6ebb; }
+.cron-bar .cron-tools { float: right; }
+.cron-msg { margin: 10px 12px 0; padding: 8px 12px; border: 1px solid #b7dfb9; background: #eef8ef; color: #2d6a31; border-radius: 3px; }
+.cron-msg.cron-msg-err { border-color: #f0c2c2; background: #fdf1f1; color: #a94442; }
+.cron-box { margin: 12px 12px 0; border: 1px solid #dfe4ec; border-radius: 3px; background: #fff; }
+.cron-box-title { padding: 0 12px; height: 34px; line-height: 34px; background: #eef3fa; border-bottom: 1px solid #dfe4ec; font-weight: bold; color: #333; }
+.cron-box .table { margin: 0; }
+.cron-table thead th { background: #f7f9fc; border-top: 0; color: #555; white-space: nowrap; }
+.cron-table tbody td { background: #fff; }
+.cron-table tbody tr:nth-child(even) td { background: #fafbfd; }
+.cron-table tbody tr:hover td { background: #e2efff; }
+.cron-table code, .cron-form code { font-family: Consolas, Menlo, monospace; background: #f1f3f6; border: 1px solid #e3e6eb; border-radius: 3px; padding: 1px 6px; color: #c7254e; white-space: nowrap; }
+.cron-url { word-break: break-all; }
+.cron-url a { color: #2a6ebb; }
+.cron-empty td { text-align: center; color: #999; padding: 28px 8px !important; }
+.cron-del { color: #c9302c; }
+.cron-form td { border-top: 1px solid #eef0f3; }
+.cron-form tr:first-child td { border-top: 0; }
+.cron-form .cron-label { width: 90px; color: #555; text-align: right; white-space: nowrap; }
+.cron-form input[type=number] { width: 56px; }
+.cron-form .cron-part { margin-left: 6px; }
+.cron-form #p_custom { width: 200px; font-family: Consolas, Menlo, monospace; }
+.cron-form #cmd { width: 460px; max-width: 95%; }
+.cron-tip { margin-top: 6px; color: #888; }
+.cron-full { padding: 10px 12px; color: #a94442; }
+</style>
+<script type="text/javascript">
+var CRON_WEEK = '日一二三四五六';
+function cronEl(id) {
+	return document.getElementById(id);
+}
+function cronTrim(s) {
+	return String(s).replace(/^\s+|\s+$/g, '');
+}
+function cronEscape(s) {
+	return jQuery('<div/>').text(s).html();
+}
+function cronPad(n) {
+	return (n < 10 ? '0' : '') + n;
+}
+function cronInt(id, def, min, max) {
+	var v = parseInt(cronEl(id).value, 10);
+	return isNaN(v) || v < min || v > max ? def : v;
+}
+function cronInitOptions() {
+	var weekday = cronEl('p_weekday');
+	for (var i = 0; i <= 6; i++) {
+		weekday.options[i] = new Option('星期' + CRON_WEEK.charAt(i), i);
+	}
+	var month = cronEl('p_month');
+	for (var j = 1; j <= 12; j++) {
+		month.options[j - 1] = new Option(j + ' 月', j);
+	}
+}
+function cronUpdateVisibility() {
+	var map = {
+		'every-n-minutes': ['w_n_minutes'],
+		'every-n-hours': ['w_n_hours', 'w_minute'],
+		'every-n-days': ['w_n_days', 'w_hour', 'w_minute'],
+		'hourly': ['w_minute'],
+		'daily': ['w_hour', 'w_minute'],
+		'weekly': ['w_weekday', 'w_hour', 'w_minute'],
+		'monthly': ['w_day', 'w_hour', 'w_minute'],
+		'yearly': ['w_month', 'w_day', 'w_hour', 'w_minute'],
+		'custom': ['w_custom']
+	};
+	var groups = ['w_n_minutes', 'w_n_hours', 'w_n_days', 'w_month', 'w_day', 'w_weekday', 'w_hour', 'w_minute', 'w_custom'];
+	var show = map[cronEl('period_type').value] || [];
+	for (var i = 0; i < groups.length; i++) {
+		cronEl(groups[i]).style.display = jQuery.inArray(groups[i], show) >= 0 ? '' : 'none';
+	}
+}
+function cronBuild() {
+	var t = cronEl('period_type').value;
+	var nMinutes = cronInt('p_n_minutes', 5, 1, 59);
+	var nHours = cronInt('p_n_hours', 2, 1, 23);
+	var nDays = cronInt('p_n_days', 1, 1, 31);
+	var minute = cronInt('p_minute', 0, 0, 59);
+	var hour = cronInt('p_hour', 0, 0, 23);
+	var day = cronInt('p_day', 1, 1, 31);
+	var month = cronInt('p_month', 1, 1, 12);
+	var weekday = cronInt('p_weekday', 0, 0, 6);
+	var at = cronPad(hour) + ':' + cronPad(minute);
+	var cron = '* * * * *';
+	var desc = '每分钟执行';
+	if (t === 'every-n-minutes') {
+		cron = '*/' + nMinutes + ' * * * *';
+		desc = '每 ' + nMinutes + ' 分钟执行';
+	} else if (t === 'every-n-hours') {
+		cron = minute + ' */' + nHours + ' * * *';
+		desc = '每 ' + nHours + ' 小时的第 ' + minute + ' 分钟执行';
+	} else if (t === 'every-n-days') {
+		cron = minute + ' ' + hour + ' */' + nDays + ' * *';
+		desc = '每 ' + nDays + ' 天的 ' + at + ' 执行';
+	} else if (t === 'hourly') {
+		cron = minute + ' * * * *';
+		desc = '每小时的第 ' + minute + ' 分钟执行';
+	} else if (t === 'daily') {
+		cron = minute + ' ' + hour + ' * * *';
+		desc = '每天 ' + at + ' 执行';
+	} else if (t === 'weekly') {
+		cron = minute + ' ' + hour + ' * * ' + weekday;
+		desc = '每周' + CRON_WEEK.charAt(weekday) + ' ' + at + ' 执行';
+	} else if (t === 'monthly') {
+		cron = minute + ' ' + hour + ' ' + day + ' * *';
+		desc = '每月 ' + day + ' 日 ' + at + ' 执行';
+	} else if (t === 'yearly') {
+		cron = minute + ' ' + hour + ' ' + day + ' ' + month + ' *';
+		desc = '每年 ' + month + ' 月 ' + day + ' 日 ' + at + ' 执行';
+	} else if (t === 'custom') {
+		cron = cronTrim(cronEl('p_custom').value).replace(/\s+/g, ' ');
+		desc = cronValid(cron) ? '自定义表达式（分 时 日 月 周）' : '请填写 5 段表达式：分 时 日 月 周';
+	}
+	cronEl('cron_t').value = cron;
+	cronEl('cron_preview').innerHTML = cron ? cronEscape(cron) : '&nbsp;';
+	cronEl('cron_desc').innerHTML = cronEscape(desc);
+}
+function cronValid(cron) {
+	return /^[0-9*\/,\-]+( [0-9*\/,\-]+){4}$/.test(cron);
+}
+function cronSubmit() {
+	cronBuild();
+	if (!cronValid(cronEl('cron_t').value)) {
+		alert('执行周期必须是 5 段表达式，例如 */5 * * * *');
+		cronEl('p_custom').focus();
+		return false;
+	}
+	var cmd = cronTrim(cronEl('cmd').value);
+	if (!/^https?:\/\/[^\s'"<>`]+$/i.test(cmd)) {
+		alert('网址必须以 http:// 或 https:// 开头，且不能包含空格或引号');
+		cronEl('cmd').focus();
+		return false;
+	}
+	cronEl('cmd').value = cmd;
+	return true;
+}
+function cronDel(link) {
+	var id = jQuery(link).attr('data-id');
+	var url = '?c=cron&a=del&id=' + encodeURIComponent(id);
+	var content = '<div style="line-height:24px;">确定删除这个计划任务吗？删除后不可恢复。'
+		+ '<br>执行周期：<code>' + cronEscape(jQuery(link).attr('data-expr')) + '</code>'
+		+ '<br>目标网址：<span style="word-break:break-all;">' + cronEscape(jQuery(link).attr('data-cmd')) + '</span></div>';
+	if (typeof art === 'undefined' || !art.dialog) {
+		if (confirm('确定删除这个计划任务吗？')) {
+			window.location = url;
+		}
+		return false;
+	}
+	art.dialog({
+		title: '删除计划任务',
+		content: content,
+		width: 420,
+		lock: true,
+		icon: 'warning',
+		okVal: '确定删除',
+		cancelVal: '取消',
+		ok: function() {
+			window.location = url;
+		},
+		cancel: true
+	});
+	return false;
+}
+jQuery(function() {
+	if (!cronEl('period_type')) {
+		return;
+	}
+	cronInitOptions();
+	cronUpdateVisibility();
+	cronBuild();
+	jQuery('#period_type').on('change', function() {
+		// 切到自定义时带入当前表达式，方便在此基础上修改
+		if (this.value === 'custom' && !cronTrim(cronEl('p_custom').value)) {
+			cronEl('p_custom').value = cronEl('cron_t').value;
+		}
+		cronUpdateVisibility();
+		cronBuild();
+		if (this.value === 'custom') {
+			cronEl('p_custom').focus();
+		}
+	});
+	jQuery('.cron-input').on('input change keyup', cronBuild);
+});
+</script>
+<div class="main cron-page">
+	<div class="public_pa">计划任务</div>
+	<div class="cron-bar">
+		<span class="cron-quota">已添加 <b>{{$count}}</b> 个任务{{if $user.cron > 0}}，最多可添加 <b>{{$user.cron}}</b> 个{{/if}}</span>
+		<span class="cron-tools">
+			<a class="btn" href="?c=index&a=webftp&dir=/logs" title="执行结果记录在 logs/cron.log">查看执行日志</a>
+			<a class="btn" href="?c=cron&a=sync" title="根据当前任务列表重新生成计划任务配置">重建计划任务</a>
+		</span>
 	</div>
-	<div class="public_pa_wid padding_bottom">
-		<table class="table table-bordered" cellpadding="0" cellspacing="1">
-			{{foreach from=$crons item=cron}}
-			<tr>
-				<td>[<a href='?c=cron&a=del&id={{$cron.id}}'>删除</a>]
-				</td>
-				<td>{{$cron.min}} {{$cron.hour}} {{$cron.day}} {{$cron.month}}
-					{{$cron.mday}}</td>
-				<td>{{$cron.cmd}}</td>
-			</tr>
-			{{/foreach}}
-		</table>
-		<form action='?c=cron&a=add' method='post'>
-			<table class="table table-condensed" cellpadding="0" cellspacing="1">
+	{{if $msg}}
+	<div class="cron-msg{{if $err}} cron-msg-err{{/if}}">{{$msg|escape:'html'}}</div>
+	{{/if}}
 
+	<div class="cron-box">
+		<div class="cron-box-title">任务列表</div>
+		<table class="table cron-table" cellpadding="0" cellspacing="0">
+			<thead>
 				<tr>
-					<td>时间(crontab格式):</td>
-					<td><input name='t' class="span4"></td>
+					<th style="width:40px;">#</th>
+					<th style="width:200px;">执行周期</th>
+					<th style="width:130px;">表达式</th>
+					<th>目标网址</th>
+					<th style="width:60px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{{foreach from=$crons item=cron}}
+				<tr>
+					<td>{{$cron@iteration}}</td>
+					<td>{{$cron.desc|escape:'html'}}</td>
+					<td><code>{{$cron.expr|escape:'html'}}</code></td>
+					<td class="cron-url">{{$cron.cmd|escape:'html'}}</td>
+					<td><a href="javascript:void(0)" class="cron-del" data-id="{{$cron.id|escape:'html'}}" data-expr="{{$cron.expr|escape:'html'}}" data-cmd="{{$cron.cmd|escape:'html'}}" onclick="return cronDel(this);">删除</a></td>
+				</tr>
+			{{foreachelse}}
+				<tr class="cron-empty"><td colspan="5">暂无计划任务，可在下方添加</td></tr>
+			{{/foreach}}
+			</tbody>
+		</table>
+	</div>
+
+	<div class="cron-box">
+		<div class="cron-box-title">添加计划任务</div>
+		{{if $user.cron > 0 && $count >= $user.cron}}
+		<div class="cron-full">已达到计划任务数量上限，请先删除不需要的任务。</div>
+		{{else}}
+		<form action="?c=cron&a=add" method="post" onsubmit="return cronSubmit();">
+			<input type="hidden" name="t" id="cron_t" value="*/5 * * * *">
+			<table class="table cron-form" cellpadding="0" cellspacing="0">
+				<tr>
+					<td class="cron-label">执行周期：</td>
+					<td>
+						<select id="period_type" style="width:130px;">
+							<option value="every-minute">每分钟</option>
+							<option value="every-n-minutes" selected="selected">每 N 分钟</option>
+							<option value="every-n-hours">每 N 小时</option>
+							<option value="every-n-days">每 N 天</option>
+							<option value="hourly">每小时</option>
+							<option value="daily">每天</option>
+							<option value="weekly">每周</option>
+							<option value="monthly">每月</option>
+							<option value="yearly">每年</option>
+							<option value="custom">自定义表达式</option>
+						</select>
+						<span id="w_n_minutes" class="cron-part">每 <input type="number" class="cron-input" id="p_n_minutes" min="1" max="59" value="5"> 分钟</span>
+						<span id="w_n_hours" class="cron-part" style="display:none;">每 <input type="number" class="cron-input" id="p_n_hours" min="1" max="23" value="2"> 小时</span>
+						<span id="w_n_days" class="cron-part" style="display:none;">每 <input type="number" class="cron-input" id="p_n_days" min="1" max="31" value="1"> 天</span>
+						<span id="w_month" class="cron-part" style="display:none;"><select class="cron-input" id="p_month" style="width:80px;"></select></span>
+						<span id="w_day" class="cron-part" style="display:none;"><input type="number" class="cron-input" id="p_day" min="1" max="31" value="1"> 日</span>
+						<span id="w_weekday" class="cron-part" style="display:none;"><select class="cron-input" id="p_weekday" style="width:90px;"></select></span>
+						<span id="w_hour" class="cron-part" style="display:none;"><input type="number" class="cron-input" id="p_hour" min="0" max="23" value="0"> 时</span>
+						<span id="w_minute" class="cron-part" style="display:none;">第 <input type="number" class="cron-input" id="p_minute" min="0" max="59" value="0"> 分</span>
+						<span id="w_custom" class="cron-part" style="display:none;"><input type="text" class="cron-input" id="p_custom" placeholder="分 时 日 月 周，例如 30 2 * * 1-5"></span>
+						<div class="cron-tip">表达式：<code id="cron_preview">*/5 * * * *</code>&nbsp;<span id="cron_desc">每 5 分钟执行</span></div>
+					</td>
 				</tr>
 				<tr>
-					<td>网址:</td>
-					<td><input name='cmd' class="span5"></td>
+					<td class="cron-label">目标网址：</td>
+					<td>
+						<input type="text" name="cmd" id="cmd" maxlength="2000" placeholder="https://www.example.com/cron.php">
+					</td>
+				</tr>
 				<tr>
 					<td></td>
-					<td><input type='submit' value='增加' class="btn btn-primary" /></td>
+					<td><input type="submit" value="添加任务" class="btn btn-primary"></td>
 				</tr>
-
 			</table>
 		</form>
+		{{/if}}
 	</div>
 </div>
