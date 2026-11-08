@@ -95,7 +95,7 @@ class CdnSlaveAPI extends API
 			$infovalue = $info['value'];
 			if ($info['type'] == 0 && strncasecmp($infovalue, 'http://', 7) != 0 && strncasecmp($infovalue, 'https://', 8) != 0 && strncasecmp($infovalue, 'server://', 9) != 0) {
 				$binding = EpSsl::splitBinding($infovalue);
-				$infovalue = ep_cdn_origin_url($ip . ':0');
+				$infovalue = 'http://' . $ip . ':0/';
 				if ($binding['ssl']) {
 					$infovalue .= ';' . $binding['certificate'] . '|' . $binding['key'];
 				}

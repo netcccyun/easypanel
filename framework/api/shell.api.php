@@ -121,7 +121,7 @@ class ShellAPI extends API
 				$value = $domain['value'];
 
 				if (strncasecmp($value, 'http://', 7) != 0) {
-					$value = ep_cdn_origin_url($self_ip);
+					$value = 'http://' . $self_ip . '/';
 				}
 
 				$str .= '	<host dir=\'' . $value . '\'>' . $domain['name'] . "</host>\n";

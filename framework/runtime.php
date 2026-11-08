@@ -39,17 +39,6 @@ function ep_iter($value)
 	return array();
 }
 
-/*
- * Origin URL a CDN slave uses to proxy a synced domain back to the master.
- * life_time keeps idle origin connections pooled for 60s, matching kangle's
- * KGL_HTTP_UPSTREAM_LIFE_TIME; without it kangle opens a new connection for
- * every proxied request. $host may carry a port, e.g. "1.2.3.4:0".
- */
-function ep_cdn_origin_url($host)
-{
-	return 'http://' . $host . '/?life_time=60';
-}
-
 function ep_pdo_options($extra = array())
 {
 	$options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT);
