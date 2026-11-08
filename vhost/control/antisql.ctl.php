@@ -11,6 +11,8 @@ class AntisqlControl extends Control
 	{
 		parent::__construct();
 		load_lib('pub:access');
+		$permission = apicall('access', 'checkAccess', array());
+		if ($permission !== true) { exit($permission); }
 		$this->access = new Access(getRole('vhost'));
 	}
 

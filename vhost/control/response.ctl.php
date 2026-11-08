@@ -7,6 +7,8 @@ class ResponseControl extends control
 	{
 		parent::__construct();
 		load_lib('pub:access');
+		$permission = apicall('access', 'checkAccess', array());
+		if ($permission !== true) { exit($permission); }
 	}
 
 	public function gzipFrom()

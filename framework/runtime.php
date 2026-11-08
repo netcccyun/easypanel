@@ -113,9 +113,84 @@ function ep_safe_name($value, $default = '')
 	return $value;
 }
 
+/**
+ * 规范化网站根目录下的相对子目录，非法时返回 false。
+ * 拒绝 ".." 段、盘符/协议（":"，防止被 kangle 当作 http:// server:// 反向代理）以及控制字符。
+ */
+function ep_safe_subdir($dir)
+{
+	$dir = trim(str_replace('\\', '/', ep_str($dir)));
+
+	if (preg_match('/[\x00-\x1f\x7f:;|<>"*?]/', $dir)) {
+		return false;
+	}
+
+	$rel = ltrim($dir, '/');
+	if ($rel === '') {
+		return $dir === '' ? '' : '/';
+	}
+
+	foreach (explode('/', $rel) as $part) {
+		// Windows 会去掉文件名末尾的点和空格，"..." ". ." 同样等价于 ".."
+		if (strlen($part) > 1 && trim($part, '. ') === '') {
+			return false;
+		}
+	}
+
+	return $rel;
+}
+
 function ep_js_str($value)
 {
 	return strtr(ep_str($value), array('\\' => '\\\\', '\'' => '\\\'', '"' => '\\"', "\r" => '', "\n" => '', '</' => '<\\/'));
+}
+
+/**
+ * 同源校验：浏览器跨站请求（Origin/Referer 指向其他站点）直接拒绝，缓解 CSRF。
+ * 无 Origin/Referer 的请求（直接访问、命令行、部分隐私设置）放行，避免影响正常使用。
+ */
+function ep_same_origin_guard()
+{
+	$source = '';
+	if (!empty($_SERVER['HTTP_ORIGIN'])) {
+		$source = $_SERVER['HTTP_ORIGIN'];
+	}
+	elseif (!empty($_SERVER['HTTP_REFERER'])) {
+		$source = $_SERVER['HTTP_REFERER'];
+	}
+
+	if ($source === '') {
+		return true;
+	}
+
+	// sandbox iframe、跨站重定向后的表单提交等场景浏览器会发送 "Origin: null"
+	$source_host = strcasecmp(trim($source), 'null') === 0 ? '' : parse_url($source, PHP_URL_HOST);
+	if ($source_host === false || $source_host === null) {
+		return true;
+	}
+
+	$allowed = array();
+	foreach (array('HTTP_HOST', 'HTTP_X_FORWARDED_HOST') as $key) {
+		if (empty($_SERVER[$key])) {
+			continue;
+		}
+
+		$parts = explode(',', $_SERVER[$key]);
+		$host = trim($parts[0]);
+		if ($host === '') {
+			continue;
+		}
+		$parsed = parse_url('http://' . $host, PHP_URL_HOST);
+		$allowed[] = strtolower($parsed === false || $parsed === null ? $host : $parsed);
+	}
+
+	if ($source_host !== '' && in_array(strtolower($source_host), $allowed, true)) {
+		return true;
+	}
+
+	header('Content-Type: text/html; charset=utf-8');
+	http_response_code(403);
+	exit('非法请求来源');
 }
 
 function ep_session_start()
@@ -330,10 +405,15 @@ function change_to_user($user, $group)
 				$user = $ret['uid'];
 			}
 
-			posix_setegid($group);
-			posix_seteuid($user);
+			// 用户不存在或解析为 root 时不能继续以 root 身份操作用户文件
+			if (!is_numeric($user) || intval($user) <= 0 || !is_numeric($group)) {
+				exit('程序指行出错,请联系管理员');
+			}
 
-			if (posix_geteuid() != $user) {
+			posix_setegid(intval($group));
+			posix_seteuid(intval($user));
+
+			if (posix_geteuid() != intval($user)) {
 				exit('程序指行出错,请联系管理员');
 				return NULL;
 			}
@@ -602,7 +682,6 @@ function getTitle()
 function getRandPasswd($len = 8)
 {
 	$base_passwd = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789';
-	srand((float) microtime() * 1000000);
 	$base_len = strlen($base_passwd);
 
 	if ($len < 8) {
@@ -613,7 +692,7 @@ function getRandPasswd($len = 8)
 	$i = 0;
 
 	while ($i < $len) {
-		$passwd .= $base_passwd[rand() % $base_len];
+		$passwd .= $base_passwd[function_exists('random_int') ? random_int(0, $base_len - 1) : mt_rand(0, $base_len - 1)];
 		++$i;
 	}
 

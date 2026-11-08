@@ -10,11 +10,4 @@ class WhitelistControl extends BanipControl
     protected $listLabel = '白名单';
     protected $listController = 'whitelist';
     protected $templatePath = 'whitelist';
-
-    public function __construct()
-    {
-        parent::__construct();
-        $permission = apicall('access', 'checkAccess', array());
-        if ($permission !== true) { exit($permission); }
-    }
 }

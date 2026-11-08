@@ -167,8 +167,8 @@ class SessionControl extends Control
 		load_lib('pub:db');
 		$info = apicall('nodes', 'getWhmInfo', array(ep_request('username'), ep_request('passwd')));
 
-		if (!$info) {
-			$this->_tpl->assign('msg', 'kangle 通信失败');
+		if (!$info || $info->getCode() != 200) {
+			$this->_tpl->assign('msg', '用户名或密码错误，或 kangle 通信失败');
 			return $this->_tpl->display('login_error.html');
 		}
 

@@ -331,6 +331,10 @@ class DomainControl extends Control
 			}
 		}
 		elseif ($user['subdir_flag'] == 1) {
+			$subdir = ep_safe_subdir($subdir);
+			if ($subdir === false) {
+				exit('绑定目录不合法');
+			}
 			if (!daocall('vhostinfo', 'checkDomainSubdir', array($vhost, $subdir, $user['max_subdir']))) {
 				exit('最多绑定子目录限制为:' . $user['max_subdir']);
 			}

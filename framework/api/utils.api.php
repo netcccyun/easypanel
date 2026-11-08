@@ -431,7 +431,7 @@ class UtilsAPI extends API
 
 	private function writeItemConfig($fp, $node, $keyname, $cfg_name)
 	{
-		$str = '$GLOBALS[\'' . $cfg_name . '_cfg\'][\'' . $node[$keyname] . '\']=array(';
+		$str = '$GLOBALS[' . var_export($cfg_name . '_cfg', true) . '][' . var_export(ep_str($node[$keyname]), true) . ']=array(';
 		$item = '';
 		$keys = array_keys($node);
 		$i = 0;
@@ -444,7 +444,7 @@ class UtilsAPI extends API
 				$item .= ',';
 			}
 
-			$item .= '\'' . $key . '\'=>"' . addcslashes(ep_str($value), '\\"$') . '"';
+			$item .= var_export((string) $key, true) . '=>"' . addcslashes(ep_str($value), '\\"$') . '"';
 			++$i;
 		}
 
@@ -524,13 +524,8 @@ class UtilsAPI extends API
 		$str .= '$GLOBALS[\'reserv_domain\'] = array(';
 
 		foreach ($domain_array as $domain) {
-			if ($del_domain != null) {
-				if ($domain != $del_domain) {
-					$str .= '\'' . $domain . '\',';
-				}
-			}
-			else {
-				$str .= '\'' . $domain . '\',';
+			if ($del_domain === null || $domain != $del_domain) {
+				$str .= var_export(ep_str($domain), true) . ',';
 			}
 		}
 

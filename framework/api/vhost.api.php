@@ -604,21 +604,32 @@ class VhostAPI extends API
 	{
 		load_lib('pub:ssl');
 		$binding = EpSsl::splitBinding($dir);
-		$dir = $binding['dir'];
+		$dir = ep_safe_subdir($binding['dir']);
+
+		if ($dir === false) {
+			return false;
+		}
+
+		$vh = daocall('vhost', 'getVhost', array($name));
+
+		if (!$vh || $vh['uid'] === null || $vh['uid'] === '') {
+			return false;
+		}
+
 		$product = apicall('product', 'newProduct', array('vhost'));
 		$docroot = $product->getDocRoot($name);
 		$file = $GLOBALS['safe_dir'] . '/index.html';
+		$content = @file_get_contents($file);
 
-		if (!file_exists($file)) {
+		if ($content === false) {
 			return false;
 		}
 
 		$filename = $docroot . '/' . $dir . '/index.html';
-
-		if (file_exists($filename)) {
-			return false;
-		}
-
-		return @copy($file, $filename);
+		// 目标目录由用户控制（可能是指向其他位置的软链接），以网站用户身份写入
+		change_to_user($vh['uid'], $vh['gid']);
+		$ret = !file_exists($filename) && @file_put_contents($filename, $content) !== false;
+		change_to_super();
+		return $ret;
 	}
 }

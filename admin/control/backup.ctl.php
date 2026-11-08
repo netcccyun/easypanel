@@ -24,8 +24,15 @@ class BackupControl extends control
 			$this->_tpl->assign('listdir', $listdir);
 		}
 
-		if ($_REQUEST['dir']) {
-			$dir = $_REQUEST['dir'];
+		$dir = ep_request('dir');
+		$vhost = ep_request('vhost');
+
+		// 该命令会被管理员复制到 root 命令行执行，同时也直接输出到页面/JS 中
+		if ($dir !== '' && !preg_match('/^[A-Za-z0-9_.-]+$/', $dir) || $vhost !== '' && !preg_match('/^[A-Za-z0-9_.@-]+$/', $vhost)) {
+			exit('参数不合法');
+		}
+
+		if ($dir !== '') {
 			$cmd = '<font color=\'red\'>由于恢复数据时运行时间超过PHP限制，请在命令行下运行以下命令来恢复<a href=javascript:show_vhost()>恢复单个网站</a><br>';
 
 			if (strncasecmp(PHP_OS, 'WIN', 3) != 0) {
@@ -47,8 +54,8 @@ class BackupControl extends control
 			$cmd .= ' -f "';
 			$cmd .= dirname(dirname(dirname(__FILE__))) . '/framework/shell.php"' . ' restore ' . $dir;
 
-			if ($_REQUEST['vhost']) {
-				$cmd .= ' ' . $_REQUEST['vhost'];
+			if ($vhost !== '') {
+				$cmd .= ' ' . $vhost;
 			}
 
 			$cmd .= '</font>';

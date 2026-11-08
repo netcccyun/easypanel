@@ -654,15 +654,19 @@ class WebftpControl extends Control
 
 	public function fileaccess()
 	{
-		$file = $_REQUEST['file'];
-		$is_dir = $_REQUEST['is_dir'];
-		$file = str_replace('\'', '\'\'', $file);
+		$file = ep_request('file');
+		$is_dir = ep_request('is_dir');
+
+		// "|" 是 kangle acl_file/acl_dir 的多路径分隔符
+		if ($file === '' || preg_match('/[\x00-\x1f|]/', $file)) {
+			exit(is_ajax_request() ? json_encode(['code' => 400, 'msg' => '文件名不合法']) : '文件名不合法');
+		}
 
 		if ($is_dir) {
 			$is_dir = 1;
 		}
 
-		$action = $_REQUEST['act'];
+		$action = ep_request('act');
 		$fa = new FileAccess();
 
 		if ($action == 'clear') {
@@ -670,11 +674,11 @@ class WebftpControl extends Control
 		}
 		else {
 			if ($action == 'auth') {
-				$action = 'auth:' . $_REQUEST['auth_user'];
+				$action = 'auth:' . ep_request('auth_user');
 			}
 
 			if ($action == 'ip') {
-				$action = 'ip:' . $_REQUEST['ip'];
+				$action = 'ip:' . ep_request('ip');
 			}
 
 			$fa->add($file, $is_dir, $action);

@@ -6,7 +6,11 @@
 		}
 		var url_arr = url.split("\n");
 		var clean_url = "";
-		for (i = 0; i < url_arr.length; i++) {
+		for (var i = 0; i < url_arr.length; i++) {
+			url_arr[i] = $.trim(url_arr[i]);
+			if (url_arr[i] == '') {
+				continue;
+			}
 			if (url_arr[i].substr(0, 7) != 'http://' && url_arr[i].substr(0, 8) != 'https://') {
 				return alert("输入错误，请检查每个url前面必需有http://");
 			}
@@ -15,10 +19,13 @@
 			}
 			clean_url += url_arr[i] + ', ';
 		}
+		if (clean_url == "") {
+			return alert('值不能为空');
+		}
 		$.ajax({
 			type : "POST",
 			url : '?c=cacheclean&a=cacheclean',
-			data : "url=" + clean_url,
+			data : {url : clean_url},
 			success : function(msg) {
 				alert(msg);
 			}
@@ -33,7 +40,7 @@
 		$.ajax({
 			type : "POST",
 			url : '?c=cacheclean&a=cacheclean',
-			data : "url=" + clean_url,
+			data : {url : clean_url},
 			success : function(msg) {
 				alert(msg);
 			}

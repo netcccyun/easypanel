@@ -13,59 +13,12 @@ if ($c == '') {
 	$_REQUEST['a'] = $a = 'main';
 }
 
-/**
- * 同源校验：浏览器跨站请求（Origin/Referer 指向其他站点）直接拒绝，缓解 CSRF。
- * 无 Origin/Referer 的请求（直接访问、命令行、部分隐私设置）放行，避免影响正常使用。
- * 登录/验证码/SSO 入口跳过。
- */
-function vhost_same_origin_guard($c, $a)
-{
-	if ($c === 'session' && in_array($a, array('loginForm', 'login', 'initImg', 'sso'), true)) {
-		return true;
-	}
-
-	$source = '';
-	if (!empty($_SERVER['HTTP_ORIGIN'])) {
-		$source = $_SERVER['HTTP_ORIGIN'];
-	}
-	elseif (!empty($_SERVER['HTTP_REFERER'])) {
-		$source = $_SERVER['HTTP_REFERER'];
-	}
-
-	if ($source === '') {
-		return true;
-	}
-
-	$source_host = parse_url($source, PHP_URL_HOST);
-	if ($source_host === false || $source_host === null || $source_host === '') {
-		return true;
-	}
-
-	$allowed = array();
-	foreach (array('HTTP_HOST', 'HTTP_X_FORWARDED_HOST') as $key) {
-		if (empty($_SERVER[$key])) {
-			continue;
-		}
-
-		$parts = explode(',', $_SERVER[$key]);
-		$host = trim($parts[0]);
-		if ($host === '') {
-			continue;
-		}
-		$parsed = parse_url('http://' . $host, PHP_URL_HOST);
-		$allowed[] = strtolower($parsed === false || $parsed === null ? $host : $parsed);
-	}
-
-	if (in_array(strtolower($source_host), $allowed, true)) {
-		return true;
-	}
-
-	header('Content-Type: text/html; charset=utf-8');
-	http_response_code(403);
-	exit('非法请求来源');
+// 登录/验证码/SSO 入口与首页允许从外部站点跳转进入
+if (!($c === 'sso'
+	|| ($c === 'session' && in_array($a, array('loginForm', 'login', 'initImg', 'sso'), true))
+	|| ($c === 'index' && $a === 'main'))) {
+	ep_same_origin_guard();
 }
-
-vhost_same_origin_guard($c, $a);
 
 $tpl = TPL::singleton();
 loadSetting($tpl);

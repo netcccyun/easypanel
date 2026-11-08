@@ -338,9 +338,10 @@ class PhpsetControl extends Control
 
 	public function edit()
 	{
-		$ext = $_POST['ext'];
-		$config = $_POST['config'];
+		$ext = isset($_POST['ext']) ? $_POST['ext'] : array();
+		$config = isset($_POST['config']) ? $_POST['config'] : null;
 		if($ext && !is_array($ext) || !is_array($config)) exit('参数不能为空');
+		if(!is_array($ext)) $ext = array();
 		$vhost = getRole('vhost');
 		$ini_file = $this->ini_dir.'/php-'.$vhost.'.ini';
 

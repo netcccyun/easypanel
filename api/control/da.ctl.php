@@ -148,8 +148,9 @@ class DaControl extends Control
 
 	public function CMD_API_MODIFY_USER()
 	{
-		$product_name = intval($_REQUEST['package']);
-		$product_info = daocall('product', 'getProductByName', array($product_name));
+		$this->checkAuth();
+		$product_name = trim(ep_request('package'));
+		$product_info = $product_name === '' ? false : daocall('product', 'getProductByName', array($product_name));
 
 		if (!$product_info) {
 			exit('product not found');
@@ -161,7 +162,11 @@ class DaControl extends Control
 			exit('param error');
 		}
 
-		if (daocall('vhost', 'updateVhost', array($vhost, $product_info))) {
+		$arr = $product_info;
+		unset($arr['id'], $arr['product_name']);
+		$arr['product_id'] = $product_info['id'];
+
+		if (daocall('vhost', 'updateVhost', array($vhost, $arr))) {
 			exit('error=0 change successfuly');
 		}
 
