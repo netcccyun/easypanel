@@ -229,7 +229,7 @@ class CdnControl extends Control
 				$infovalue = $in['value'];
 
 				if (!$check_value) {
-					$infovalue = 'http://' . $_SERVER['REMOTE_ADDR'] . '/';
+					$infovalue = ep_cdn_origin_url($_SERVER['REMOTE_ADDR']);
 				}
 
 				if (!daocall('vhostinfo', 'addInfo', array($prefix . $in['vhost'], $in['name'], $in['type'], $infovalue))) {
@@ -303,7 +303,7 @@ class CdnControl extends Control
 		$infovalue = $info['value'];
 
 		if (!$check_value) {
-			$infovalue = 'http://' . $_SERVER['REMOTE_ADDR'] . '/';
+			$infovalue = ep_cdn_origin_url($_SERVER['REMOTE_ADDR']);
 		}
 
 		switch ($mode) {
@@ -312,7 +312,9 @@ class CdnControl extends Control
 			break;
 
 		case 'del':
-			apicall('vhost', 'delInfo', array($prefix . $vhost, $info['name'], $info['type'], $infovalue));
+			// A rewritten value may have been stored by an older version
+			// without life_time, so match it by name and type only.
+			apicall('vhost', 'delInfo', array($prefix . $vhost, $info['name'], $info['type'], $check_value ? $infovalue : null));
 			break;
 
 		default:
@@ -374,7 +376,7 @@ class CdnControl extends Control
 				$value = $domain['value'];
 
 				if (strncasecmp($value, 'http://', 7) != 0) {
-					$value = 'http://' . $self_ip . '/';
+					$value = ep_cdn_origin_url($self_ip);
 				}
 
 				echo '	<host dir=\'' . $value . '\'>' . $domain['name'] . "</host>\n";
