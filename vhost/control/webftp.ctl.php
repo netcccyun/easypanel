@@ -573,7 +573,18 @@ class WebftpControl extends Control
 
 			switch ($op) {
 			case 'cut':
-				if (rename($oldfile, $newfile)) {
+				// 目标为源自身或其子目录时禁止移动，避免数据丢失
+				if ($newfile == $oldfile || strncmp($oldfile . '/', $newfile, strlen($oldfile) + 1) == 0) {
+					break;
+				}
+
+				// Linux 下 rename 无法覆盖非空目标目录，需合并移动后再删除源目录
+				if (is_dir($oldfile) && is_dir($newfile)) {
+					mycopydir($oldfile, $newfile, $success_count);
+					$removed_count = 0;
+					myrmdir($oldfile, $removed_count);
+				}
+				else if (rename($oldfile, $newfile)) {
 					++$success_count;
 				}
 
