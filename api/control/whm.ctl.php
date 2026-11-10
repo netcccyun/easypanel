@@ -303,7 +303,9 @@ class WhmControl extends Control
 			return false;
 		}
 
-		unset($_REQUEST['doc_root']);
+		unset($_REQUEST['doc_root'], $_REQUEST['uid'], $_REQUEST['gid'], $_REQUEST['edit'], $_REQUEST['node'],
+			$_REQUEST['init'], $_REQUEST['create_time'], $_REQUEST['sync_seq'],
+			$_REQUEST['recordid'], $_REQUEST['db_name']);
 		$_REQUEST['htaccess'] = (isset($_REQUEST['htaccess']) && $_REQUEST['htaccess'] == 1) ? '.htaccess' : null;
 		$_REQUEST['access'] = (isset($_REQUEST['access']) && $_REQUEST['access'] == 1) ? 'access.xml' : null;
 		$_REQUEST['log_file'] = (isset($_REQUEST['log_file']) && $_REQUEST['log_file'] == 1) ? 'logs/access.log' : null;
