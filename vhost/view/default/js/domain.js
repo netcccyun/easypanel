@@ -4,6 +4,7 @@ function domain_add()
 	var domain = $("#domain").val();
 	var subdir = $("#subdir").val();
 	var proto = $("#proto").val();
+	var mianbeian = $("#mianbeian").length ? ($("#mianbeian").is(":checked") ? 1 : 0) : 0;
 	if(domain == ''){
 		return alert('域名不能为空');
 	}
@@ -13,7 +14,7 @@ function domain_add()
 	$.ajax({
 		type:'POST',
 		url: '?c=domain&a=add',
-		data:'domain=' + domain + '&subdir=' + subdir + '&proto=' + proto + '&replace=' + replace,
+		data:'domain=' + domain + '&subdir=' + subdir + '&proto=' + proto + '&replace=' + replace + '&mianbeian=' + mianbeian,
 		async:false,
 		success:function(msg){
 			if (msg != "成功"){
@@ -132,6 +133,10 @@ function domain_edit(val)
 				$("#domain").attr("disabled", true);
 				$("#subdir").val(data.subdir);
 				$("#proto").val(data.proto);
+				if ($("#mianbeian").length) {
+					$("#mianbeian").prop("checked", data.mianbeian == 1);
+					$("#proto").triggerHandler("change");
+				}
 				$("#button_import").hide();
 				$("#button_cancel").show();
 				replace = 1;
@@ -149,7 +154,23 @@ function cancel_edit(val)
 		$("#subdir").val("");
 		$("#proto").val('http');
 	}
+	if ($("#mianbeian").length) {
+		$("#mianbeian").prop("checked", false).prop("disabled", false);
+	}
 	$("#button_import").show();
 	$("#button_cancel").hide();
 	replace = 0;
 }
+$(document).ready(function () {
+	if (!$("#mianbeian").length) {
+		return;
+	}
+	$("#proto").on("change", function () {
+		var unsupported = (this.value === "follow" || this.value === "tcp");
+		$("#mianbeian").prop("disabled", unsupported);
+		if (unsupported) {
+			$("#mianbeian").prop("checked", false);
+		}
+	});
+	$("#proto").triggerHandler("change");
+});

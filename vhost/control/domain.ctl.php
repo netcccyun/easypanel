@@ -2,10 +2,13 @@
 needRole('vhost');
 class DomainControl extends Control
 {
+	const MIANBEIAN_INFO_TYPE = 6;
+
 	public function __construct()
 	{
 		parent::__construct();
 		load_lib('pub:ssl');
+		load_lib('pub:access');
 	}
 
 	public function __destruct()
@@ -37,6 +40,7 @@ class DomainControl extends Control
 			$domain['value'] = $binding['dir'];
 			$domain['ssl'] = $binding['ssl'] ? 1 : 0;
 			$domain['proto'] = null;
+			$domain['mianbeian'] = 0;
 			$bindings[] = $domain;
 		}
 		$list = $bindings;
@@ -44,6 +48,14 @@ class DomainControl extends Control
 		if ($user['cdn']) {
 			$domains = array();
 			$id = 0;
+			$mianbeian = array();
+			$mianbeianRows = daocall('vhostinfo', 'getInfo', array($vhost, self::MIANBEIAN_INFO_TYPE));
+
+			if (is_array($mianbeianRows)) {
+				foreach ($mianbeianRows as $row) {
+					$mianbeian[$row['name']] = 1;
+				}
+			}
 
 			foreach (ep_iter($list) as $domain) {
 				$isSsl = $domain['ssl'];
@@ -72,6 +84,7 @@ class DomainControl extends Control
 				$domain['id'] = $id;
 				$domain['ssl'] = $isSsl;
 				$domain['proto'] = $proto;
+				$domain['mianbeian'] = isset($mianbeian[$domain['name']]) ? 1 : 0;
 				$domains[] = $domain;
 				++$id;
 			}
@@ -138,6 +151,86 @@ class DomainControl extends Control
 		return $domain_name;
 	}
 
+	private function parseCdnOrigin($subdir, $proto)
+	{
+		$subdir = trim($subdir);
+		if ($proto === 'follow' || $proto === 'tcp') {
+			return false;
+		}
+		$ssl = ($proto === 'https');
+		$host = '';
+		$port = 0;
+
+		if (strncasecmp($subdir, 'server://', 9) === 0) {
+			if ($proto === 'follow' || strpos($subdir, 'proto=tcp') !== false || strpos($subdir, '|/nodes=') !== false) {
+				return false;
+			}
+			if (strpos($subdir, 'proto=https') !== false) {
+				$ssl = true;
+			}
+			if (preg_match('/nodes=([^:]+):([0-9]+)(s?)/i', $subdir, $m)) {
+				$host = $m[1];
+				$port = intval($m[2]);
+				if ($m[3] === 's') {
+					$ssl = true;
+				}
+			}
+		}
+		elseif (preg_match('#^(https?)://#i', $subdir, $m)) {
+			$u = parse_url($subdir);
+			if ($u && !empty($u['host'])) {
+				$host = $u['host'];
+				$ssl = (strtolower($m[1]) === 'https');
+				$port = isset($u['port']) ? intval($u['port']) : ($ssl ? 443 : 80);
+			}
+		}
+		else {
+			if (strpos($subdir, ':') !== false) {
+				list($host, $port) = explode(':', $subdir, 2);
+				$port = intval($port);
+			}
+			else {
+				$host = $subdir;
+				$port = $ssl ? 443 : 80;
+			}
+		}
+
+		if ($host === '' || $port < 1 || $port > 65535) {
+			return false;
+		}
+		return array('host' => $host, 'port' => $port, 'ssl' => $ssl ? 1 : 0);
+	}
+
+	private function saveMianbeianOrigin($vhost, $domain, $origin)
+	{
+		daocall('vhostinfo', 'delInfo', array($vhost, $domain, self::MIANBEIAN_INFO_TYPE, null));
+		if (!$origin) {
+			return true;
+		}
+		return daocall('vhostinfo', 'addInfo', array($vhost, $domain, self::MIANBEIAN_INFO_TYPE, json_encode($origin), false));
+	}
+
+	private function syncMianbeianRule($vhost, $domain, $origin)
+	{
+		$access = new Access($vhost);
+		$name = '!mianbeian_' . preg_replace('/[^A-Za-z0-9_.-]/', '_', $domain);
+		$access->delChainByName('BEGIN', $name);
+
+		if (!$origin) {
+			return true;
+		}
+
+		$port = $origin['port'] . (!empty($origin['ssl']) ? 's' : '');
+		$arr = array('action' => 'continue', 'name' => $name);
+		$acl = (substr($domain, 0, 2) === '*.' || $domain === '*') ? 'acl_wide_host' : 'acl_host';
+		// 上游由绑定的 server:// 节点提供（含 60 秒连接复用），这里只改回源 Host。
+		$models = array(
+			$acl => array('v' => $domain),
+			'mark_host' => array('host' => $origin['host'], 'port' => $port, 'rewrite' => 1),
+		);
+		return $access->addChain('BEGIN', $arr, $models);
+	}
+
 	public function info()
 	{
 		$vhost = getRole('vhost');
@@ -178,6 +271,8 @@ class DomainControl extends Control
 				}
 				$result['proto'] = $proto;
 				$result['subdir'] = $dir;
+				$flag = daocall('vhostinfo', 'getInfo', array($vhost, self::MIANBEIAN_INFO_TYPE, $domain));
+				$result['mianbeian'] = (is_array($flag) && !empty($flag[0])) ? 1 : 0;
 			}else{
 				$result['cdn'] = 0;
 				$result['subdir'] = $value;
@@ -290,6 +385,17 @@ class DomainControl extends Control
 		}
 
 		$user = $_SESSION['user'][$vhost];
+		$mianbeian = 0;
+		$origin = false;
+		if ($user['cdn']) {
+			$oldFlag = daocall('vhostinfo', 'getInfo', array($vhost, self::MIANBEIAN_INFO_TYPE, $domain));
+			$oldHas = is_array($oldFlag) && !empty($oldFlag[0]);
+			$mianbeian = isset($_REQUEST['mianbeian']) ? (intval($_REQUEST['mianbeian']) ? 1 : 0) : ($isreplace && $oldHas ? 1 : 0);
+			$origin = $this->parseCdnOrigin($subdir, $proto);
+			if ($mianbeian && (!$origin || $proto === 'follow' || $proto === 'tcp')) {
+				exit('免备案模式仅支持 HTTP/HTTPS 回源');
+			}
+		}
 		if ($user['cdn'] && strncasecmp($subdir, 'http://', 7) != 0 && strncasecmp($subdir, 'https://', 8) != 0 && strncasecmp($subdir, 'server://', 9) != 0) {
 			if(strpos($subdir,':')!==false){
 				$port = substr($subdir, strpos($subdir,':')+1);
@@ -382,6 +488,13 @@ class DomainControl extends Control
 		if (!$user['cdn']) {
 			apicall('vhost', 'copyIndexForUser', array($vhost, $subdir));
 		}
+		else {
+			$this->saveMianbeianOrigin($vhost, $domain, $mianbeian ? $origin : null);
+
+			if (!$this->syncMianbeianRule($vhost, $domain, $mianbeian ? $origin : null)) {
+				exit('免备案规则同步失败，请重试');
+			}
+		}
 
 		notice_cdn_changed();
 		exit('成功');
@@ -413,6 +526,8 @@ class DomainControl extends Control
 		}
 
 		$vhost = getRole('vhost');
+		daocall('vhostinfo', 'delInfo', array($vhost, $domain, self::MIANBEIAN_INFO_TYPE, null));
+		$this->syncMianbeianRule($vhost, $domain, null);
 		$user = $_SESSION['user'][$vhost];
 		if (is_array($user) && !empty($user['doc_root'])){
 			change_to_user($user['uid'], $user['gid']);

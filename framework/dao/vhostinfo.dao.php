@@ -10,6 +10,7 @@ class VhostinfoDAO extends DAO
 	 * 	4，别名，为别名时 value有三个值,以,号分开，后面两个默认,0,0即可,例/home/ftp,0,0
 	 * 	5，mime_type,
 	 * 	7,独立IP端口，
+	 * 	6，CDN免备案模式（value为源站host/port/ssl的JSON）
 	 * 	100，kangle变量
 	 * 	101,easypanel变量
 	 * name格式:
