@@ -271,6 +271,8 @@ class Access
 		if ($action === 'deny' && (isset($chain->acl_src) || isset($chain->acl_srcs) || isset($chain->acl_url))) { return 30; }
 		$security = array('!deny_referer', '!anti_sql', '!anti_up_inject', '!anticc', '!safeline_waf', '!deny_filter');
 		if (in_array($name, $security, true) || in_array($target, $security, true)) { return 50; }
+		// 免备案回源 Host 改写必须最后执行：前面的 WAF、限速、统计等规则都按原域名匹配或记录。
+		if (strpos($name, '!mianbeian_') === 0) { return 60; }
 		// Speed limits and unrecognized custom rules remain
 		// in the basic group; same-group rules keep their relative order.
 		return 40;
