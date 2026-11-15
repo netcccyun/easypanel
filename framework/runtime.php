@@ -193,6 +193,18 @@ function ep_same_origin_guard()
 	exit('非法请求来源');
 }
 
+/**
+ * 修改密码、添加可执行任务等操作只接受 POST，
+ */
+function ep_require_post()
+{
+	if (!isset($_SERVER['REQUEST_METHOD']) || strtoupper($_SERVER['REQUEST_METHOD']) !== 'POST') {
+		header('Content-Type: text/html; charset=utf-8');
+		http_response_code(405);
+		exit('该操作只接受 POST 请求');
+	}
+}
+
 function ep_session_start()
 {
 	if (function_exists('session_status') && session_status() === PHP_SESSION_ACTIVE) {

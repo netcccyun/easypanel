@@ -131,6 +131,7 @@ function testDnsdun()
 						<option value="{{$key}}" {{if $setting.default_version==$key}}selected{{/if}}>{{$row}}</option>
 						{{/foreach}}
 					</select>  &nbsp;新增网站默认的PHP版本</td></tr>
+			{{if !is_win()}}
 			<tr><td>PHP-CLI版本:</td>
 				<td><select name='phpcli_version'>
 						<option value="">未设置</option>
@@ -138,6 +139,7 @@ function testDnsdun()
 						<option value="{{$key}}" {{if $setting.phpcli_version==$key}}selected{{/if}}>{{$row}}</option>
 						{{/foreach}}
 					</select>  &nbsp;命令行运行php时使用的PHP版本</td></tr>
+			{{/if}}
 			<tr><td>中文文件名编码:</td>
 				<td><select name='file_encoding'>
 					<option value="utf8" {{if $setting.file_encoding=='utf8'}}selected{{/if}}>UTF-8</option><option value="gbk" {{if $setting.file_encoding=='gbk'}}selected{{/if}}>GBK</option>

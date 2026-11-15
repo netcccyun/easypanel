@@ -149,6 +149,7 @@ class SessionControl extends Control
 	public function changePassword()
 	{
 		needRole('vhost');
+		ep_require_post();
 		$_REQUEST['passwd'] = filterParam($_REQUEST['passwd']);
 		$strlen = strlen($_REQUEST['passwd']);
 		if (16 < $strlen || $strlen < 4) {
@@ -166,6 +167,7 @@ class SessionControl extends Control
 	public function changeDbPassword()
 	{
 		needRole('vhost');
+		ep_require_post();
 		$vhost = getRole('vhost');
 		$user = $_SESSION['user'][$vhost];
 

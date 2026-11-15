@@ -100,6 +100,7 @@ class AdmincronControl extends Control
 
 	public function add()
 	{
+		ep_require_post();
 		$ok = apicall('adminCron', 'add', array($this->formParams()));
 		if ($ok === false) {
 			$this->back('添加失败：' . $this->lastError());
@@ -112,6 +113,7 @@ class AdmincronControl extends Control
 
 	public function save()
 	{
+		ep_require_post();
 		$id = intval(ep_request('id'));
 		$ok = apicall('adminCron', 'update', array($id, $this->formParams()));
 		if ($ok === false) {

@@ -42,6 +42,7 @@ class SessionControl extends Control
 	public function changePassword()
 	{
 		needRole('admin');
+		ep_require_post();
 
 		if ($GLOBALS['demo']) {
 			$this->_tpl->assign('msg', '密码不能修改');

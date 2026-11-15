@@ -124,7 +124,7 @@ class NodesControl extends Control
 		$phpversions = modcall('php', 'php_get_version');
 
 		$setting = daocall('setting', 'getAll');
-		if(!isset($setting['phpcli_version'])){
+		if (!is_win() && !isset($setting['phpcli_version'])) {
 			$setting['phpcli_version'] = modcall('php', 'php_get_cli_version');
 		}
 
@@ -181,16 +181,18 @@ class NodesControl extends Control
 		daocall('setting', 'add', array('cname_host', $_REQUEST['cname_host']));
 		daocall('setting', 'add', array('domain_bind', $_REQUEST['domain_bind']));
 		daocall('setting', 'add', array('default_version', ep_request('default_version')));
-		$phpcli_version = ep_request('phpcli_version');
-
-		if ($phpcli_version !== '' && !preg_match('/^php[0-9]+$/', $phpcli_version)) {
-			$phpcli_version = '';
-		}
-
-		daocall('setting', 'add', array('phpcli_version', $phpcli_version));
 		daocall('setting', 'add', array('file_encoding', ep_request('file_encoding')));
 
-		modcall('php', 'php_set_cli_version', array($phpcli_version));
+		if (!is_win()) {
+			$phpcli_version = ep_request('phpcli_version');
+
+			if ($phpcli_version !== '' && !preg_match('/^php[0-9]+$/', $phpcli_version)) {
+				$phpcli_version = '';
+			}
+
+			daocall('setting', 'add', array('phpcli_version', $phpcli_version));
+			modcall('php', 'php_set_cli_version', array($phpcli_version));
+		}
 
 		if (daocall('setting', 'get', array('kangle_type')) == 'enterprise') {
 			daocall('setting', 'add', array('title', $_REQUEST['title']));
