@@ -37,8 +37,8 @@ class IndexControl extends Control
 	{
 		$php_ini = urlencode($GLOBALS['safe_dir'] . '../ext/tpl_php52/php-templete.ini');
 
-		$dbadmin_url = 'http://' . $_SERVER['SERVER_NAME'] . ':3313/mysql/';
-		if(is_https()) $dbadmin_url = 'https://' . $_SERVER['SERVER_NAME'] . ':4413/mysql/';
+		// 走面板入口签发一次性令牌，实现 phpMyAdmin 单点登录
+		$dbadmin_url = '?c=index&a=dbadmin';
 		$this->_tpl->assign('dbadmin_url', $dbadmin_url);
 
 		if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
@@ -57,6 +57,56 @@ class IndexControl extends Control
 	public function controlleft()
 	{
 		$this->display('controlleft.html');
+	}
+
+	/**
+	 * 打开 phpMyAdmin，已配置 mysql 账号时自动提交登录表单
+	 */
+	public function dbadmin()
+	{
+		$node = isset($GLOBALS['node_cfg']['localhost']) ? $GLOBALS['node_cfg']['localhost'] : array();
+		$db_user = isset($node['db_user']) ? $node['db_user'] : '';
+		$db_passwd = isset($node['db_passwd']) ? $node['db_passwd'] : '';
+		$base_url = (is_https() ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] . (is_https() ? ':4413' : ':3313') . '/mysql/';
+
+		if ($db_user === '' || $db_passwd === '') {
+			header('Location: ' . $base_url);
+			exit();
+		}
+
+		// 换 IP/域名后自动更新 SignonURL，避免回退到旧地址
+		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+
+		if (preg_match('/^(?:[A-Za-z0-9.\-]+|\[[0-9A-Fa-f:]+\])(?::\d+)?$/', $host)) {
+			$config_file = dirname($GLOBALS['safe_dir']) . '/nodewww/dbadmin/mysql/config.inc.php';
+			$content = @file_get_contents($config_file);
+
+			if ($content !== false && strpos($content, "'SignonURL'") !== false) {
+				$signon_url = (is_https() ? 'https://' : 'http://') . $host . '/admin/?c=index&a=dbadmin';
+				$line = "\$cfg['Servers'][\$i]['SignonURL'] = '" . $signon_url . "';";
+				$updated = preg_replace_callback("/\\\$cfg\\['Servers'\\]\\[\\\$i\\]\\['SignonURL'\\] = '[^']*';/", function () use ($line) {
+					return $line;
+				}, $content, 1);
+
+				if ($updated !== null && $updated !== $content) {
+					@file_put_contents($config_file, $updated, LOCK_EX);
+				}
+			}
+		}
+
+		$escape = function ($value) {
+			return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+		};
+		header('Content-Type: text/html; charset=utf-8');
+		header('Cache-Control: no-store');
+		header('Referrer-Policy: no-referrer');
+		echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>正在进入数据库管理</title></head><body>'
+			. '<form id="epSignon" method="post" action="' . $escape($base_url . 'ep_signon.php') . '">'
+			. '<input type="hidden" name="user" value="' . $escape($db_user) . '">'
+			. '<input type="hidden" name="password" value="' . $escape($db_passwd) . '">'
+			. '<button type="submit">进入数据库管理</button>'
+			. '</form><script>document.getElementById("epSignon").submit();</script></body></html>';
+		exit();
 	}
 
 	public function rebootSystem()

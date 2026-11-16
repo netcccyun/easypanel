@@ -2,7 +2,14 @@
 $i = 0;
 
 $i++;
+{{if $signon}}
+// signon 单点登录，凭据由面板写入会话，见同目录 ep_signon.php
+$cfg['Servers'][$i]['auth_type'] = 'signon';
+$cfg['Servers'][$i]['SignonSession'] = 'ep_pma_signon';
+$cfg['Servers'][$i]['SignonURL'] = '{{$signon_url}}';
+{{else}}
 $cfg['Servers'][$i]['auth_type'] = 'cookie';
+{{/if}}
 $cfg['Servers'][$i]['verbose'] = '{{$node.db_host}}';
 $cfg['Servers'][$i]['host'] = '{{$node.db_host}}';
 $cfg['Servers'][$i]['port'] = {{$node.db_port}};

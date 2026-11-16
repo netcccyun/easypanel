@@ -238,15 +238,30 @@ class NodesControl extends Control
 
 		$tpl = tpl::template_config(dirname(dirname(__FILE__)) . '/template_config/');
 		$node = $GLOBALS['node_cfg'][$name];
+		$dbadmin_dir = dirname($GLOBALS['safe_dir']) . '/nodewww/dbadmin/mysql';
+		// 配置了 mysql 账号密码时用 signon 单点登录，否则保持 cookie 手动登录
+		$signon = $node['db_user'] !== '' && $node['db_passwd'] !== '';
+		$signon_host = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'];
 		$tpl->assign('node', $node);
 		$tpl->assign('db_skey', getRandPasswd(29));
+		$tpl->assign('signon', $signon ? 1 : 0);
+		$tpl->assign('signon_url', (is_https() ? 'https://' : 'http://') . $signon_host . '/admin/?c=index&a=dbadmin');
 		$tpl->assign('auth_type', extension_loaded('mcrypt') ? 'cookie' : 'http');
 		$phpmyadmin_config = $tpl->fetch('phpmyadmin_config.html');
-		$fp = fopen(dirname($GLOBALS['safe_dir']) . '/nodewww/dbadmin/mysql/config.inc.php', 'wb');
+		$fp = fopen($dbadmin_dir . '/config.inc.php', 'wb');
 
 		if ($fp) {
 			fwrite($fp, $phpmyadmin_config);
 			fclose($fp);
+		}
+
+		if ($signon) {
+			$signon_script = @file_get_contents(dirname(dirname(__FILE__)) . '/template_config/phpmyadmin_signon.php');
+
+			if ($signon_script !== false) {
+				@file_put_contents($dbadmin_dir . '/ep_signon.php', $signon_script, LOCK_EX);
+				@chmod($dbadmin_dir . '/ep_signon.php', 0644);
+			}
 		}
 
 		if ($_SESSION['setup_wizard'] == 1) {
