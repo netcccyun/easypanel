@@ -74,21 +74,29 @@ class IndexControl extends Control
 			exit();
 		}
 
-		// 换 IP/域名后自动更新 SignonURL，避免回退到旧地址
+		// 换 IP/域名后自动更新 SignonURL/LogoutURL，避免回退到旧地址
 		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
 
 		if (preg_match('/^(?:[A-Za-z0-9.\-]+|\[[0-9A-Fa-f:]+\])(?::\d+)?$/', $host)) {
 			$config_file = dirname($GLOBALS['safe_dir']) . '/nodewww/dbadmin/mysql/config.inc.php';
 			$content = @file_get_contents($config_file);
 
-			if ($content !== false && strpos($content, "'SignonURL'") !== false) {
-				$signon_url = (is_https() ? 'https://' : 'http://') . $host . '/admin/?c=index&a=dbadmin';
-				$line = "\$cfg['Servers'][\$i]['SignonURL'] = '" . $signon_url . "';";
-				$updated = preg_replace_callback("/\\\$cfg\\['Servers'\\]\\[\\\$i\\]\\['SignonURL'\\] = '[^']*';/", function () use ($line) {
-					return $line;
-				}, $content, 1);
+			if ($content !== false) {
+				$urls = array('SignonURL' => $base_url . 'ep_signon.php?loggedout=1', 'LogoutURL' => $base_url . 'ep_signon.php?logout=1');
+				$updated = $content;
 
-				if ($updated !== null && $updated !== $content) {
+				foreach ($urls as $key => $url) {
+					if (strpos($updated, "'" . $key . "'") === false) {
+						continue;
+					}
+
+					$line = "\$cfg['Servers'][\$i]['" . $key . "'] = '" . $url . "';";
+					$updated = preg_replace_callback("/\\\$cfg\\['Servers'\\]\\[\\\$i\\]\\['" . $key . "'\\] = '[^']*';/", function () use ($line) {
+						return $line;
+					}, $updated, 1);
+				}
+
+				if (is_string($updated) && $updated !== $content) {
 					@file_put_contents($config_file, $updated, LOCK_EX);
 				}
 			}

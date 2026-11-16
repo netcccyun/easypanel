@@ -245,7 +245,10 @@ class NodesControl extends Control
 		$tpl->assign('node', $node);
 		$tpl->assign('db_skey', getRandPasswd(29));
 		$tpl->assign('signon', $signon ? 1 : 0);
-		$tpl->assign('signon_url', (is_https() ? 'https://' : 'http://') . $signon_host . '/admin/?c=index&a=dbadmin');
+		$pma_host = preg_replace('/:\d+$/', '', $signon_host);
+		$pma_url = (is_https() ? 'https://' : 'http://') . $pma_host . (is_https() ? ':4413' : ':3313') . '/mysql/';
+		$tpl->assign('signon_url', $pma_url . 'ep_signon.php?loggedout=1');
+		$tpl->assign('logout_url', $pma_url . 'ep_signon.php?logout=1');
 		$tpl->assign('auth_type', extension_loaded('mcrypt') ? 'cookie' : 'http');
 		$phpmyadmin_config = $tpl->fetch('phpmyadmin_config.html');
 		$fp = fopen($dbadmin_dir . '/config.inc.php', 'wb');
