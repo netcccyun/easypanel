@@ -124,8 +124,8 @@ class VhostProduct extends Product
 			return false;
 		}
 
-		$this->createWebalizerDir($params);
 		$this->callModule($params);
+		$this->createWebalizerDir($params);
 		if ((0 < $product_info['db_quota'] || 0 < $params['db_quota']) && $params['db_type'] == 'sqlsrv') {
 			$this->createSqlserverDb($params, $product_info);
 		}
