@@ -12,7 +12,7 @@ class Flow
 
 		if (!$exsit) {
 			$this->init();
-			return NULL;
+			return;
 		}
 
 		$this->upgrade();

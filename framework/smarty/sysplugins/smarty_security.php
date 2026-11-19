@@ -19,6 +19,7 @@
 /**
  * This class does contain the security settings
  */
+#[AllowDynamicProperties] // PHP 8.2 动态属性；PHP 5.6 视为注释
 class Smarty_Security
 {
     /**
