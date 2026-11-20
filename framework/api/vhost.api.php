@@ -70,7 +70,12 @@ class VhostAPI extends API
 		$product_id = $params['product_id'];
 		$product_name = $params['product_name'];
 
-		if (!$params['edit']) {
+		if ($params['edit']) {
+			if (!daocall('vhost', 'getVhost', array($params['name']))) {
+				setLastError('站点不存在');
+				return false;
+			}
+		} else {
 			$msg = apicall('vhost', 'checkName', array($params['name'], true));
 
 			if ($msg !== true) {
@@ -132,7 +137,6 @@ class VhostAPI extends API
 		$arr['month'] = intval($params['month']);
 
 		if ($params['edit']) {
-			$arr['uid'] = trim($params['uid']);
 			unset($arr['passwd']);
 		}
 		else {
@@ -140,6 +144,9 @@ class VhostAPI extends API
 			$arr['passwd'] = trim($params['passwd']);
 		}
 
+		if ($params['uid']) {
+			$arr['uid'] = trim($params['uid']);
+		}
 		if ($params['gid']) {
 			$arr['gid'] = trim($params['gid']);
 		}
