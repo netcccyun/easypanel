@@ -17,7 +17,8 @@ class WebalizerControl extends control
 			exit('report not found');
 		}
 
-		$report_dir = realpath(rtrim($user['doc_root'], '/\\') . '/webalizer');
+		$link_dir = rtrim($user['doc_root'], '/\\') . '/webalizer';
+		$report_dir = is_link($link_dir) ? false : realpath($link_dir);
 		$report_file = $report_dir === false ? false : realpath($report_dir . DIRECTORY_SEPARATOR . $file);
 		if ($report_file === false || dirname($report_file) !== $report_dir || !is_file($report_file)) {
 			header('HTTP/1.1 404 Not Found');

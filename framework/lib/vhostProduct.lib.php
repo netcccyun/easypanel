@@ -158,10 +158,7 @@ class VhostProduct extends Product
 	private function createWebalizerDir($params)
 	{
 		if (daocall('setting', 'get', array('webalizer')) || !empty($params['log_handle'])) {
-			$webalizer_dir = $params['doc_root'] . '/webalizer';
-			if (!is_dir($webalizer_dir)) {
-				@mkdir($webalizer_dir, 0700, true);
-			}
+			apicall('vhost', 'createWebalizerDir', array($params['doc_root']));
 		}
 	}
 

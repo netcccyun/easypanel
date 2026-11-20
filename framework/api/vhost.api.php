@@ -632,4 +632,36 @@ class VhostAPI extends API
 		change_to_super();
 		return $ret;
 	}
+
+	/**
+	 * 创建日志分析(webalizer)报表目录。
+	 * kangle 以站点身份运行 webalizer，目录须属于站点；站点可替换自己目录下的任何项目，
+	 * 所以以站点身份创建（站点目录的属主即站点 uid/gid，站点无法修改），不递归创建父目录。
+	 * @param string $doc_root 站点根目录
+	 * @return boolean
+	 */
+	public function createWebalizerDir($doc_root)
+	{
+		$doc_root = rtrim((string) $doc_root, '/\\');
+		if ($doc_root === '' || !is_dir($doc_root)) {
+			return false;
+		}
+
+		$dir = $doc_root . '/webalizer';
+		if (is_win()) {
+			return is_dir($dir) || @mkdir($dir, 0700);
+		}
+
+		clearstatcache();
+		$uid = @fileowner($doc_root);
+		$gid = @filegroup($doc_root);
+		if ($uid === false || $gid === false || intval($uid) <= 0) {
+			return false;
+		}
+
+		change_to_user((string) intval($uid), (string) intval($gid));
+		$ret = (is_dir($dir) && !is_link($dir)) || @mkdir($dir, 0700);
+		change_to_super();
+		return $ret;
+	}
 }
