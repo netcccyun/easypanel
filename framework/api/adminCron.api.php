@@ -436,8 +436,13 @@ class AdminCronAPI extends API
 		)));
 		$body = @file_get_contents($url, false, $context);
 		$code = 0;
-		if (isset($http_response_header) && is_array($http_response_header)
-			&& preg_match('!HTTP/\S+\s+(\d+)!', $http_response_header[0], $match)) {
+		if (function_exists('http_get_last_response_headers')) {
+			$response_headers = http_get_last_response_headers();
+		} else {
+			$defined_vars = get_defined_vars();
+			$response_headers = isset($defined_vars['http_response_header']) ? $defined_vars['http_response_header'] : null;
+		}
+		if (is_array($response_headers) && preg_match('!HTTP/\S+\s+(\d+)!', $response_headers[0], $match)) {
 			$code = intval($match[1]);
 		}
 		if ($body === false) {

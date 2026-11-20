@@ -66,7 +66,7 @@ class Control
 	 */
 	public function __control_exit($msg)
 	{
-		trigger_error($msg, E_USER_ERROR);
+		exit($msg);
 	}
 
 	public function index()

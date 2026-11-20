@@ -58,8 +58,7 @@ class Container
 		$object = new $className();
 
 		if (!$object) {
-			trigger_error($className . '新建对象错误', E_USER_ERROR);
-			exit();
+			exit($className . '新建对象错误');
 		}
 
 		return $object;

@@ -183,7 +183,8 @@ class UtilsAPI extends API
 
 		if (is_array($vhs)) {
 			$dsn = 'mysql:host=' . $db_host . ';dbname=' . $db_name;
-			$pdo = ep_new_pdo($dsn, $db_user, $db_passwd, array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'));
+			$init_command = defined('Pdo\Mysql::ATTR_INIT_COMMAND') ? Pdo\Mysql::ATTR_INIT_COMMAND : PDO::MYSQL_ATTR_INIT_COMMAND;
+			$pdo = ep_new_pdo($dsn, $db_user, $db_passwd, array($init_command => 'SET NAMES utf8'));
 
 			if (!$pdo) {
 				exit('pdo not connect');
