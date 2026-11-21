@@ -105,6 +105,8 @@ class IndexControl extends Control
 		$this->assign('dbisok', is_array($dbisok) && isset($dbisok['integrity_check']) ? $dbisok['integrity_check'] : null);
 		$info = apicall('nodes', 'getKangleInfo', array('localhost'));
 		$this->assign('info', $info);
+		load_lib('pub:sysinfo');
+		$this->assign('os_name', sys_os_name());
 		$this->assign('EASYPANEL_VERSION', EASYPANEL_VERSION);
 		$kangle_console_url = 'http://' . $_SERVER['SERVER_NAME'] . ':3311/';
 		$this->assign('kangle_console_url', $kangle_console_url);
