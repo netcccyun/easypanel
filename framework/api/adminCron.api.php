@@ -434,16 +434,23 @@ class AdminCronAPI extends API
 			'ignore_errors' => true,
 			'user_agent' => 'EasyPanel-Cron/1.0'
 		)));
-		$body = @file_get_contents($url, false, $context);
+		// 响应头从 stream 元数据读取：PHP 5.6~8.6 通用，且不触碰已弃用的 $http_response_header
+		// （PHP 8.0~8.3 下 get_defined_vars() 拿不到该变量）
+		$body = false;
 		$code = 0;
-		if (function_exists('http_get_last_response_headers')) {
-			$response_headers = http_get_last_response_headers();
-		} else {
-			$defined_vars = get_defined_vars();
-			$response_headers = isset($defined_vars['http_response_header']) ? $defined_vars['http_response_header'] : null;
-		}
-		if (is_array($response_headers) && preg_match('!HTTP/\S+\s+(\d+)!', $response_headers[0], $match)) {
-			$code = intval($match[1]);
+		$fp = @fopen($url, 'rb', false, $context);
+		if ($fp) {
+			$meta = stream_get_meta_data($fp);
+			$body = stream_get_contents($fp);
+			fclose($fp);
+			// 发生跳转时 wrapper_data 含多段响应头，取最后一个状态行
+			if (isset($meta['wrapper_data']) && is_array($meta['wrapper_data'])) {
+				foreach ($meta['wrapper_data'] as $header) {
+					if (preg_match('!^HTTP/\S+\s+(\d+)!', $header, $match)) {
+						$code = intval($match[1]);
+					}
+				}
+			}
 		}
 		if ($body === false) {
 			$this->appendLog($logfile, '[' . date('Y-m-d H:i:s') . "] 执行失败：请求失败，无响应\n");

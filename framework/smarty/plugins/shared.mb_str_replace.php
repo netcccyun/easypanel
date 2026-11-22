@@ -45,10 +45,12 @@ if (!function_exists('smarty_mb_str_replace')) {
             }
         } else {
             if ($search === '') {
+                $count = 0;
                 return $subject;
             }
             $parts = preg_split('/' . preg_quote($search, '/') . '/u', $subject);
             if ($parts === false) {
+                $count = 0;
                 return $subject;
             }
             $count = count($parts) - 1;
