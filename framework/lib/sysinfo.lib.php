@@ -126,6 +126,35 @@ function GetWMI($wmi, $strClass, $strValue = array())
 	return $arrData;
 }
 
+function sys_os_name()
+{
+	if (is_win()) {
+		return 'Windows ' . php_uname('r');
+	}
+
+	$os = array();
+
+	if (is_readable('/etc/os-release') && ($lines = @file('/etc/os-release', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES))) {
+		foreach ($lines as $line) {
+			$pos = strpos($line, '=');
+
+			if ($pos !== false && $line[0] !== '#') {
+				$os[substr($line, 0, $pos)] = trim(substr($line, $pos + 1), "\"'");
+			}
+		}
+	}
+
+	if (!empty($os['PRETTY_NAME'])) {
+		return $os['PRETTY_NAME'];
+	}
+
+	if (isset($os['NAME']) && $os['NAME'] !== '') {
+		return trim($os['NAME'] . ' ' . (isset($os['VERSION']) ? $os['VERSION'] : ''));
+	}
+
+	return php_uname('s') . ' ' . php_uname('r');
+}
+
 function sys_info()
 {
 	switch (PHP_OS) {

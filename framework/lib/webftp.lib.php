@@ -20,7 +20,7 @@ class FileAccess
 		$exsit = file_exists($db);
 		if (!$exsit && !$is_write) {
 			$this->pdo = null;
-			return NULL;
+			return;
 		}
 
 		$dsn = 'sqlite:' . $db;

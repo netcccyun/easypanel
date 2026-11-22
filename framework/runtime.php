@@ -797,7 +797,7 @@ define('S_IFDIR', 16384);
 @set_time_limit(0);
 
 if (!defined('SYS_ROOT')) {
-	trigger_error('未定义常量 SYS_ROOT.', E_USER_ERROR);
+	exit('未定义常量 SYS_ROOT.');
 }
 
 global $__core_env;

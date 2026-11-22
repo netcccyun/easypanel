@@ -14,7 +14,7 @@ class MigrateAPI extends API
 
 		if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
 			$this->os = 'win';
-			return NULL;
+			return;
 		}
 
 		$this->os = 'lin';
