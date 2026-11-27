@@ -103,6 +103,58 @@ class VhostinfoDAO extends DAO
 		return $this->getData2(array('vhost'), $where, 'row');
 	}
 
+	/**
+	 * 返回绑定了该域名的全部主机。
+	 * 不同监听端口的主机允许绑定同一个域名，所以结果可能有多行。
+	 */
+	public function findDomainAll($domain)
+	{
+		$where = $this->getFieldValue2('name', $domain) . ' AND ' . $this->getFieldValue2('type', 0);
+		return $this->getData2(array('vhost'), $where);
+	}
+
+	/**
+	 * 返回主机占用的监听端口（以端口号为 key 的数组）。
+	 * 没有 type=7 绑定的是全局监听主机，kangle 会把它挂到所有全局监听上，
+	 * 这里返回 null 表示占用全部端口。
+	 */
+	public function getBindPorts($vhost)
+	{
+		$ports = array();
+		$hasBind = false;
+		foreach (ep_iter($this->getInfo($vhost, 7)) as $bind) {
+			$hasBind = true;
+			// 格式为 !ip:port，port 可能带 s/h/q 等后缀，同一端口号是同一个监听。
+			$name = ltrim($bind['name'], '!');
+			$pos = strrpos($name, ':');
+			$port = intval($pos === false ? $name : substr($name, $pos + 1));
+			if ($port > 0) {
+				$ports[$port] = true;
+			}
+		}
+		if (!$hasBind || empty($ports)) {
+			return null;
+		}
+		return $ports;
+	}
+
+	/**
+	 * 两个主机是否落在同一个 kangle 监听上（只按端口判断）。
+	 * 同一监听内 kangle 不拒绝重名域名，后绑的会抢走域名，因此必须禁止。
+	 */
+	public function isPortConflict($vhost1, $vhost2)
+	{
+		$ports1 = $this->getBindPorts($vhost1);
+		if ($ports1 === null) {
+			return true;
+		}
+		$ports2 = $this->getBindPorts($vhost2);
+		if ($ports2 === null) {
+			return true;
+		}
+		return count(array_intersect_key($ports1, $ports2)) > 0;
+	}
+
 	public function delAllInfo($vhost)
 	{
 		return $this->delData($this->getFieldValue2('vhost', $vhost));

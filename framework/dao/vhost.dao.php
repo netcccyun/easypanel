@@ -147,7 +147,14 @@ class VhostDAO extends DAO
 		$where = null;
 
 		if ($search) {
-			if (is_array($search)) {
+			if (is_array($search) && isset($search['names'])) {
+				$names = array();
+				foreach ($search['names'] as $n) {
+					$names[] = '\'' . $this->daddslashes($n) . '\'';
+				}
+				$where = 'name in (' . implode(',', $names) . ')';
+			}
+			elseif (is_array($search)) {
 				$name = $search['name'];
 				if (is_numeric($name)) {
 					$where = 'name like \'%' . $this->daddslashes($search['name']) . '%\' or uid=' . intval($search['name']) . '';

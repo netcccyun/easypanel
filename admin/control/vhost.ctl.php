@@ -44,10 +44,14 @@ class VhostControl extends Control
 			$name = trim(ep_request('name'));
 
 			if (strchr($name, '.')) {
-				$domain = daocall('vhostinfo', 'findDomain', array($name));
+				// 不同端口的主机可以绑定同一个域名，按域名搜索可能命中多个主机
+				$names = array();
+				foreach (ep_iter(daocall('vhostinfo', 'findDomainAll', array($name))) as $domain) {
+					$names[] = $domain['vhost'];
+				}
 
-				if ($domain) {
-					$search_key = $domain['vhost'];
+				if (!empty($names)) {
+					$search_key = array('names' => $names);
 				}
 			}
 			else {

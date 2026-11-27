@@ -188,6 +188,35 @@ class DomainControl extends Control
 		}
 	}
 
+	/**
+	 * 检查域名在其他主机上的绑定，返回当前主机自己是否已绑定该域名。
+	 * 只有监听端口与当前主机有交集的主机才算冲突；不同端口的主机可以绑定同一个域名。
+	 * 冲突方为已暂停用户时强制解除其绑定，否则直接退出报错。
+	 */
+	private function checkDomainOwner($vhost, $name)
+	{
+		$owned = false;
+		foreach (ep_iter(daocall('vhostinfo', 'findDomainAll', array($name))) as $row) {
+			if ($row['vhost'] == $vhost) {
+				$owned = true;
+				continue;
+			}
+			if (!daocall('vhostinfo', 'isPortConflict', array($vhost, $row['vhost']))) {
+				continue;
+			}
+			$vhostinfo = daocall('vhost', 'getVhost', array($row['vhost']));
+			if (is_array($vhostinfo) && $vhostinfo['status'] == 1) {
+				//如果是已暂停的用户，可以强制取消绑定域名
+				if (!apicall('vhost', 'delInfo', array($row['vhost'], $name, 0, null))) {
+					exit('该域名已被他人绑定，请联系管理员(del)');
+				}
+			} else {
+				exit('该域名已被他人绑定，请联系管理员');
+			}
+		}
+		return $owned;
+	}
+
 	public function add()
 	{
 		$domain = strtolower(trim(ep_request('domain')));
@@ -201,44 +230,12 @@ class DomainControl extends Control
 		$domain_bind = daocall('setting', 'get', array('domain_bind'));
 
 		if ($domain != '*') {
-			$ret = daocall('vhostinfo', 'findDomain', array($domain));
+			$isreplace = $this->checkDomainOwner($vhost, $domain);
 
-			if ($ret) {
-				if (($ret['vhost'] != $vhost)) {
-					$vhostinfo = daocall('vhost', 'getVhost', array($ret['vhost']));
-					if(is_array($vhostinfo) && $vhostinfo['status']==1){
-						//如果是已暂停的用户，可以强制取消绑定域名
-						if (!apicall('vhost', 'delInfo', array($ret['vhost'], $domain, 0, null))) {
-							exit('该域名已被他人绑定，请联系管理员(del)');
-						}
-						$isreplace = false;
-					}else{
-						exit('该域名已被他人绑定，请联系管理员');
-					}
-				}else{
-					$isreplace = true;
-				}
-			}
-			
 			//当绑定xx.www.com的时候判断*.www.com是否被别的用户绑定
 			if(strpos($domain, '.')!=strrpos($domain, '.') && substr($domain, 0 ,1)!='*' && !getRole('admin')){
 				$domain2 = '*' . substr($domain, strpos($domain, '.'));
-
-				$ret = daocall('vhostinfo', 'findDomain', array($domain2));
-
-				if ($ret) {
-					if (($ret['vhost'] != $vhost)) {
-						$vhostinfo = daocall('vhost', 'getVhost', array($ret['vhost']));
-						if(is_array($vhostinfo) && $vhostinfo['status']==1){
-							if (!apicall('vhost', 'delInfo', array($ret['vhost'], $domain2, 0, null))) {
-								exit('该域名已被他人绑定，请联系管理员(del)');
-							}
-							$isreplace = false;
-						}else{
-							exit('该域名已被他人绑定，请联系管理员');
-						}
-					}
-				}
+				$this->checkDomainOwner($vhost, $domain2);
 			}
 		}
 
